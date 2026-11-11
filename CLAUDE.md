@@ -88,9 +88,9 @@ Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. L
   - Vista "Pedidos de Temu": uno por número de pedido, con sus guías y sus clientes desplegables (artículos con costo y cobro), el % de cada cliente y el total de la compra.
   - Vista "Por cliente": lista con filtros.
 - **Registrar**:
-  - "Pedido de Temu": varios clientes con varios artículos cada uno, luego número de pedido y guía.
+  - "Pedido de Temu": **primero** número de pedido y guías (con "Otra guía"), **después** los clientes con todos sus artículos (Siguiente/Enter avanza y agrega filas). Por cliente: **¿Cómo pagó?** Aún no / Adelanto (monto) / Completo; eso define lo abonado.
   - "Anotar encargo por comprar".
-- **Clientes**: ranking por pedidos o por gasto, clientes frecuentes (3 pedidos o más), quién debe y ficha con historial. En la ficha se cambia quién atiende al cliente.
+- **Clientes**: ranking por pedidos o por gasto, clientes frecuentes (3 pedidos o más), quién debe y ficha con historial; cada pedido de la ficha se abre y muestra sus artículos. En la ficha se cambia quién atiende al cliente.
 - **Ganancia**: ganancia del mes del equipo, cuánto aporta cada persona y gráfica de 6 meses.
 
 ## Pendientes, en orden sugerido

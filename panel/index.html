@@ -333,6 +333,19 @@ input,textarea,select{-webkit-user-select:text;user-select:text;-webkit-touch-ca
  @keyframes grow{from{transform:scaleX(0)}}
  @keyframes growy{from{transform:scaleY(0)}}
 }
+/* Registrar: forma de pago y guías */
+.pago{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;border-top:1px dashed var(--line);padding-top:10px}
+.pago .seg{flex:1 1 220px}
+.pago-r{font-size:13px;color:var(--muted)}.pago-r b{color:var(--gold)}.pago-r .paid{color:var(--ok);font-weight:700}
+.adel input{width:96px}
+label.f .guia-row{text-transform:none;letter-spacing:0}
+.grand div:last-child b{font:700 14px var(--f-body);color:var(--ink)}
+/* Ficha: historial con lo que pidió en cada pedido */
+.hist2{display:grid;gap:6px}
+details.hd{background:var(--bg);border-radius:10px;border:1px solid transparent}
+details.hd[open]{border-color:var(--line)}
+details.hd summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;font-size:13px;padding:9px 11px;cursor:pointer}
+details.hd summary::-webkit-details-marker{display:none}
 /* App del cliente: registros y vinculación */
 .notif.app{background:linear-gradient(100deg,rgba(232,220,196,.12),transparent 60%),var(--panel);border-color:rgba(232,220,196,.35)}
 .notif.app .stage{background:var(--beige);color:var(--gold-ink)}
@@ -749,10 +762,12 @@ function renderCompras(){
 let nb=null,regModo="temu";
 function nbNuevo(desdeCarrito){
   nb={numero:"",guias:[""],clientes:[]};
-  (desdeCarrito||[]).forEach(id=>{const o=find(id),c=cli(o);nb.clientes.push({nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",desde:o.id,items:[{d:o.nota||"",costo:"",precio:""}]})});
+  (desdeCarrito||[]).forEach(id=>{const o=find(id),c=cli(o);nb.clientes.push({nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",pago:num(o.abonado)?"adelanto":"nada",desde:o.id,items:[{d:o.nota||"",costo:"",precio:""}]})});
   if(!nb.clientes.length)nb.clientes.push(nbCli());
 }
-const nbCli=()=>({nombre:"",tel:"",quien:yo,ent:"local",prov:"Chiriquí",adel:"",items:[{d:"",costo:"",precio:""}]});
+const nbCli=()=>({nombre:"",tel:"",quien:yo,ent:"local",prov:"Chiriquí",adel:"",pago:"nada",items:[{d:"",costo:"",precio:""}]});
+/* Lo que ya pagó un cliente al registrar: nada, un adelanto o el total completo */
+const nbPagado=k=>k.pago==="completo"?sumItems(k.items).precio:k.pago==="adelanto"?Math.min(num(k.adel),sumItems(k.items).precio||num(k.adel)):0;
 function nbTot(){let c=0,p=0;nb.clientes.forEach(k=>k.items.forEach(x=>{c+=num(x.costo);p+=num(x.precio)}));return{c,p}}
 function renderNB(){
   $$("#seg-reg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.reg===regModo));
@@ -763,7 +778,13 @@ function renderNB(){
   const act=document.activeElement;if(act&&$("#nb").contains(act)){act.blur();if(!nb)return}
   const cart=D.P.filter(o=>etapa(o)===0&&!nb.clientes.some(k=>k.desde===o.id));
   $("#nb").innerHTML=`
-   <div class="nb-step"><span class="nb-n">1</span><div><b>Lo que pidió cada cliente</b><p class="note">Un bloque por cliente. Agrega todos sus artículos con lo que costó en Temu y lo que le cobras.</p></div></div>
+   <div class="nb-step"><span class="nb-n">1</span><div><b>Número de pedido y guía de Temu</b><p class="note">El número de pedido es único y agrupa a todos los clientes de esta compra. La guía la puedes poner después si Temu aún no la da.</p></div></div>
+   <div class="fgrid">
+     <label class="f" for="nb-num">Número de pedido Temu<input id="nb-num" class="mono" data-nbtop="numero" value="${esc(nb.numero)}" placeholder="PO-211-…" autocomplete="off" enterkeyhint="next"></label>
+     ${nb.guias.map((g,gi)=>`<label class="f">Número de guía ${nb.guias.length>1?gi+1:""}<span class="guia-row"><input class="mono" data-nbg="${gi}" value="${esc(g)}" list="dl-guias" placeholder="Opcional por ahora" autocomplete="off">${gi?`<button type="button" class="x" data-nbgdel="${gi}" aria-label="Quitar guía">×</button>`:""}</span></label>`).join("")}
+   </div>
+   <button type="button" class="btn sm" id="nb-addg" style="justify-self:start"><svg><use href="#i-plus"/></svg>Otra guía (Temu lo dividió)</button>
+   <div class="nb-step"><span class="nb-n">2</span><div><b>Clientes y lo que pidió cada uno</b><p class="note">Un bloque por cliente con todos sus artículos, sean 2 o 20. Toca “Siguiente” en el teclado para avanzar; al terminar la fila se agrega otro artículo solo.</p></div></div>
    ${nb.clientes.map((k,ci)=>{const s=sumItems(k.items);return`<div class="nb-cli">
      <div class="nb-cli-h"><span class="nb-idx">${ci+1}</span>
        <input data-nb="${ci}|nombre" list="dl-clientes" value="${esc(k.nombre)}" placeholder="Nombre del cliente" aria-label="Cliente ${ci+1}" autocomplete="off">
@@ -776,36 +797,38 @@ function renderNB(){
      </div>
      <div class="it-h"><span>Artículo</span><span>Costo Temu</span><span>Le cobras</span><span></span></div>
      ${k.items.map((x,ii)=>`<div class="it-row">
-       <input data-nb="${ci}|${ii}|d" value="${esc(x.d)}" placeholder="Ej. Funda iPhone 13" aria-label="Artículo">
-       <input data-nb="${ci}|${ii}|costo" value="${esc(x.costo)}" inputmode="decimal" placeholder="0.00" aria-label="Costo en Temu">
-       <input data-nb="${ci}|${ii}|precio" value="${esc(x.precio)}" inputmode="decimal" placeholder="0.00" aria-label="Le cobras">
+       <input data-nb="${ci}|${ii}|d" value="${esc(x.d)}" placeholder="${ii?"Artículo "+(ii+1):"Ej. Funda iPhone 13"}" aria-label="Artículo ${ii+1}" enterkeyhint="next">
+       <input data-nb="${ci}|${ii}|costo" value="${esc(x.costo)}" inputmode="decimal" placeholder="0.00" aria-label="Costo en Temu" enterkeyhint="next">
+       <input data-nb="${ci}|${ii}|precio" value="${esc(x.precio)}" inputmode="decimal" placeholder="0.00" aria-label="Le cobras" enterkeyhint="next">
        <button type="button" class="x" data-nbix="${ci}|${ii}" aria-label="Quitar artículo" ${k.items.length<2?"disabled":""}>×</button></div>`).join("")}
      <div class="nb-cli-f"><button type="button" class="btn sm" data-nbadd="${ci}"><svg><use href="#i-plus"/></svg>Artículo</button>
-       <label class="adel">Adelanto <input data-nb="${ci}|adel" value="${esc(k.adel)}" inputmode="decimal" placeholder="0.00" aria-label="Adelanto"></label>
-       <span class="nb-sub" id="nbs-${ci}">${k.items.length} art. · <b>${$$m(s.precio)}</b></span></div>
+       <span class="nb-sub" id="nbs-${ci}">${llenos(k)} art. · <b>${$$m(s.precio)}</b></span></div>
+     <div class="pago"><span class="f-lab">¿Cómo pagó?</span>
+       <div class="seg sm"><button type="button" data-nbpago="${ci}|nada" aria-pressed="${k.pago==="nada"}">Aún no</button><button type="button" data-nbpago="${ci}|adelanto" aria-pressed="${k.pago==="adelanto"}">Adelanto</button><button type="button" data-nbpago="${ci}|completo" aria-pressed="${k.pago==="completo"}">Completo</button></div>
+       ${k.pago==="adelanto"?`<label class="adel">Adelanto recibido <input data-nb="${ci}|adel" value="${esc(k.adel)}" inputmode="decimal" placeholder="0.00" aria-label="Adelanto recibido"></label>`:""}
+       <span class="pago-r" id="nbp-${ci}"></span></div>
    </div>`}).join("")}
    <div class="o-actions"><button type="button" class="btn" id="nb-addcli"><svg><use href="#i-plus"/></svg>Otro cliente</button></div>
    ${cart.length?`<div class="block"><span class="f-lab">O tráelos del carrito “Por comprar”</span><div class="hist">${cart.map(o=>`<div class="crow"><span class="who-av ${o.quien}">${EQUIPO[o.quien].nombre[0]}</span>
      <span style="min-width:0"><b>${esc(cli(o).nombre)}</b><span class="o-sub" style="display:block">${esc(o.nota||"")}</span></span><button type="button" class="btn sm" data-nbcart="${o.id}">Agregar</button></div>`).join("")}</div></div>`:""}
-   <div class="nb-step"><span class="nb-n">2</span><div><b>Número de pedido y guía de Temu</b><p class="note">El número de pedido es único y agrupa a todos estos clientes. La guía la puedes poner después si Temu aún no la da.</p></div></div>
-   <div class="fgrid">
-     <label class="f" for="nb-num">Número de pedido Temu<input id="nb-num" class="mono" data-nbtop="numero" value="${esc(nb.numero)}" placeholder="PO-211-…" autocomplete="off"></label>
-     ${nb.guias.map((g,gi)=>`<label class="f">Número de guía ${nb.guias.length>1?gi+1:""}<input class="mono" data-nbg="${gi}" value="${esc(g)}" list="dl-guias" placeholder="Opcional por ahora" autocomplete="off"></label>`).join("")}
-   </div>
-   <button type="button" class="btn sm" id="nb-addg" style="justify-self:start"><svg><use href="#i-plus"/></svg>Otra guía (Temu lo dividió)</button>
    <div class="grand" id="nb-grand"></div>
    <p class="err" id="nb-err" hidden></p>
    <div class="o-actions"><button type="button" class="btn gold" id="nb-save"><svg><use href="#i-check"/></svg>Registrar pedido de Temu</button></div>`;
   nbGrand();
 }
-function nbGrand(){const t=nbTot();
-  $("#nb-grand").innerHTML=`<div><span>Total de la compra en Temu</span><b>${$$m(t.c)}</b></div><div><span>Total a cobrar a clientes</span><b>${$$m(t.p)}</b></div><div><span>Ganancia del pedido</span><b class="ok">${$$m(t.p-t.c)}</b></div><div><span>Clientes</span><b>${nb.clientes.length}</b></div>`;
-  nb.clientes.forEach((k,ci)=>{const el=$("#nbs-"+ci);if(el)el.innerHTML=`${k.items.length} art. · <b>${$$m(sumItems(k.items).precio)}</b>`})}
+const llenos=k=>k.items.filter(x=>x.d.trim()||num(x.costo)||num(x.precio)).length;
+function nbGrand(){const t=nbTot(),cob=nb.clientes.reduce((a,k)=>a+nbPagado(k),0),arts=nb.clientes.reduce((a,k)=>a+llenos(k),0);
+  $("#nb-grand").innerHTML=`<div><span>Total de la compra en Temu</span><b>${$$m(t.c)}</b></div><div><span>Total a cobrar a clientes</span><b>${$$m(t.p)}</b></div><div><span>Ganancia del pedido</span><b class="ok">${$$m(t.p-t.c)}</b></div><div><span>Ya cobrado</span><b class="ok">${$$m(cob)}</b></div><div><span>Falta cobrar</span><b class="${t.p-cob>0?"due":"ok"}">${$$m(Math.max(0,t.p-cob))}</b></div><div><span>Clientes · artículos</span><b>${nb.clientes.length} · ${arts}</b></div>`;
+  nb.clientes.forEach((k,ci)=>{const el=$("#nbs-"+ci);if(el)el.innerHTML=`${llenos(k)} art. · <b>${$$m(sumItems(k.items).precio)}</b>`;
+    const pr=$("#nbp-"+ci),tot=sumItems(k.items).precio,pg=nbPagado(k);
+    if(pr)pr.innerHTML=k.pago==="completo"?`<span class="paid">Pagó completo ${$$m(tot)}</span>`:k.pago==="adelanto"?(pg?`Queda debiendo <b>${$$m(Math.max(0,tot-pg))}</b>`:"Escribe cuánto dio de adelanto"):(tot?`Debe <b>${$$m(tot)}</b>`:"")})}
 function nbGuardar(){
   const err=$("#nb-err"),fail=t=>{err.textContent=t;err.hidden=false;err.scrollIntoView({block:"center"})};
   const numero=nb.numero.trim().toUpperCase(),guias=[...new Set(nb.guias.map(g=>g.trim().toUpperCase()).filter(Boolean))];
+  if(!numero){$("#nb-num")?.focus();return fail("Falta el número de pedido de Temu.")}
   for(const [i,k] of nb.clientes.entries()){
     if(!k.nombre.trim())return fail(`Falta el nombre del cliente ${i+1}.`);
+    if(k.pago==="adelanto"&&!num(k.adel))return fail(`Escribe el adelanto de ${k.nombre.trim()}, o elige “Aún no”.`);
     const ex=D.C.find(c=>c.nombre.toLowerCase()===k.nombre.trim().toLowerCase());
     if(!ex&&k.tel.replace(/\D/g,"").length<8)return fail(`Falta el WhatsApp de ${k.nombre}.`);
     k.items=k.items.filter(x=>x.d.trim()||num(x.precio)||num(x.costo));
@@ -823,8 +846,9 @@ function nbGuardar(){
     else Object.assign(c,{tel:tel||c.tel,ent:k.ent,prov:k.ent==="envio"?k.prov:""});
     const items=k.items.map(x=>({d:x.d.trim(),costo:num(x.costo),precio:num(x.precio)}));
     let o=k.desde&&find(k.desde);
-    if(o){Object.assign(o,{items,tpo:numero,quien:k.quien,paq:paqDe(),abonado:num(k.adel)||num(o.abonado),creado:now})}
-    else{o={id:newCode(),cli:c.id,quien:k.quien,items,costo:0,precio:0,abonado:num(k.adel),nota:"",tpo:numero,creado:now,local:[],envio:null,avisado:-1,paq:paqDe()};D.P.unshift(o)}
+    const abonado=nbPagado({...k,items});
+    if(o){Object.assign(o,{items,tpo:numero,quien:k.quien,paq:paqDe(),abonado,creado:now})}
+    else{o={id:newCode(),cli:c.id,quien:k.quien,items,costo:0,precio:0,abonado,nota:"",tpo:numero,creado:now,local:[],envio:null,avisado:-1,paq:paqDe()};D.P.unshift(o)}
     syncItems(o);creados.push(o)});
   save();nb=null;renderAll();
   $("#nb").hidden=true;const d=$("#done");d.hidden=false;const t=creados.reduce((a,o)=>a+num(o.costo),0);
@@ -946,7 +970,12 @@ function renderFicha(){const f=$("#ficha"),c=D.C.find(x=>x.id===fichaId);if(!c){
      ${ap.length?ap.map(r=>`<div class="sum" style="align-items:center"><span class="paid">Entró como <b>${esc(regNombre(r))}</b></span><span>${haceTxt(r.fecha)}</span><button class="btn sm red" style="margin-left:auto" data-desv="${r.id}">Desvincular</button></div>`).join("")
        :`<p class="note">Todavía no entra a la app. Mándale su link: al abrirlo ya le sale su nombre y queda vinculado a esta ficha.</p>`}
      <div class="o-actions"><a class="btn sm wa" href="${waTel(c.tel,msgApp)}" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Enviar link de la app</a><button class="btn sm" data-copiar="${esc(link)}">Copiar link</button></div></div>
-   <div class="hist">${s.ps.sort((a,b)=>new Date(b.creado)-new Date(a.creado)).map(o=>`<div><span class="mono">${o.id}${cp(o.id)}</span><span>${etNombre(o)} · ${new Date(o.creado).toLocaleDateString("es-PA",{day:"numeric",month:"short",year:"2-digit"})}</span><b>${$$m(total(o))}</b></div>`).join("")}</div>`;
+   <div class="block"><span class="f-lab">Todo lo que ha pedido · ${s.ps.reduce((a,o)=>a+itemsDe(o).length,0)} artículos</span>
+   <div class="hist2">${s.ps.sort((a,b)=>new Date(b.creado)-new Date(a.creado)).map(o=>`<details class="hd"><summary><span class="mono">${o.id}${cp(o.id)}</span><span style="min-width:0">${etNombre(o)} · ${new Date(o.creado).toLocaleDateString("es-PA",{day:"numeric",month:"short",year:"2-digit"})}${o.tpo?`<span class="o-sub" style="display:block">Pedido ${esc(o.tpo)}</span>`:""}</span><b>${$$m(total(o))}</b></summary>
+     <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${itemsDe(o).map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
+       ${o.envio?`<div class="item"><span>Envío ${esc(o.envio.t)}</span><span class="c"></span><span class="p">${$$m(tarifa(o))}</span></div>`:""}
+       <div class="item head"><span>${saldo(o)?`Debe ${$$m(saldo(o))}`:"Pagado"}</span><span class="c">${$$m(o.costo)}</span><span class="p">${$$m(total(o))}</span></div>
+       <div class="o-actions" style="margin-top:6px"><button class="btn sm" data-verped="${o.id}">Abrir pedido</button></div></div></details>`).join("")||`<p class="note">Todavía no tiene pedidos.</p>`}</div></div>`;
   $("#cerrar-ficha").onclick=()=>{fichaId=null;renderFicha()};
 }
 
@@ -1010,14 +1039,16 @@ document.addEventListener("click",e=>{
   else if(d.nbdel){nb.clientes.splice(+d.nbdel,1);renderNB()}
   else if(t.id==="nb-addcli"){nb.clientes.push(nbCli());renderNB();document.querySelector(`[data-nb="${nb.clientes.length-1}|nombre"]`)?.focus()}
   else if(d.nbcart){const o=find(d.nbcart),c=cli(o);const blank=nb.clientes.length===1&&!nb.clientes[0].nombre;
-    const k={nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",desde:o.id,items:[{d:o.nota||"",costo:"",precio:""}]};
+    const k={nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",pago:num(o.abonado)?"adelanto":"nada",desde:o.id,items:[{d:o.nota||"",costo:"",precio:""}]};
     if(blank)nb.clientes[0]=k;else nb.clientes.push(k);renderNB()}
-  else if(t.id==="nb-addg"){nb.guias.push("");renderNB()}
+  else if(t.id==="nb-addg"){nb.guias.push("");renderNB();document.querySelector(`[data-nbg="${nb.guias.length-1}"]`)?.focus()}
+  else if(d.nbgdel){nb.guias.splice(+d.nbgdel,1);renderNB()}
+  else if(d.nbpago){const[ci,v]=d.nbpago.split("|");nb.clientes[+ci].pago=v;renderNB();if(v==="adelanto")document.querySelector(`[data-nb="${ci}|adel"]`)?.focus()}
   else if(t.id==="nb-save"){nbGuardar()}
   else if(d.tguia){const key=d.tguia,inp=document.getElementById("tg-"+key),g=inp.value.trim().toUpperCase();if(!g)return toast("Escribe el número de guía");
     const c=compras().find(x=>x.key===key),now=new Date().toISOString(),ex=D.P.flatMap(x=>x.paq).find(q=>q.g===g);
     c.os.forEach(o=>{if(!o.paq.some(p=>p.g===g))o.paq.push({g,h:ex?[...ex.h]:[now]})});save();refresh();toast(`Guía agregada a ${c.os.length} clientes`)}
-  else if(d.verped){modo="cliente";filtro="todos";$("#scope").value="todos";$("#q").value=d.verped;abiertos=new Set([d.verped]);renderCompras();renderPedidos();scrollTo({top:0})}
+  else if(d.verped){location.hash="pedidos";modo="cliente";filtro="todos";$("#scope").value="todos";$("#q").value=d.verped;abiertos=new Set([d.verped]);renderCompras();renderPedidos();scrollTo({top:0})}
   else if(d.p){pick=d.p;renderRegistrar()}
   else if(d.ent){fEnt=d.ent;renderRegistrar()}
   else if(d.cmp){fCmp=d.cmp;renderRegistrar()}
@@ -1053,6 +1084,14 @@ document.addEventListener("change",e=>{
   if(t.dataset.money){const[id,f]=t.dataset.money.split("|"),o=find(id);
     if(f==="tarifa"){o.envio.tarifa=num(t.value)}else o[f]=num(t.value);save();refresh()}
 });
+/* Enter en los artículos: pasa al siguiente campo; al final de la última fila agrega otro artículo. */
+document.addEventListener("keydown",e=>{const t=e.target;if(e.key!=="Enter"||!nb)return;
+  if(t.id==="nb-num"){e.preventDefault();document.querySelector('[data-nbg="0"]')?.focus();return}
+  const a=(t.dataset.nb||"").split("|");if(a.length!==3)return;e.preventDefault();
+  const ci=+a[0],ii=+a[1],k=nb.clientes[ci],orden=["d","costo","precio"],f=orden.indexOf(a[2]);
+  if(f<2)return document.querySelector(`[data-nb="${ci}|${ii}|${orden[f+1]}"]`)?.focus();
+  if(ii===k.items.length-1){if(!k.items[ii].d.trim())return;k.items.push({d:"",costo:"",precio:""});renderNB()}
+  document.querySelector(`[data-nb="${ci}|${ii+1}|d"]`)?.focus()});
 $("#q").addEventListener("input",renderPedidos);
 $("#qc").addEventListener("input",renderCompras);
 document.addEventListener("input",e=>{const t=e.target;if(!nb)return;
