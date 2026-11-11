@@ -4,6 +4,13 @@ Proyecto de DC Marketing (Aguadulce, Coclé, Panamá). El negocio hace pedidos d
 
 Habla siempre en español con el dueño. Escribe para alguien que no es programador: explica en lenguaje simple qué cambió y qué tiene que hacer él.
 
+**Siempre, al inicio de cada respuesta al dueño, pon los links de las apps** (para abrirlas o instalarlas):
+
+- App del cliente: https://dicynmarketing.github.io/dc-rastreo/cliente/
+- Panel (Diego y Cinthya): https://dicynmarketing.github.io/dc-rastreo/panel/
+
+Cuando él pide correcciones, publícalas tú en GitHub: abre el pull request a `main` y únelo. No le pidas que lo haga él.
+
 ## Estructura
 
 ```
