@@ -105,6 +105,14 @@ Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. L
 6. ~~Instalable en el teléfono~~ (manifiesto e íconos hechos). Falta: logo original grande para íconos más nítidos, y modo sin conexión (service worker) si se quiere.
 7. **Dominio propio** (opcional). Hoy el link de seguimiento se arma solo desde donde está publicado el panel (`LINK_BASE` = `../cliente/#` relativo al panel), así que en GitHub Pages ya funciona. Si se compra dominio, cambiar `LINK_BASE` en `panel/index.html`.
 
+## Actualizaciones (cómo publicar una versión)
+
+- `version.json` (raíz) tiene el número de versión de cada app (`admin`, `cliente`) y las `notas`, de la más nueva a la más vieja. Cada nota lleva `fecha`, `admin`, `cliente` (la versión de cada app en ese momento), `titulo`, `admin_items` y `cliente_items`.
+- Cada HTML tiene `const APP="admin"|"cliente",APP_VERSION=N;`. Si `version.json` dice un número mayor, aparece **"Nueva actualización"** sobre el menú de abajo. Al tocarlo se ven las novedades y, con "Actualizar ahora", sale la pantalla de carga (buscar, descargar, instalar) y se abre la versión nueva con `?v=N`, que evita la caché de GitHub Pages.
+- El **admin** ve sus novedades y las de los clientes, marcadas "Panel" o "Clientes". El **cliente** solo ve `cliente_items`. Un cambio solo del panel no sube la versión del cliente.
+- **Cada vez que se publique un cambio**: subir `APP_VERSION` en el HTML que cambió, poner el mismo número en `version.json` y agregar arriba una nota con lo nuevo, escrita para el dueño y sus clientes. Si un HTML no cambió, su número se queda igual.
+- Si al actualizar la página nueva todavía no está publicada, se avisa "intenta en uno o dos minutos" y no se queda en un ciclo.
+
 ## Notas técnicas
 
 - El panel guarda en `localStorage` con la llave `dc-panel-v5`. **Ya no hay datos de ejemplo**: arranca vacío. La llave `dc-reinicio=cero-1` hace que, una sola vez por teléfono, se borren los datos de prueba viejos (`dc-panel-v5`, `dc-app-registros`, `dc-app-yo`). Al conectar Supabase, quitar `localStorage`.

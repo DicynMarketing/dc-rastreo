@@ -1,0 +1,62 @@
+{
+  "admin": 5,
+  "cliente": 5,
+  "notas": [
+    {
+      "fecha": "2026-11-11",
+      "admin": 5,
+      "cliente": 5,
+      "titulo": "Aviso de actualizaciones",
+      "admin_items": [
+        "Cuando hay una versión nueva aparece “Nueva actualización” sobre el menú de abajo: ves qué cambió y la instalas con un toque.",
+        "“Ver novedades” al final de Inicio para revisar qué trae tu versión."
+      ],
+      "cliente_items": [
+        "La app avisa cuando hay una versión nueva y se actualiza con un solo botón, sin perder nada."
+      ]
+    },
+    {
+      "fecha": "2026-11-11",
+      "admin": 4,
+      "cliente": 3,
+      "titulo": "Registrar pedido más rápido",
+      "admin_items": [
+        "Primero el número de pedido y las guías, después los clientes.",
+        "“¿Cómo pagó?” por cliente: aún no, adelanto o completo.",
+        "“Siguiente” en el teclado agrega artículos sin soltar el teclado.",
+        "En la ficha del cliente se ve todo lo que ha pedido, artículo por artículo."
+      ],
+      "cliente_items": []
+    },
+    {
+      "fecha": "2026-11-11",
+      "admin": 3,
+      "cliente": 3,
+      "titulo": "Nuevo look y desde cero",
+      "admin_items": [
+        "Azul marino apagado con bandejas negras, dorado y beige.",
+        "Animaciones al entrar a cada sección y ruedas que se llenan hasta su etapa.",
+        "Botón de copiar en códigos, guías, números de pedido y teléfonos."
+      ],
+      "cliente_items": [
+        "Nuevo diseño con tus pedidos en bandejas negras.",
+        "Botón para copiar tu código de pedido.",
+        "Sin zoom accidental dentro de la app."
+      ]
+    },
+    {
+      "fecha": "2026-11-11",
+      "admin": 2,
+      "cliente": 2,
+      "titulo": "Entrar con tu nombre",
+      "admin_items": [
+        "Los clientes que entran a la app aparecen para vincularlos con tu lista.",
+        "Link personal desde la ficha: el cliente entra ya vinculado."
+      ],
+      "cliente_items": [
+        "Entra con tu nombre y apellido, sin cuenta ni contraseña.",
+        "“Mis pedidos” con todos tus pedidos y su seguimiento."
+      ]
+    }
+  ]
+}
