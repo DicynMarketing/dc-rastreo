@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#071230">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0F1522">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" type="image/png" href="../assets/dc-logo-160.png">
@@ -16,8 +16,9 @@
 <style>
 /* Layout: consola de trabajo. Riel lateral en escritorio, dock flotante abajo en móvil. Inicio = avisos + tablero de ruta; Pedidos = lista expandible; Registrar = hoja de alta. Un solo look oscuro. */
 :root{
-  --bg:#071230; --panel:#0D1C45; --panel-2:#13275A; --line:#1F3570; --ink:#EEF1F8; --muted:#8C9AC0;
-  --gold:#D7A95B; --gold-ink:#1A1205; --steel:#4B4C4E; --ok:#3CC48A; --wa:#25B866;
+  /* Fondo azul marino apagado; bandejas negras con letras blancas; acentos dorado y beige */
+  --bg:#0F1522; --panel:#08090C; --panel-2:#1A1E27; --field:#12151C; --line:#262C38; --ink:#F5F2EC; --muted:#9AA2B1;
+  --gold:#D7A95B; --gold-ink:#1A1205; --beige:#E8DCC4; --steel:#4B4C4E; --ok:#4CC38A; --wa:#25B866;
   --f-display:"Unbounded",system-ui,sans-serif; --f-body:"Figtree",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
   color-scheme:dark;
 }
@@ -34,7 +35,7 @@ html{-webkit-text-size-adjust:100%;touch-action:manipulation}
 /* Navegación */
 nav.rail{display:none}
 @media (min-width:860px){
- nav.rail{display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh;padding:24px 14px;border-right:1px solid var(--line);background:linear-gradient(180deg,var(--panel),var(--bg))}
+ nav.rail{display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh;padding:24px 14px;border-right:1px solid var(--line);background:var(--panel)}
 }
 .brand{display:flex;align-items:center;gap:10px;padding:0 8px 18px}
 .brand img{width:38px;height:auto}
@@ -49,7 +50,7 @@ nav.rail{display:none}
 .badge{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--gold);color:var(--gold-ink);font-size:11px;font-weight:800;display:grid;place-items:center}
 .badge[hidden]{display:none}
 
-nav.dock{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:20;display:flex;gap:4px;padding:6px;border-radius:22px;background:rgba(13,28,69,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);box-shadow:0 18px 40px rgba(0,0,0,.45)}
+nav.dock{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:20;display:flex;gap:4px;padding:6px;border-radius:22px;background:rgba(8,9,12,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);box-shadow:0 18px 40px rgba(0,0,0,.45)}
 @media (min-width:860px){nav.dock{display:none}}
 .dock a{position:relative;display:grid;justify-items:center;gap:2px;width:76px;padding:8px 0 6px;border-radius:16px;color:var(--muted);text-decoration:none;font-size:11px;font-weight:600;transition:color .2s}
 .dock a svg{width:22px;height:22px;transition:transform .3s cubic-bezier(.3,1.6,.5,1)}
@@ -117,7 +118,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{ou
 .search{flex:1 1 200px;min-width:0;position:relative}
 .search input{width:100%;box-sizing:border-box;padding:11px 12px 11px 38px}
 .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
-input,select{font:500 16px var(--f-body);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 12px;min-width:0}
+input,select{font:500 16px var(--f-body);color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:12px;padding:11px 12px;min-width:0}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .chip{flex:none;border:1px solid var(--line);background:none;color:var(--muted);font:600 12px var(--f-body);padding:6px 11px;border-radius:999px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -169,7 +170,7 @@ section[data-view]{display:grid;grid-template-columns:minmax(0,1fr);gap:26px}
 @media (prefers-reduced-motion:no-preference){section[data-view]:not([hidden]){animation:in .35s ease}@keyframes in{from{opacity:.4;transform:translateY(6px)}}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
-:root{--red:#FF7A6B;--red-soft:rgba(255,122,107,.12)}
+:root{--red:#F07A6A;--red-soft:rgba(240,122,106,.12)}
 .dock a{width:62px}
 .dock a.plus{width:54px}
 .dock .badge{right:8px}
@@ -227,7 +228,7 @@ button.kpi:hover{border-color:var(--gold)}
 .faces{display:flex;margin-top:6px}
 .faces span{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:800 10px var(--f-display);border:2px solid var(--panel);margin-left:-6px;background:var(--panel-2)}
 .faces span:first-child{margin-left:0}
-.faces .diego,.who-av.diego{background:var(--gold);color:var(--gold-ink)} .faces .cinthya,.who-av.cinthya{background:#8EA2E6;color:#0A1433}
+.faces .diego,.who-av.diego{background:var(--gold);color:var(--gold-ink)} .faces .cinthya,.who-av.cinthya{background:var(--beige);color:var(--gold-ink)}
 .hist .crow{grid-template-columns:auto minmax(0,1fr) auto auto}
 .who-av{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font:800 11px var(--f-display)}
 .pick-row{cursor:pointer}
@@ -256,7 +257,7 @@ details.cli summary::-webkit-details-marker{display:none}
 .nb-step{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start}
 .nb-step b{font-size:15px}
 .nb-n{width:30px;height:30px;border-radius:50%;background:var(--gold);color:var(--gold-ink);display:grid;place-items:center;font:800 13px var(--f-display)}
-.nb-cli{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:10px}
+.nb-cli{background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:10px}
 .nb-cli-h{display:flex;gap:8px;align-items:center}
 .nb-cli-h input{flex:1;min-width:0;font-weight:700}
 .form{grid-template-columns:minmax(0,1fr)}.form>*,.nb-cli>*{min-width:0}
@@ -302,12 +303,42 @@ details.cli summary::-webkit-details-marker{display:none}
 .split-row .bar{height:12px;border-radius:6px;background:var(--line);overflow:hidden}
 .split-row .bar i{display:block;height:100%;border-radius:6px;background:var(--gold)}
 .split-row b{font-variant-numeric:tabular-nums}
+/* Sin zoom ni selección de texto (salvo en campos). Copiar con el botón de la esquina. */
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.cp{display:inline-grid;place-items:center;width:24px;height:24px;margin-left:4px;vertical-align:middle;border:1px solid var(--line);border-radius:7px;background:var(--panel-2);color:var(--muted);cursor:pointer;padding:0;flex:none;transition:color .15s,border-color .15s,background .15s}
+.cp svg{width:13px;height:13px}
+.cp:hover{color:var(--gold);border-color:var(--gold)}
+.cp.ok{color:var(--gold-ink);background:var(--gold);border-color:var(--gold)}
+.fecha{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:0 0 8px}
+.cnt-b{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--gold);color:var(--gold-ink);font:800 11px var(--f-body);margin-left:8px;vertical-align:1px;letter-spacing:0}
+/* Animaciones al entrar a cada sección: tarjetas escalonadas, ruedas que se llenan, barras que crecen */
+@property --p{syntax:"<number>";inherits:false;initial-value:0}
+@media (prefers-reduced-motion:no-preference){
+ .anim :is(.kpis,.teamrow,.inbox,.orders,.rank,.board,.split,.clis,.olist)>*{animation:up .45s cubic-bezier(.2,.8,.2,1) both}
+ .anim :is(.kpis,.teamrow,.inbox,.orders,.rank,.board,.split)>:nth-child(2){animation-delay:.05s}
+ .anim :is(.kpis,.teamrow,.inbox,.orders,.rank,.board,.split)>:nth-child(3){animation-delay:.1s}
+ .anim :is(.kpis,.teamrow,.inbox,.orders,.rank,.board,.split)>:nth-child(4){animation-delay:.15s}
+ .anim :is(.kpis,.teamrow,.inbox,.orders,.rank,.board,.split)>:nth-child(5){animation-delay:.2s}
+ .anim :is(.kpis,.teamrow,.inbox,.orders,.rank,.board,.split)>:nth-child(6){animation-delay:.25s}
+ .anim :is(.kpis,.teamrow,.inbox,.orders,.rank,.board,.split)>:nth-child(n+7){animation-delay:.3s}
+ .anim .ring{animation:ringfill 1.1s cubic-bezier(.2,.8,.2,1) .15s both}
+ .anim :is(.mini i.on,.track-line i,.pct i,.bar i){animation:grow .9s cubic-bezier(.2,.8,.2,1) .2s both;transform-origin:left}
+ .anim .chart .b{animation:growy .9s cubic-bezier(.2,.8,.2,1) .15s both;transform-origin:bottom}
+ details.just>.o-body,details.just>.items{animation:up .35s cubic-bezier(.2,.8,.2,1) both}
+ .navlist a svg,.btn,.kpi,.tm,.col,.rk{transition:transform .2s cubic-bezier(.3,1.4,.5,1),border-color .2s}
+ button.kpi:active,.tm:active,.col:active,.rk:active{transform:scale(.97)}
+ @keyframes up{from{opacity:0;transform:translateY(14px)}}
+ @keyframes ringfill{from{--p:0}}
+ @keyframes grow{from{transform:scaleX(0)}}
+ @keyframes growy{from{transform:scaleY(0)}}
+}
 /* App del cliente: registros y vinculación */
-.notif.app{background:linear-gradient(100deg,rgba(142,162,230,.16),transparent 60%),var(--panel);border-color:rgba(142,162,230,.45)}
-.notif.app .stage{background:#8EA2E6;color:#0A1433}
-.reg{background:var(--panel);border:1px solid rgba(142,162,230,.45);border-radius:16px;padding:14px;display:grid;gap:10px}
+.notif.app{background:linear-gradient(100deg,rgba(232,220,196,.12),transparent 60%),var(--panel);border-color:rgba(232,220,196,.35)}
+.notif.app .stage{background:var(--beige);color:var(--gold-ink)}
+.reg{background:var(--panel);border:1px solid rgba(232,220,196,.35);border-radius:16px;padding:14px;display:grid;gap:10px}
 .reg-h{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center}
-.reg-h .av{width:40px;height:40px;border-radius:12px;background:#8EA2E6;color:#0A1433;display:grid;place-items:center;font:800 13px var(--f-display)}
+.reg-h .av{width:40px;height:40px;border-radius:12px;background:var(--beige);color:var(--gold-ink);display:grid;place-items:center;font:800 13px var(--f-display)}
 .reg-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
 .reg-row select{width:100%}
 @media (max-width:520px){.reg-row{grid-template-columns:minmax(0,1fr)}.reg-row .btn{justify-content:center}}
@@ -331,6 +362,7 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
   <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
   <symbol id="i-cart" viewBox="0 0 24 24"><path d="M3 4h2l2.2 11h11l2-8H6.3M9 20a1 1 0 1 0 0-.1M17 20a1 1 0 1 0 0-.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
   <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 6h12v10H2zM14 10h4l3 3v3h-7M6 19a1.8 1.8 0 1 0 0-.1M17 19a1.8 1.8 0 1 0 0-.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
 </svg>
 
@@ -358,12 +390,12 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
       </div>
 
       <section data-view="inicio">
-        <div><h1 id="hello">Buenas, <span>Diego</span></h1><p class="lead" id="lead"></p></div>
-        <div class="block"><div class="h2row" style="margin:0"><h2>Equipo DC</h2><span class="note">Números de los dos</span></div><div class="kpis" id="kpis"></div><div class="teamrow" id="team"></div></div>
+        <div><p class="fecha" id="fecha"></p><h1 id="hello">Buenas, <span>Diego</span></h1><p class="lead" id="lead"></p></div>
         <div><div class="h2row"><h2 id="h-tareas">Por hacer</h2></div><div class="inbox" id="inbox"></div></div>
+        <div class="block"><div class="h2row" style="margin:0"><h2>Equipo DC</h2><span class="note">Números de los dos</span></div><div class="kpis" id="kpis"></div><div class="teamrow" id="team"></div></div>
         <div><div class="h2row"><h2>Tablero de ruta</h2><span class="note">Toca una etapa para ver sus pedidos</span></div>
           <div class="board-scroll"><div class="board" id="board"></div></div></div>
-        <p class="note">Prototipo: los datos marcados “Ejemplo” son de prueba y se guardan solo en este navegador. En la versión real las etapas de Temu llegan solas desde el rastreo de cada guía.</p>
+        <p class="note">Por ahora los datos se guardan en este teléfono. Cuando conectemos la base de datos compartida, Diego y Cinthya verán lo mismo y las etapas de Temu llegarán solas desde el rastreo de cada guía.</p>
       </section>
 
       <section data-view="pedidos" hidden>
@@ -476,6 +508,7 @@ const norm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase(
 const regNombre=r=>`${r.nombre} ${r.apellido}`.trim();
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tc=s=>String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s'-])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()); // "kevin morán" → "Kevin Morán"
 const fmtTel=t=>t&&t.length===8?t.slice(0,4)+"-"+t.slice(4):t;
 const $$m=n=>"$"+(Number(n)||0).toFixed(2);
 const num=v=>{const n=parseFloat(String(v).replace(",","."));return isFinite(n)?Math.max(0,n):0};
@@ -483,45 +516,11 @@ const dias=iso=>Math.floor((Date.now()-new Date(iso))/864e5);
 function ago(d,h){const t=new Date();t.setDate(t.getDate()-d);t.setHours(h??10,0,0,0);return t.toISOString()}
 function serie(start,n,gap){const a=[];for(let k=0;k<n;k++)a.push(ago(start-k*(gap||1)));return a}
 
-/* ---------- Datos de ejemplo ---------- */
-function seed(){
- const C=[
-  ["c1","María González","61234567","local",""],["c2","Luis Pérez","66778899","envio","Chiriquí"],["c3","Ana Rodríguez","69990011","local",""],
-  ["c4","Carlos Batista","62223344","envio","Veraguas"],["c5","Yariela Castillo","67001122","local",""],["c6","Kevin Morán","65554433","envio","Panamá"],
-  ["c7","Itzel Sánchez","68881200","local",""],["c8","Rosa Quintero","60043219","envio","Herrera"]
- ].map(([id,nombre,tel,ent,prov])=>({id,nombre,tel,ent,prov,ej:1}));
- const o=(id,cli,quien,costo,precio,adel,paq,extra)=>Object.assign({id,cli,quien,costo,precio,abonado:adel,nota:"",ent:null,creado:paq[0]?.h[0]||ago(1),local:[],envio:null,avisado:-1,ej:1,paq},extra||{});
- const P=[
-  o("DC-4821","c1","diego",18,32,15,[{g:"PFC0012345678PA",h:serie(9,5,1.5)}],{avisado:5}),
-  o("DC-5307","c2","cinthya",41,70,35,[{g:"YT2512345678901",h:serie(6,4,1.3)},{g:"YT2512345678955",h:serie(6,3,1)}],{avisado:3}),
-  o("DC-6190","c3","diego",22,40,40,[{g:"LY987654321CN",h:serie(15,7,1.6)}],{local:[ago(4),ago(3)],avisado:9}),
-  o("DC-7042","c4","cinthya",15,28,10,[{g:"PFC0098765432PA",h:[ago(9),ago(8)]}],{avisado:2}),
-  o("DC-3318","c5","diego",30,52,20,[{g:"PFC0055512399PA",h:serie(12,7,1.4)}],{avisado:6}),
-  o("DC-2290","c6","cinthya",55,90,45,[{g:"YT2599001122334",h:serie(14,7,1.5)}],{envio:{t:"Servientrega",tarifa:6.5},local:[ago(1)],avisado:8}),
-  o("DC-8104","c1","diego",0,0,0,[],{nota:"Set de cocina 12 piezas, color gris",creado:ago(3)}),
-  o("DC-8120","c7","cinthya",0,0,5,[],{nota:"Audífonos inalámbricos blancos x2",creado:ago(0,9)}),
-  o("DC-4833","c7","cinthya",9,18,18,[{g:"PFC0012345678PA",h:serie(9,5,1.5)}],{avisado:5}),
-  o("DC-4840","c6","cinthya",14,25,10,[{g:"PFC0012345678PA",h:serie(9,5,1.5)}],{avisado:5}),
-  o("DC-4847","c3","diego",11,20,0,[{g:"PFC0012345678PA",h:serie(9,5,1.5)},{g:"PFC0012345699PA",h:serie(9,4,1.5)}],{avisado:4}),
-  o("DC-1902","c1","diego",25,45,45,[{g:"PFC0011100022PA",h:serie(48,7,2)}],{local:[ago(34),ago(33)],avisado:9}),
-  o("DC-1405","c3","cinthya",12,24,24,[{g:"LY111222333CN",h:serie(70,7,2)}],{local:[ago(56),ago(55)],avisado:9}),
-  o("DC-1188","c8","diego",34,60,60,[{g:"YT2500011199887",h:serie(95,7,2)}],{envio:{t:"Ferguson",tarifa:5},local:[ago(80),ago(78)],avisado:9}),
-  o("DC-0977","c1","cinthya",40,68,68,[{g:"PFC0099988877PA",h:serie(120,7,2)}],{local:[ago(106),ago(105)],avisado:9}),
-  o("DC-0812","c5","diego",19,35,35,[{g:"PFC0077766655PA",h:serie(150,7,2)}],{local:[ago(137),ago(136)],avisado:9}),
-  o("DC-1550","c2","cinthya",28,50,50,[{g:"YT2588877766655",h:serie(40,7,2)}],{envio:{t:"Ferguson",tarifa:7},local:[ago(26),ago(24)],avisado:9})
- ];
- const ART={"DC-4821":[["Funda iPhone 13 negra",4,8],["Protector de pantalla x2",3,6],["Organizador de maquillaje",11,18]],
-  "DC-4833":[["Audífonos inalámbricos",9,18]],"DC-4840":[["Luces LED 5 m",6,11],["Soporte de celular para carro",8,14]],
-  "DC-4847":[["Set de brochas",5,9],["Lámpara de noche",6,11]],"DC-5307":[["Zapatillas deportivas",28,48],["Medias x6",13,22]],
-  "DC-2290":[["Silla plegable",30,48],["Mesa de camping",25,42]],"DC-3318":[["Vestido de verano",14,24],["Cartera",16,28]]};
- const TPO={"DC-4821":"PO-211-08812345670012","DC-4833":"PO-211-08812345670012","DC-4840":"PO-211-08812345670012","DC-4847":"PO-211-08812345670012"};
- let n=7700;P.forEach(o=>{if(ART[o.id]){o.items=ART[o.id].map(([d,c,p])=>({d,costo:c,precio:p}));o.costo=o.items.reduce((a,x)=>a+x.costo,0);o.precio=o.items.reduce((a,x)=>a+x.precio,0)}
-   if(o.paq.length)o.tpo=TPO[o.id]||("PO-211-0"+(n+=137)+"40021"+o.id.slice(3))});
- P.find(o=>o.id==="DC-5307").abonado=35;
- return {C,P};
-}
+/* ---------- Arranque desde cero ----------
+   Una sola vez por teléfono se borran los datos de prueba anteriores (pedidos, clientes y registros de la app). */
+try{if(localStorage.getItem("dc-reinicio")!=="cero-1"){["dc-panel-v5","dc-app-registros","dc-app-yo"].forEach(k=>localStorage.removeItem(k));localStorage.setItem("dc-reinicio","cero-1")}}catch(e){}
 let D;try{D=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-if(!D||!Array.isArray(D.P)){D=seed();try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}}
+if(!D||!Array.isArray(D.P)){D={C:[],P:[]};try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}}
 let yo="diego";try{yo=localStorage.getItem(KEYW)||"diego"}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
 const cli=o=>D.C.find(c=>c.id===o.cli)||{nombre:"?",tel:"",ent:"local"};
@@ -567,6 +566,18 @@ function msg(o,tipo){const c=cli(o),n=c.nombre.split(" ")[0],e=etapa(o),yoN=EQUI
   const r=resumenPaq(o);return`Hola ${n}, tu pedido ${o.id} avanzó: *${r||ET[e]}*.${link}${firma}`}
 function waTel(tel,text){let n=String(tel||"").replace(/\D/g,"");if(n.length===8)n="507"+n;return`https://wa.me/${n}?text=${encodeURIComponent(text)}`}
 function wa(o,tipo){return waTel(cli(o).tel,msg(o,tipo))}
+/* Copiar al portapapeles con el botón de la esquina (el texto no se puede seleccionar a mano). */
+const cp=(t,l)=>t?`<button type="button" class="cp" data-cp="${esc(t)}" aria-label="Copiar ${esc(l||t)}" title="Copiar"><svg><use href="#i-copy"/></svg></button>`:"";
+function copiar(t,btn){const ok=()=>{toast("Copiado");if(btn){btn.classList.add("ok");setTimeout(()=>btn.classList.remove("ok"),1200)}};
+  const viejo=()=>{const a=document.createElement("textarea");a.value=t;a.setAttribute("readonly","");a.style.cssText="position:fixed;opacity:0;top:0";document.body.appendChild(a);a.select();
+    let r=false;try{r=document.execCommand("copy")}catch(e){}document.body.removeChild(a);r?ok():prompt("Copia:",t)};
+  navigator.clipboard?.writeText?navigator.clipboard.writeText(t).then(ok,viejo):viejo()}
+/* Números que cuentan hacia arriba al entrar a una sección */
+function contar(root){if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  root.querySelectorAll("[data-n]").forEach(el=>{const n=+el.dataset.n,m=el.dataset.m,t0=performance.now(),dur=850;if(!n)return;
+    (function f(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3),v=n*e;el.textContent=m?$$m(v):Math.round(v);if(k<1)requestAnimationFrame(f)})(t0)})}
+function animar(sec){if(!sec)return;sec.classList.remove("anim");void sec.offsetWidth;sec.classList.add("anim");contar(sec);clearTimeout(sec._t);sec._t=setTimeout(()=>sec.classList.remove("anim"),1400)}
+const seccion=()=>$("section[data-view]:not([hidden])");
 function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2400)}
 const saludo=()=>{const h=new Date().getHours();return h<12?"Buenos días":h<19?"Buenas tardes":"Buenas noches"};
 const mineOrAll=()=>D.P.filter(o=>o.quien===yo);
@@ -580,12 +591,13 @@ function renderInicio(){
   const nuevos=pendientes();
   const tareas=avisos.length+stuck.length+buy.length+nuevos.length;
   $("#lead").textContent=tareas?`Tienes ${tareas} ${tareas===1?"cosa":"cosas"} por hacer con tus clientes.`:"Tus clientes están al día.";
-  $("#h-tareas").textContent=`Por hacer · ${EQUIPO[yo].nombre}`;
+  $("#h-tareas").innerHTML=`Por hacer · ${EQUIPO[yo].nombre}${tareas?`<span class="cnt-b">${tareas}</span>`:""}`;
+  $("#fecha").textContent=new Date().toLocaleDateString("es-PA",{weekday:"long",day:"numeric",month:"long"});
   $("#kpis").innerHTML=`
-   <button class="kpi" data-jump="saldo"><span class="k">Nos deben</span><span class="v gold">${$$m(deuda)}</span><small>${T.filter(o=>saldo(o)>0).length} pedidos con saldo</small></button>
-   <button class="kpi" data-jump="camino"><span class="k">En camino</span><span class="v">${enCamino}</span><small>${listos} por entregar</small></button>
-   <button class="kpi" data-jump="comprar"><span class="k">Por comprar</span><span class="v">${tBuy.length}</span><small>carrito del equipo</small></button>
-   <button class="kpi" data-jump="atascado"><span class="k">Atascados</span><span class="v ${tStuck.length?"red":"ok"}">${tStuck.length}</span><small>${DIAS_ATASCADO}+ días sin movimiento</small></button>`;
+   <button class="kpi" data-jump="saldo"><span class="k">Nos deben</span><span class="v gold" data-n="${deuda}" data-m="1">${$$m(deuda)}</span><small>${T.filter(o=>saldo(o)>0).length} pedidos con saldo</small></button>
+   <button class="kpi" data-jump="camino"><span class="k">En camino</span><span class="v" data-n="${enCamino}">${enCamino}</span><small>${listos} por entregar</small></button>
+   <button class="kpi" data-jump="comprar"><span class="k">Por comprar</span><span class="v" data-n="${tBuy.length}">${tBuy.length}</span><small>carrito del equipo</small></button>
+   <button class="kpi" data-jump="atascado"><span class="k">Atascados</span><span class="v ${tStuck.length?"red":"ok"}" data-n="${tStuck.length}">${tStuck.length}</span><small>${DIAS_ATASCADO}+ días sin movimiento</small></button>`;
   $("#team").innerHTML=Object.keys(EQUIPO).map(k=>{const ps=T.filter(o=>o.quien===k),cl=D.C.filter(c=>atiende(c)===k);
     const pend=ps.filter(o=>(etapa(o)!==o.avisado&&etapa(o)>0)||atascado(o)||etapa(o)===0).length;
     return`<button class="tm ${k===yo?"me":""}" data-yo="${k}"><span class="av">${EQUIPO[k].nombre[0]}</span><span style="min-width:0"><b>${EQUIPO[k].nombre}</b>
@@ -600,9 +612,9 @@ function renderInicio(){
      <a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar</a></div>`),
    ...buy.map(o=>`<div class="notif buy"><div class="stage"><svg width="20" height="20"><use href="#i-cart"/></svg></div><p><b>${esc(cli(o).nombre)}</b> · por comprar${dias(o.creado)?` hace ${dias(o.creado)} d`:""}<br><small>${esc(o.nota||"Sin nota")}</small></p>
      <button class="btn gold" data-open="${o.id}"><svg><use href="#i-check"/></svg>Ya lo compré</button></div>`)];
-  $("#inbox").innerHTML=items.join("")||`<div class="empty">No hay nada pendiente. Los avisos, pedidos atascados y compras pendientes aparecen aquí.</div>`;
+  $("#inbox").innerHTML=items.join("")||`<div class="empty">${D.P.length||D.C.length?"Todo al día. ":""}Aquí aparecen los avisos para tus clientes, los pedidos atascados, las compras pendientes y quién entra a la app.</div>`;
   $("#board").innerHTML=ET.map((e,k)=>{const en=D.P.filter(o=>etapa(o)===k);
-    return`<button class="col" data-etapa="${k}"><span class="nm">${e}</span><span class="cnt ${en.length?"":"zero"}">${en.length}</span>
+    return`<button class="col" data-etapa="${k}"><span class="nm">${e}</span><span class="cnt ${en.length?"":"zero"}" data-n="${en.length}">${en.length}</span>
       <span class="track-line"><i style="width:${(k+1)/10*100}%"></i></span>
       <span class="who-dots">${en.slice(0,3).map(o=>`<span>${esc(cli(o).nombre.split(" ")[0])}</span>`).join("")}${en.length>3?`<span>+${en.length-3}</span>`:""}</span></button>`}).join("");
   $$("[data-badge]").forEach(b=>{b.hidden=!tareas;b.textContent=tareas});
@@ -618,7 +630,7 @@ function renderPedidos(){
   const q=$("#q").value.trim().toLowerCase(),scope=$("#scope").value;
   const L=D.P.filter(o=>(scope==="todos"||o.quien===yo)&&FILTROS[filtro][1](o)&&(!q||(cli(o).nombre+o.id+(o.tpo||"")+o.paq.map(p=>p.g).join(" ")).toLowerCase().includes(q)))
     .sort((a,b)=>(etapa(a)===9)-(etapa(b)===9)||new Date(ultimo(b))-new Date(ultimo(a)));
-  $("#orders").innerHTML=L.length?L.map(card).join(""):`<div class="empty">Ningún pedido coincide.</div>`;
+  $("#orders").innerHTML=L.length?L.map(card).join(""):`<div class="empty">${D.P.length?"Ningún pedido coincide.":"Aún no hay pedidos. Registra el primero en “Nuevo”."}</div>`;
 }
 function card(o){
   const e=etapa(o),c=cli(o),a=atascado(o),done=e===9,pct=Math.round(e/9*100);
@@ -627,9 +639,9 @@ function card(o){
     o.paq.length>1?`<span class="pill">${o.paq.length} guías</span>`:"", c.ent==="envio"?`<span class="pill">${esc(c.prov)}</span>`:"",
     o.ej?`<span class="tag">Ejemplo</span>`:""].join("");
   return`<details class="order" data-id="${o.id}" ${abiertos.has(o.id)?"open":""}><summary>
-    <div class="ring ${a?"red":done?"done":""}" style="--p:${pct}"><b>${e}</b></div>
+    <div class="ring ${a?"red":done?"done":""}" style="--p:${pct}"><b data-n="${e}">${e}</b></div>
     <div class="o-main"><div class="o-name">${esc(c.nombre)}</div>
-      <div class="o-sub"><span class="mono">${o.id}</span><span>por ${EQUIPO[o.quien].nombre}</span></div>
+      <div class="o-sub"><span class="mono">${o.id}${cp(o.id)}</span><span>por ${EQUIPO[o.quien].nombre}</span></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${pills}</div></div>
     <div style="display:flex;align-items:center;gap:8px"><span class="state ${st}">${a?`Atascado ${a.d}d`:etNombre(o)}</span><svg class="chev"><use href="#i-chev"/></svg></div></summary>
     <div class="o-body">${detalle(o)}</div></details>`}
@@ -638,9 +650,9 @@ function detalle(o){
   let h="";
   if(e===0){h+=`<div class="block"><p class="block-t">Por comprar</p><div class="sum">${esc(o.nota||"Sin nota")}</div>
      <button class="btn gold" style="justify-self:start" data-open="${o.id}"><svg><use href="#i-check"/></svg>Ya lo compré: meterlo en un pedido de Temu</button></div>`}
-  else if(!o.paq.length){h+=`<div class="block"><p class="block-t">Pedido Temu <span class="mono">${esc(o.tpo)}</span></p><div class="sum">Comprado. Falta la guía: agrégala desde el pedido de Temu.</div></div>`}
+  else if(!o.paq.length){h+=`<div class="block"><p class="block-t">Pedido Temu <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}</p><div class="sum">Comprado. Falta la guía: agrégala desde el pedido de Temu.</div></div>`}
   else{h+=`<div class="block"><p class="block-t">Guías de Temu ${o.paq.length>1?`· ${enDCcuenta(o)} de ${o.paq.length} en DC`:""}</p><div class="pkgs">${o.paq.map((p,i)=>`
-     <div class="pkg"><div style="min-width:0"><span class="mono">${esc(p.g)}</span><div class="o-sub">${ET[pkgSt(p)]} · ${dias(p.h[p.h.length-1])===0?"hoy":`hace ${dias(p.h[p.h.length-1])} d`}</div>
+     <div class="pkg"><div style="min-width:0"><span class="mono">${esc(p.g)}</span>${cp(p.g,"guía")}<div class="o-sub">${ET[pkgSt(p)]} · ${dias(p.h[p.h.length-1])===0?"hoy":`hace ${dias(p.h[p.h.length-1])} d`}</div>
        ${comparten(p.g,o.id).length?`<div class="shared">Misma compra con ${comparten(p.g,o.id).map(x=>`<b>${esc(cli(x).nombre.split(" ")[0])}</b> (${EQUIPO[x.quien].nombre})`).join(", ")}</div>`:""}</div>
        <select data-pkg="${o.id}|${i}" aria-label="Corregir etapa de la guía">${ET.slice(1,8).map((x,k)=>`<option value="${k+1}" ${k+1===pkgSt(p)?"selected":""}>${x}</option>`).join("")}</select>
        ${miniBar(pkgSt(p))}</div>`).join("")}</div>
@@ -656,7 +668,7 @@ function detalle(o){
       <button class="btn gold" style="justify-self:start" data-entregar="${o.id}"><svg><use href="#i-check"/></svg>Marcar entregado</button>`;
     if(e===9)h+=`<div class="sum"><span class="paid">Entregado ${new Date(o.local[1]).toLocaleDateString("es-PA",{day:"numeric",month:"short"})}</span>${o.envio?` · ${esc(o.envio.t)} ${$$m(tarifa(o))}`:""}</div>`;
     h+=`</div>`}
-  if(o.items&&o.items.length)h+=`<div class="block"><p class="block-t">Lo que pidió ${o.tpo?`· pedido <span class="mono">${esc(o.tpo)}</span>`:""}</p><div class="items">${o.items.map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}</div></div>`;
+  if(o.items&&o.items.length)h+=`<div class="block"><p class="block-t">Lo que pidió ${o.tpo?`· pedido <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}`:""}</p><div class="items">${o.items.map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}</div></div>`;
   const ro=o.items&&o.items.length?'readonly title="Se calcula de los artículos"':"";
   // dinero
   h+=`<div class="block"><p class="block-t">Cobro</p><div class="money">
@@ -701,7 +713,7 @@ function renderCompras(){
     const estado=done?"Todo entregado":stuck?"Atascado":!c.guias.length?"Esperando guía":ET[c.et];
     return`<details class="order tpo" data-compra="${esc(c.key)}" ${abiertasC.has(c.key)?"open":""}><summary>
       <div class="cdate"><b>${f.getDate()}</b><span>${f.toLocaleDateString("es-PA",{month:"short"})}</span></div>
-      <div class="o-main"><div class="o-name mono" style="font-size:13.5px">${c.tpo?esc(c.tpo):"Compra sin número"}</div>
+      <div class="o-main"><div class="o-name mono" style="font-size:13.5px">${c.tpo?esc(c.tpo)+cp(c.tpo,"número de pedido"):"Compra sin número"}</div>
         <div class="o-sub"><span>${c.os.length} ${c.os.length===1?"cliente":"clientes"} · ${nArt} art.</span><span>Total <b style="color:var(--ink)">${$$m(cost)}</b></span></div>
         <div class="faces">${c.os.slice(0,8).map(o=>`<span class="${o.quien}" title="${esc(cli(o).nombre)}">${esc(cli(o).nombre[0])}</span>`).join("")}</div></div>
       <div style="display:flex;align-items:center;gap:8px"><span class="state ${stuck?"red":done?"done":""}">${estado}</span><svg class="chev"><use href="#i-chev"/></svg></div></summary>
@@ -709,14 +721,14 @@ function renderCompras(){
         <div class="sum"><span>Pedido <b>${f.toLocaleDateString("es-PA",{day:"numeric",month:"long",year:"numeric"})}</b></span></div>
         <div class="block"><p class="block-t">Guías</p>
           ${c.guias.length?`<div class="pkgs">${c.guias.map(g=>{const p=D.P.flatMap(o=>o.paq).find(x=>x.g===g);
-            return`<div class="pkg"><div style="min-width:0"><span class="mono">${esc(g)}</span><div class="o-sub">${ET[pkgSt(p)]} · ${dias(p.h.at(-1))?`hace ${dias(p.h.at(-1))} d`:"hoy"}</div></div>${miniBar(pkgSt(p))}</div>`}).join("")}</div>`
+            return`<div class="pkg"><div style="min-width:0"><span class="mono">${esc(g)}</span>${cp(g,"guía")}<div class="o-sub">${ET[pkgSt(p)]} · ${dias(p.h.at(-1))?`hace ${dias(p.h.at(-1))} d`:"hoy"}</div></div>${miniBar(pkgSt(p))}</div>`}).join("")}</div>`
             :`<div class="sum">Temu aún no da la guía. Agrégala aquí cuando la tengas.</div>`}
           <div class="guia-row"><input id="tg-${esc(c.key)}" class="mono" placeholder="${c.guias.length?"Otra guía (si Temu lo dividió)":"Número de guía"}" aria-label="Agregar guía al pedido"><button class="btn sm" data-tguia="${esc(c.key)}"><svg><use href="#i-plus"/></svg>Agregar</button></div></div>
         <div class="block"><p class="block-t">Clientes · toca un nombre para ver lo que pidió</p>
           <div class="clis">${c.os.map(o=>{const it=itemsDe(o),pct=cost?Math.round(num(o.costo)/cost*100):0,k=c.key+"|"+o.id;
             return`<details class="cli" data-cli="${esc(k)}" ${cliAbiertos.has(k)?"open":""}><summary>
               <span class="who-av ${o.quien}">${EQUIPO[o.quien].nombre[0]}</span>
-              <span style="min-width:0"><b>${esc(cli(o).nombre)}</b><span class="o-sub" style="display:flex"><span>${it.length} art.</span><span class="mono">${o.id}</span>${saldo(o)?`<span style="color:var(--gold)">debe ${$$m(saldo(o))}</span>`:num(o.precio)?`<span style="color:var(--ok)">pagado</span>`:""}</span>
+              <span style="min-width:0"><b>${esc(cli(o).nombre)}</b><span class="o-sub" style="display:flex"><span>${it.length} art.</span><span class="mono">${o.id}${cp(o.id)}</span>${saldo(o)?`<span style="color:var(--gold)">debe ${$$m(saldo(o))}</span>`:num(o.precio)?`<span style="color:var(--ok)">pagado</span>`:""}</span>
                 <span class="pct"><i style="width:${pct}%"></i></span></span>
               <span class="cli-tot"><b>${$$m(total(o))}</b><small>${pct}% del pedido</small></span></summary>
               <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${it.map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
@@ -805,7 +817,7 @@ function nbGuardar(){
   err.hidden=true;const now=new Date().toISOString(),creados=[];
   const paqDe=()=>guias.map(g=>{const ex=D.P.flatMap(x=>x.paq).find(q=>q.g===g);return{g,h:ex?[...ex.h]:[now]}});
   nb.clientes.forEach(k=>{
-    const nombre=k.nombre.trim(),tel=k.tel.replace(/\D/g,"");
+    const nombre=tc(k.nombre),tel=k.tel.replace(/\D/g,"");
     let c=D.C.find(x=>x.nombre.toLowerCase()===nombre.toLowerCase());
     if(!c){c={id:"c"+Date.now()+Math.random().toString(36).slice(2,6),nombre,tel,ent:k.ent,prov:k.ent==="envio"?k.prov:"",atiende:k.quien};D.C.push(c)}
     else Object.assign(c,{tel:tel||c.tel,ent:k.ent,prov:k.ent==="envio"?k.prov:""});
@@ -816,9 +828,9 @@ function nbGuardar(){
     syncItems(o);creados.push(o)});
   save();nb=null;renderAll();
   $("#nb").hidden=true;const d=$("#done");d.hidden=false;const t=creados.reduce((a,o)=>a+num(o.costo),0);
-  d.innerHTML=`<h2 style="color:var(--ok)">Pedido de Temu registrado</h2><div class="mono" style="font-size:16px;font-weight:700">${esc(numero)}</div>
+  d.innerHTML=`<h2 style="color:var(--ok)">Pedido de Temu registrado</h2><div class="mono" style="font-size:16px;font-weight:700">${esc(numero)}${cp(numero,"número de pedido")}</div>
     <p class="note">${creados.length} clientes · total en Temu ${$$m(t)}${guias.length?"":" · falta la guía"}. Envía a cada cliente su código de seguimiento:</p>
-    <div class="hist">${creados.map(o=>`<div class="crow"><span class="who-av ${o.quien}">${EQUIPO[o.quien].nombre[0]}</span><span style="min-width:0"><b>${esc(cli(o).nombre)}</b><span class="o-sub" style="display:block"><span class="mono">${o.id}</span> · ${$$m(o.precio)}</span></span>
+    <div class="hist">${creados.map(o=>`<div class="crow"><span class="who-av ${o.quien}">${EQUIPO[o.quien].nombre[0]}</span><span style="min-width:0"><b>${esc(cli(o).nombre)}</b><span class="o-sub" style="display:block"><span class="mono">${o.id}</span>${cp(o.id)} · ${$$m(o.precio)}</span></span>
       <a class="btn sm wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Enviar</a></div>`).join("")}</div>
     <div class="o-actions"><button class="btn" type="button" id="ver-tpo">Ver el pedido</button><button class="btn gold" type="button" id="otro-tpo"><svg><use href="#i-plus"/></svg>Registrar otro pedido</button></div>`;
   $("#otro-tpo").onclick=()=>{d.hidden=true;renderNB();scrollTo({top:0})};
@@ -854,7 +866,7 @@ $("#add-guia").onclick=()=>{$("#guias").insertAdjacentHTML("beforeend",guiaInput
 
 $("#form").addEventListener("submit",e=>{
   e.preventDefault();const err=$("#err");
-  const nombre=$("#f-nombre").value.trim(),tel=$("#f-tel").value.replace(/\D/g,"");
+  const nombre=tc($("#f-nombre").value),tel=$("#f-tel").value.replace(/\D/g,"");
   const guias=$$(".g-in").map(i=>i.value.trim().toUpperCase()).filter(Boolean);
   const fail=t=>{err.textContent=t;err.hidden=false};
   if(!nombre)return fail("Falta el nombre del cliente.");
@@ -870,7 +882,7 @@ $("#form").addEventListener("submit",e=>{
     nota:$("#f-nota").value.trim(),creado:now,local:[],envio:null,avisado:-1,paq:fCmp==="si"?guias.map(g=>{const ex=D.P.flatMap(x=>x.paq).find(q=>q.g===g);return{g,h:ex?[...ex.h]:[now]}}):[]};
   D.P.unshift(o);save();e.target.reset();pendingCode=newCode();renderAll();
   $("#form").hidden=true;const d=$("#done");d.hidden=false;
-  d.innerHTML=`<h2 style="color:var(--ok)">${o.paq.length?"Pedido registrado":"Anotado en por comprar"}</h2><div style="font:800 26px var(--f-display)">${o.id}</div>
+  d.innerHTML=`<h2 style="color:var(--ok)">${o.paq.length?"Pedido registrado":"Anotado en por comprar"}</h2><div style="font:800 26px var(--f-display);display:flex;align-items:center;gap:6px">${o.id}${cp(o.id)}</div>
     <p class="note">${esc(c.nombre)} · ${o.paq.length?`${o.paq.length} ${o.paq.length===1?"guía":"guías"}`:"pendiente de comprar"} · registrado por ${EQUIPO[o.quien].nombre}.</p>
     <div class="o-actions"><a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>${o.paq.length?"Enviar código":"Confirmar al cliente"}</a>
     <button class="btn" type="button" id="otro"><svg><use href="#i-plus"/></svg>Registrar otro</button></div>`;
@@ -886,7 +898,7 @@ function renderClientes(){
   $$("#seg-cli button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.cf===cFiltro));
   const mes=new Date().getMonth(),activos=new Set(D.P.filter(o=>new Date(o.creado).getMonth()===mes).map(o=>o.cli)).size;
   const frec=S.filter(s=>s.n>=3).length,deben=S.filter(s=>s.debe>0);
-  $("#c-kpis").innerHTML=`<div class="kpi"><span class="k">Clientes</span><span class="v">${S.length}</span><small>${activos} compraron este mes</small></div>
+  $("#c-kpis").innerHTML=`<div class="kpi"><span class="k">Clientes</span><span class="v" data-n="${S.length}">${S.length}</span><small>${activos} compraron este mes</small></div>
     <div class="kpi"><span class="k">Frecuentes</span><span class="v gold">${frec}</span><small>3 pedidos o más</small></div>
     <div class="kpi"><span class="k">Te deben</span><span class="v">${deben.length}</span><small>${$$m(deben.reduce((a,s)=>a+s.debe,0))} en total</small></div>
     <div class="kpi"><span class="k">Ticket promedio</span><span class="v">${$$m(D.P.filter(o=>num(o.precio)).reduce((a,o)=>a+num(o.precio),0)/Math.max(1,D.P.filter(o=>num(o.precio)).length))}</span><small>por pedido</small></div>`;
@@ -899,7 +911,8 @@ function renderClientes(){
      <span style="min-width:0"><b>${esc(s.c.nombre)}</b> ${conApp.has(s.c.id)?'<span class="pill ok">App</span>':""} ${s.n>=3?'<span class="pill gold">Frecuente</span>':""} ${s.debe?`<span class="pill red">Debe ${$$m(s.debe)}</span>`:""}
        <span class="o-sub" style="display:flex"><span>Atiende ${EQUIPO[atiende(s.c)].nombre}</span><span>${s.c.ent==="envio"?esc(s.c.prov):"Aguadulce"}</span><span>${s.ultimo?`último hace ${dias(s.ultimo)} d`:""}</span></span>
        <span class="bar"><i style="width:${(rankBy==="pedidos"?s.n:s.gasto)/max*100}%"></i></span></span>
-     <span class="num"><b>${rankBy==="pedidos"?s.n:$$m(s.gasto)}</b><small>${rankBy==="pedidos"?$$m(s.gasto):s.n+" pedidos"}</small></span></button>`).join("");
+     <span class="num"><b data-n="${rankBy==="pedidos"?s.n:s.gasto}" ${rankBy==="pedidos"?"":'data-m="1"'}>${rankBy==="pedidos"?s.n:$$m(s.gasto)}</b><small>${rankBy==="pedidos"?$$m(s.gasto):s.n+" pedidos"}</small></span></button>`).join("");
+  if(!S.length)$("#rank").innerHTML=`<div class="empty">Aún no hay clientes. Se agregan al registrar un pedido o al vincular a alguien que entró a la app.</div>`;
   renderFicha();
 }
 /* Personas que entraron a la app del cliente con su nombre. Se vinculan con un cliente de la lista (el nombre puede ser distinto). */
@@ -925,7 +938,7 @@ function renderFicha(){const f=$("#ficha"),c=D.C.find(x=>x.id===fichaId);if(!c){
   const ap=regs().filter(r=>r.cliente===c.id),link=linkApp(c);
   const msgApp=`Hola ${c.nombre.split(" ")[0]}, te comparto la app de DC Marketing para seguir tus pedidos de Temu:\n${link}\n\n1. Ábrela y agrégala a tu pantalla de inicio.\n2. Entra, revisa que tu nombre esté bien y toca *Iniciar*.\n— ${EQUIPO[atiende(c)].nombre}, DC Marketing`;
   f.innerHTML=`<div class="ficha-h"><div class="av">${esc(c.nombre[0])}</div><div style="min-width:0"><h2 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:18px">${esc(c.nombre)}</h2>
-     <div class="o-sub"><span>${fmtTel(c.tel)}</span><span>${c.ent==="envio"?"Envío a "+esc(c.prov):"Entrega en Aguadulce"}</span></div>
+     <div class="o-sub"><span>${c.tel?fmtTel(c.tel)+cp(c.tel,"WhatsApp"):"Sin WhatsApp"}</span><span>${c.ent==="envio"?"Envío a "+esc(c.prov):"Entrega en Aguadulce"}</span></div>
      <label class="o-sub" for="at-${c.id}" style="align-items:center;margin-top:6px">Lo atiende <select id="at-${c.id}" data-atiende="${c.id}" style="padding:5px 8px;font-size:16px">${Object.keys(EQUIPO).map(k=>`<option value="${k}" ${atiende(c)===k?"selected":""}>${EQUIPO[k].nombre}</option>`).join("")}</select></label></div>
      <button class="btn sm" style="margin-left:auto" id="cerrar-ficha" aria-label="Cerrar ficha">Cerrar</button></div>
    <div class="sum"><span>Pedidos <b>${s.n}</b></span><span>Gastado <b>${$$m(s.gasto)}</b></span><span>Ganancia que te dejó <b>${$$m(s.ps.reduce((a,o)=>a+ganancia(o),0))}</b></span><span class="${s.debe?"due":"paid"}">${s.debe?`Debe <b>${$$m(s.debe)}</b>`:"Sin deudas"}</span></div>
@@ -933,7 +946,7 @@ function renderFicha(){const f=$("#ficha"),c=D.C.find(x=>x.id===fichaId);if(!c){
      ${ap.length?ap.map(r=>`<div class="sum" style="align-items:center"><span class="paid">Entró como <b>${esc(regNombre(r))}</b></span><span>${haceTxt(r.fecha)}</span><button class="btn sm red" style="margin-left:auto" data-desv="${r.id}">Desvincular</button></div>`).join("")
        :`<p class="note">Todavía no entra a la app. Mándale su link: al abrirlo ya le sale su nombre y queda vinculado a esta ficha.</p>`}
      <div class="o-actions"><a class="btn sm wa" href="${waTel(c.tel,msgApp)}" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Enviar link de la app</a><button class="btn sm" data-copiar="${esc(link)}">Copiar link</button></div></div>
-   <div class="hist">${s.ps.sort((a,b)=>new Date(b.creado)-new Date(a.creado)).map(o=>`<div><span class="mono">${o.id}</span><span>${etNombre(o)} · ${new Date(o.creado).toLocaleDateString("es-PA",{day:"numeric",month:"short",year:"2-digit"})}</span><b>${$$m(total(o))}</b></div>`).join("")}</div>`;
+   <div class="hist">${s.ps.sort((a,b)=>new Date(b.creado)-new Date(a.creado)).map(o=>`<div><span class="mono">${o.id}${cp(o.id)}</span><span>${etNombre(o)} · ${new Date(o.creado).toLocaleDateString("es-PA",{day:"numeric",month:"short",year:"2-digit"})}</span><b>${$$m(total(o))}</b></div>`).join("")}</div>`;
   $("#cerrar-ficha").onclick=()=>{fichaId=null;renderFicha()};
 }
 
@@ -945,8 +958,8 @@ function renderNumeros(){
   const delMes=D.P.filter(o=>num(o.precio)&&mesDe(o)===m0);
   const vend=delMes.reduce((a,o)=>a+num(o.precio),0),cost=delMes.reduce((a,o)=>a+num(o.costo),0),gan=vend-cost;
   const cobrar=D.P.reduce((a,o)=>a+saldo(o),0);
-  $("#n-kpis").innerHTML=`<div class="kpi"><span class="k">Ganancia</span><span class="v gold">${$$m(gan)}</span><small>${delMes.length} pedidos</small></div>
-   <div class="kpi"><span class="k">Vendido</span><span class="v">${$$m(vend)}</span><small>lo que cobraste</small></div>
+  $("#n-kpis").innerHTML=`<div class="kpi"><span class="k">Ganancia</span><span class="v gold" data-n="${gan}" data-m="1">${$$m(gan)}</span><small>${delMes.length} pedidos</small></div>
+   <div class="kpi"><span class="k">Vendido</span><span class="v" data-n="${vend}" data-m="1">${$$m(vend)}</span><small>lo que cobraste</small></div>
    <div class="kpi"><span class="k">Pagado en Temu</span><span class="v">${$$m(cost)}</span><small>margen ${vend?Math.round(gan/vend*100):0}%</small></div>
    <div class="kpi"><span class="k">Por cobrar</span><span class="v ${cobrar?"red":"ok"}">${$$m(cobrar)}</span><small>de todo el equipo</small></div>`;
   const per=Object.keys(EQUIPO).map(k=>({k,g:delMes.filter(o=>o.quien===k).reduce((a,o)=>a+ganancia(o),0),n:delMes.filter(o=>o.quien===k).length}));
@@ -969,24 +982,25 @@ function go(){
   $$("[data-nav]").forEach(a=>{if(a.dataset.nav===v)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
   const act=$(`#navlist [data-nav="${v}"]`);if(act)$("#ind").style.transform=`translateY(${act.offsetTop}px)`;
   if(v==="registrar"){$("#done").hidden=true;renderNB()}
-  scrollTo({top:0});
+  scrollTo({top:0});animar($(`section[data-view="${v}"]`));
 }
 addEventListener("hashchange",go);
 function setYo(v){yo=v;pick=v;try{localStorage.setItem(KEYW,v)}catch(e){}
-  $("#who").dataset.v=v;$$("#who button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.who===v));renderAll()}
+  $("#who").dataset.v=v;$$("#who button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.who===v));renderAll();animar(seccion())}
 $("#who").addEventListener("click",e=>{const b=e.target.closest("[data-who]");if(b)setYo(b.dataset.who)});
 
 /* ---------- Acciones ---------- */
 const find=id=>D.P.find(o=>o.id===id);
 document.addEventListener("click",e=>{
   const t=e.target.closest("button,a");if(!t)return;const d=t.dataset;
+  if(d.cp){e.preventDefault();e.stopPropagation();return copiar(d.cp,t)}
   if(d.avisar){const o=find(d.avisar);o.avisado=etapa(o);save();setTimeout(refresh,400)}
   else if(d.yo){setYo(d.yo)}
   else if(d.jump){filtro=d.jump;modo="cliente";$("#scope").value="todos";location.hash="pedidos";renderCompras();renderPedidos()}
   else if(d.etapa!==undefined){const k=+d.etapa;filtro="todos";modo="cliente";$("#scope").value="todos";location.hash="pedidos";$("#q").value="";
     renderCompras();renderPedidos();$$("#orders details").forEach(x=>{if(etapa(find(x.dataset.id))!==k)x.remove()})}
-  else if(d.chip){filtro=d.chip;renderPedidos()}
-  else if(d.modo){modo=d.modo;renderCompras()}
+  else if(d.chip){filtro=d.chip;renderPedidos();animar(seccion())}
+  else if(d.modo){modo=d.modo;renderCompras();renderPedidos();animar(seccion())}
   else if(d.gonew){e.preventDefault();startBuilder([])}
   else if(d.reg){regModo=d.reg;$("#done").hidden=true;renderNB();renderRegistrar()}
   else if(d.nbq){const[ci,v]=d.nbq.split("|");nb.clientes[+ci].quien=v;renderNB()}
@@ -1007,8 +1021,8 @@ document.addEventListener("click",e=>{
   else if(d.p){pick=d.p;renderRegistrar()}
   else if(d.ent){fEnt=d.ent;renderRegistrar()}
   else if(d.cmp){fCmp=d.cmp;renderRegistrar()}
-  else if(d.rk){rankBy=d.rk;renderClientes()}
-  else if(d.cf){cFiltro=d.cf;renderClientes()}
+  else if(d.rk){rankBy=d.rk;renderClientes();animar(seccion())}
+  else if(d.cf){cFiltro=d.cf;renderClientes();animar(seccion())}
   else if(d.ficha){fichaId=d.ficha;location.hash="clientes";renderClientes();setTimeout(()=>$("#ficha").scrollIntoView({behavior:"smooth",block:"start"}),50)}
   else if(d.open){startBuilder([d.open])}
   else if(d.addg){const o=find(d.addg),g=$(`#g-${o.id}`).value.trim().toUpperCase();if(!g)return;o.paq.push({g,h:[new Date().toISOString()]});save();refresh();toast("Guía agregada")}
@@ -1023,7 +1037,7 @@ document.addEventListener("click",e=>{
     r.cliente=c.id;r.vinculado=new Date().toISOString();saveRegs(R);refresh();toast(`${r.nombre} ya puede ver los pedidos de ${c.nombre}`)}
   else if(d.desv){const R=regs(),r=R.find(x=>x.id===d.desv);if(!r||!confirm(`¿Desvincular a ${regNombre(r)}? Dejará de ver estos pedidos.`))return;
     r.cliente=null;r.invita=null;saveRegs(R);refresh();toast("Desvinculado")}
-  else if(d.copiar){const l=d.copiar;(navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(()=>toast("Link copiado")).catch(()=>prompt("Copia el link:",l))}
+  else if(d.copiar){copiar(d.copiar,t)}
   else if(d.pagado){const o=find(d.pagado);o.abonado=total(o);save();refresh();toast("Marcado como pagado")}
 });
 document.addEventListener("change",e=>{
@@ -1045,10 +1059,14 @@ document.addEventListener("input",e=>{const t=e.target;if(!nb)return;
   if(t.dataset.nb){const a=t.dataset.nb.split("|");const k=nb.clientes[+a[0]];if(!k)return;if(a.length===2)k[a[1]]=t.value;else k.items[+a[1]][a[2]]=t.value;nbGrand()}
   else if(t.dataset.nbg!==undefined){nb.guias[+t.dataset.nbg]=t.value}
   else if(t.dataset.nbtop){nb[t.dataset.nbtop]=t.value}});
-document.addEventListener("toggle",e=>{if(e.target.matches?.("details.cli")){e.target.open?cliAbiertos.add(e.target.dataset.cli):cliAbiertos.delete(e.target.dataset.cli);return}if(e.target.matches?.("details.order[data-compra]")){e.target.open?abiertasC.add(e.target.dataset.compra):abiertasC.delete(e.target.dataset.compra);return}if(e.target.matches?.("details.order")){e.target.open?abiertos.add(e.target.dataset.id):abiertos.delete(e.target.dataset.id)}},true);
+document.addEventListener("toggle",e=>{if(e.target.open&&e.target.matches?.("details")){const x=e.target;x.classList.add("just");contar(x);setTimeout(()=>x.classList.toggle("just",false),500)}if(e.target.matches?.("details.cli")){e.target.open?cliAbiertos.add(e.target.dataset.cli):cliAbiertos.delete(e.target.dataset.cli);return}if(e.target.matches?.("details.order[data-compra]")){e.target.open?abiertasC.add(e.target.dataset.compra):abiertasC.delete(e.target.dataset.compra);return}if(e.target.matches?.("details.order")){e.target.open?abiertos.add(e.target.dataset.id):abiertos.delete(e.target.dataset.id)}},true);
 
 // Si en otra pestaña de este navegador alguien se registra en la app del cliente, se ve aquí al momento.
 addEventListener("storage",e=>{if(e.key===KEY){try{D=JSON.parse(e.newValue)||D}catch(_){}}if(e.key===KEY||e.key===KEYR)refresh()});
+/* Sin zoom con dos dedos ni menú de copiar al mantener presionado (en los campos sí se puede). */
+["gesturestart","gesturechange"].forEach(n=>document.addEventListener(n,e=>e.preventDefault(),{passive:false}));
+document.addEventListener("touchmove",e=>{if(e.touches.length>1)e.preventDefault()},{passive:false});
+document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea"))e.preventDefault()});
 $("#logo-r").src=LOGO;$("#logo-m").src=LOGO;
 setYo(yo);go();
 addEventListener("resize",()=>{const a=$('#navlist [aria-current="page"]');if(a)$("#ind").style.transform=`translateY(${a.offsetTop}px)`});

@@ -60,7 +60,9 @@ Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. L
 
 ## Diseño
 
-- Azul marino con el **dorado del logo `#D7A95B`**. Gris del logo: `#4B4C4E`.
+- Azul marino **apagado, no eléctrico** (panel `#0F1522`, cliente `#151D2E`), **bandejas negras con letras blancas** (`#08090C`), **dorado del logo `#D7A95B`** y **beige** (`#E8DCC4` en el panel, hoja `#F2ECE1` en el cliente). Gris del logo: `#4B4C4E`.
+- **Sin zoom y sin seleccionar texto** en las dos apps (solo en los campos). Todo lo que se copia (códigos DC, número de pedido de Temu, guías, teléfonos, links) lleva un botón de copiar en la esquina (`cp()` → `copiar()`).
+- El panel anima al entrar a cada sección (`animar()`): tarjetas escalonadas, números que cuentan (`data-n`), ruedas que se llenan (`@property --p`) y barras que crecen.
 - Fuentes: Unbounded (títulos), Figtree (texto) e IBM Plex Mono (números de pedido y guías).
 - El dueño pidió que **no parezca hecho por IA**: nada de plantillas genéricas.
 - Las dos apps se ven distintas a propósito:
@@ -105,8 +107,8 @@ Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. L
 
 ## Notas técnicas
 
-- El panel guarda en `localStorage` con la llave `dc-panel-v5`. Los datos de ejemplo están marcados `ej:1`. Al conectar Supabase, eliminar el ejemplo y `localStorage`.
-- La app del cliente busca primero los pedidos en los datos del panel (`dc-panel-v5`) y, si no están, en sus ejemplos (`PEDIDOS`). Rutas: `#DC-4821` seguimiento, `#codigo` buscar por código, sin hash: bienvenida o Mis pedidos.
+- El panel guarda en `localStorage` con la llave `dc-panel-v5`. **Ya no hay datos de ejemplo**: arranca vacío. La llave `dc-reinicio=cero-1` hace que, una sola vez por teléfono, se borren los datos de prueba viejos (`dc-panel-v5`, `dc-app-registros`, `dc-app-yo`). Al conectar Supabase, quitar `localStorage`.
+- La app del cliente busca los pedidos en los datos del panel (`dc-panel-v5`); ya no tiene pedidos de ejemplo. Rutas: `#DC-4821` seguimiento, `#codigo` buscar por código, sin hash: bienvenida o Mis pedidos.
 - Las etapas del cliente son las mismas 1 a 9 del panel (índice 0 a 8 en `ESTADOS`).
 - `CLIENTE_URL` en el panel apunta a `../cliente/`.
 - Para probar en local: `python3 -m http.server` en la raíz y abrir `http://localhost:8000/panel/`.
