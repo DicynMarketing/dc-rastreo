@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0A1A3F">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#151D2E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,9 +18,10 @@
 /* Layout: app móvil del cliente. Entrada con nombre → "Mis pedidos" → seguimiento de cada pedido.
    Banda marina con la ruta del paquete arriba, hoja clara con el detalle abajo. */
 :root{
-  --navy:#0A1A3F; --navy-2:#132A5E; --navy-3:#1E3B7A;
+  /* Azul marino apagado (no eléctrico), hoja beige, bandejas negras con letras blancas, dorado del logo */
+  --navy:#151D2E; --navy-2:#222B3F; --navy-3:#3A4660;
   --signal:#D7A95B;  /* dorado del logo DC Marketing */ --steel:#4B4C4E;
-  --paper:#F5F3EE; --card:#FFFFFF; --ink:#0A1A3F; --muted:#5B6683; --line:#E3E1DA;
+  --paper:#F2ECE1; --card:#0B0C10; --card-ink:#F5F2EC; --card-mute:#A3A9B6; --ink:#151D2E; --muted:#61677A; --line:#E0D8C8;
   --ok:#17905E;
   --f-display:"Unbounded",system-ui,sans-serif; --f-body:"Figtree",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
   color-scheme:light;
@@ -29,7 +30,7 @@ html,body{background:var(--navy)}
 html{-webkit-text-size-adjust:100%;touch-action:manipulation}
 body{color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--navy)}
-.app{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+.app{max-width:480px;margin:0 auto;min-height:100vh;min-height:100svh;display:flex;flex-direction:column}
 .pad{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
 .grid-bg::after{content:"";position:absolute;inset:0;background:
   radial-gradient(120% 70% at 110% -10%,rgba(215,169,91,.18),transparent 60%),
@@ -75,13 +76,13 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .now .t::after{content:"Ahora";margin-left:8px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--navy);color:var(--signal);padding:2px 7px;border-radius:999px;vertical-align:2px}
 .delivered .now .t::after{content:"Listo";color:#fff;background:var(--ok)}
 
-.contact{background:var(--card);border-radius:18px;padding:16px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center;border:1px solid var(--line)}
-.av{grid-row:span 2;width:46px;height:46px;border-radius:14px;background:var(--navy);color:var(--signal);display:grid;place-items:center;font-family:var(--f-display);font-weight:800}
+.contact{background:var(--card);color:var(--card-ink);border-radius:18px;padding:16px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center}
+.av{grid-row:span 2;width:46px;height:46px;border-radius:14px;background:var(--navy-2);color:var(--signal);display:grid;place-items:center;font-family:var(--f-display);font-weight:800}
 .contact b{font-size:15px}
-.contact .num{font-family:var(--f-mono);font-size:14px;user-select:all;color:var(--navy-3)}
+.contact .num{font-family:var(--f-mono);font-size:14px;color:var(--card-mute);display:flex;align-items:center}
 .contact .row{grid-column:1/-1;display:flex;gap:8px;margin-top:10px}
 .btn{flex:1;display:inline-flex;justify-content:center;align-items:center;gap:6px;border:0;border-radius:12px;padding:12px;font:700 14px var(--f-body);cursor:pointer;text-decoration:none}
-.btn.wa{background:var(--navy);color:#fff}
+.btn.wa{background:var(--signal);color:#1A1205}
 .btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
 .btn:focus-visible,.code-chip:focus-visible,input:focus-visible,.ocard:focus-visible,.go-btn:focus-visible,.linkbtn:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
 .note{font-size:12.5px;color:var(--muted);margin:0}
@@ -114,33 +115,42 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 /* Mis pedidos */
 .olist{display:grid;gap:10px}
-.ocard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;text-decoration:none;color:inherit;transition:border-color .2s,transform .15s}
+.ocard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--card);color:var(--card-ink);border:1px solid var(--card);border-radius:18px;padding:14px;text-decoration:none;transition:border-color .2s,transform .15s}
 .ocard:active{transform:scale(.99)}
-.ocard:hover{border-color:var(--navy-3)}
-.oico{width:44px;height:44px;border-radius:13px;background:var(--navy);color:var(--signal);display:grid;place-items:center}
+.ocard:hover{border-color:var(--signal)}
+.oico{width:44px;height:44px;border-radius:13px;background:var(--navy-2);color:var(--signal);display:grid;place-items:center}
 .oico svg{width:22px;height:22px}
 .ocard.ok .oico{background:var(--ok);color:#fff}
 .ost{font-weight:700;display:block;line-height:1.25}
-.omet{display:flex;gap:4px 10px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:2px}
+.omet{display:flex;gap:4px 10px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--card-mute);margin-top:2px}
 .omet .mono{font-family:var(--f-mono);font-size:12px}
 .bar9{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin-top:9px}
-.bar9 i{height:4px;border-radius:2px;background:var(--line)}
+.bar9 i{height:4px;border-radius:2px;background:#2A2F3A}
 .bar9 i.on{background:var(--signal)}
 .ocard.ok .bar9 i.on{background:var(--ok)}
-.chev{width:18px;height:18px;color:var(--muted)}
-.empty-c{background:var(--card);border:1.5px dashed #D3D0C6;border-radius:20px;padding:28px 20px;text-align:center;display:grid;gap:8px;justify-items:center}
+.chev{width:18px;height:18px;color:var(--card-mute)}
+.empty-c{background:#FBF8F2;border:1.5px dashed #D3C9B4;border-radius:20px;padding:28px 20px;text-align:center;display:grid;gap:8px;justify-items:center}
 .empty-c svg{width:58px;height:58px;color:var(--navy-3)}
 .empty-c b{font:700 18px/1.2 var(--f-display)}
 .empty-c p{margin:0;color:var(--muted);max-width:30ch}
 .encargo{display:flex;gap:10px;align-items:center;background:rgba(215,169,91,.14);border-radius:14px;padding:12px 14px;font-size:14px}
 .encargo svg{width:20px;height:20px;flex:none;color:#9A7230}
-.tip{background:var(--navy);color:#fff;border-radius:16px;padding:14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:center;font-size:14px}
+.tip{background:var(--card);color:#fff;border-radius:16px;padding:14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:center;font-size:14px}
 .tip small{color:rgba(255,255,255,.7);display:block}
 .tip .tbtn{background:var(--signal);color:var(--navy);border:0;border-radius:10px;padding:9px 14px;font:700 14px var(--f-body);cursor:pointer}
 .tip .tx{background:none;border:0;color:rgba(255,255,255,.6);font-size:22px;line-height:1;cursor:pointer;padding:4px}
 .foot{display:flex;justify-content:space-between;gap:8px 14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .linkbtn{background:none;border:0;color:var(--navy-3);font:600 13px var(--f-body);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:0}
 
+/* Sin selección de texto ni menú de copiar (salvo en campos). Copiar con el botón. */
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.cp{display:inline-grid;place-items:center;width:26px;height:26px;margin-left:6px;vertical-align:middle;border:1px solid rgba(255,255,255,.22);border-radius:8px;background:rgba(255,255,255,.06);color:inherit;cursor:pointer;padding:0;flex:none;transition:background .15s,color .15s}
+.cp svg{width:14px;height:14px}
+.cp.ok{background:var(--signal);color:#1A1205;border-color:var(--signal)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--card);color:var(--card-ink);font-weight:600;padding:10px 16px;border-radius:12px}
+@media (prefers-reduced-motion:no-preference){.olist>*{animation:rise .45s cubic-bezier(.2,.8,.2,1) both}.olist>:nth-child(2){animation-delay:.06s}.olist>:nth-child(3){animation-delay:.12s}.olist>:nth-child(n+4){animation-delay:.18s}
+  .bar9 i.on{animation:grow .9s cubic-bezier(.2,.8,.2,1) .2s both;transform-origin:left}@keyframes grow{from{transform:scaleX(0)}}}
 /* Pantalla de código */
 .enter{color:#fff;padding-block:28px 40px;display:grid;gap:18px;position:relative}
 .enter h1{font-family:var(--f-display);font-weight:800;font-size:30px;line-height:1.1;margin:22px 0 0}
@@ -166,6 +176,8 @@ const EQUIPO={diego:{nombre:"Diego",tel:"68673410"},cinthya:{nombre:"Cinthya",te
    Prototipo: todo vive en este navegador (localStorage), compartido con el panel solo si se abren en el mismo teléfono.
    Con Supabase, estas funciones leerán y escribirán en la base de datos compartida y lo demás queda igual. */
 const K_PANEL="dc-panel-v5",K_REGS="dc-app-registros",K_YO="dc-app-yo",K_TIP="dc-app-tip";
+/* Arranque desde cero: una sola vez por teléfono se borran los datos de prueba anteriores. */
+try{if(localStorage.getItem("dc-reinicio")!=="cero-1"){[K_PANEL,K_REGS,K_YO].forEach(k=>localStorage.removeItem(k));localStorage.setItem("dc-reinicio","cero-1")}}catch(e){}
 const leer=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v??d}catch(e){return d}};
 const escribir=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const datosPanel=()=>{const D=leer(K_PANEL,null);return D&&Array.isArray(D.P)&&Array.isArray(D.C)?D:null};
@@ -191,21 +203,13 @@ const ESTADOS=[
 ];
 const CORTO=["Comprado","Preparando","Salió","En vuelo","En Panamá","En aduana","En DC","En camino","Entregado"];
 function ago(d,h){const t=new Date();t.setDate(t.getDate()-d);t.setHours(h??10,15,0,0);return t.toISOString()}
-/* Pedidos de ejemplo para probar sin panel */
-const PEDIDOS={
- "DC-4821":{nombre:"María",quien:"diego",h:[ago(9),ago(8),ago(7),ago(5),ago(0,Math.max(0,new Date().getHours()-3))]},
- "DC-5307":{nombre:"Luis",quien:"cinthya",h:[ago(6),ago(5),ago(4),ago(2)]},
- "DC-6190":{nombre:"Ana",quien:"diego",h:[ago(15),ago(14),ago(13),ago(10),ago(6),ago(5),ago(4),ago(3,9),ago(3,16)]},
- "DC-7042":{nombre:"Carlos",quien:"cinthya",h:[ago(1),ago(0,8)]}
-};
 const etapaP=o=>{if(!o.paq.length)return o.tpo?1:0;const m=Math.min(...o.paq.map(p=>p.h.length));return m<7?m:7+o.local.length};
 /* Lo que ve el cliente de un pedido: solo etapas y fechas, nunca artículos ni precios. */
 function vista(o,D){const e=etapaP(o);if(e<1)return null;const c=D.C.find(x=>x.id===o.cli)||{};
   const lenta=o.paq.length?o.paq.reduce((a,p)=>p.h.length<a.h.length?p:a):null;
   const h=(lenta?lenta.h.slice(0,7):[o.creado]).concat(e>=7?o.local.slice(0,2):[]);
   return{code:o.id,nombre:(c.nombre||"").split(" ")[0],quien:o.quien,h,i:Math.min(e,9)-1,ent:c.ent,prov:c.prov,envio:o.envio,paq:o.paq.map(p=>p.h.length)}}
-function buscar(code){const D=datosPanel(),o=D?.P.find(x=>x.id===code);if(o)return vista(o,D);
-  const p=PEDIDOS[code];return p?{code,...p,i:p.h.length-1,paq:[]}:null}
+function buscar(code){const D=datosPanel(),o=D?.P.find(x=>x.id===code);return o?vista(o,D):null}
 function misPedidos(){const r=miRegistro(),D=datosPanel(),cid=clienteDe(r,D);if(!cid||!D)return{lista:[],encargos:0,quien:null};
   const os=D.P.filter(o=>o.cli===cid),c=D.C.find(x=>x.id===cid);
   const lista=os.map(o=>vista(o,D)).filter(Boolean).sort((a,b)=>(a.i===8)-(b.i===8)||new Date(b.h[b.i])-new Date(a.h[a.i]));
@@ -226,6 +230,17 @@ const IC={box:`<svg viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.
   chev:`<svg class="chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
   arrow:`<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   cart:`<svg viewBox="0 0 24 24"><path d="M3 4h2l2.2 11h11l2-8H6.3M9 20a1 1 0 1 0 0-.1M17 20a1 1 0 1 0 0-.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`};
+const CPI=`<svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="2"/></svg>`;
+const cp=(t,l)=>`<button type="button" class="cp" data-cp="${esc(t)}" aria-label="Copiar ${esc(l||t)}" title="Copiar">${CPI}</button>`;
+function toast(t){let el=$(".toast");if(!el){el=document.createElement("div");el.className="toast";document.body.appendChild(el)}el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,1800)}
+function copiar(t,btn){const ok=()=>{toast("Copiado");btn.classList.add("ok");setTimeout(()=>btn.classList.toggle("ok",false),1200)};
+  const viejo=()=>{const a=document.createElement("textarea");a.value=t;a.setAttribute("readonly","");a.style.cssText="position:fixed;opacity:0;top:0";document.body.appendChild(a);a.select();
+    let r=false;try{r=document.execCommand("copy")}catch(e){}document.body.removeChild(a);r?ok():prompt("Copia:",t)};
+  navigator.clipboard?.writeText?navigator.clipboard.writeText(t).then(ok,viejo):viejo()}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-cp]");if(b){e.preventDefault();e.stopPropagation();copiar(b.dataset.cp,b)}},true);
+["gesturestart","gesturechange"].forEach(n=>document.addEventListener(n,e=>e.preventDefault(),{passive:false}));
+document.addEventListener("touchmove",e=>{if(e.touches.length>1)e.preventDefault()},{passive:false});
+document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea"))e.preventDefault()});
 const RUTA="M24 98 C 80 98, 100 40, 150 40 S 220 70, 262 70 S 330 26, 372 26";
 const PKG=`<rect x="-13" y="-13" width="26" height="26" rx="7" fill="#fff"/><path d="M-6 -3 L0 -6 L6 -3 L6 4 L0 7 L-6 4 Z M-6 -3 L0 0 L6 -3 M0 0 L0 7" fill="none" stroke="var(--navy)" stroke-width="1.6" stroke-linejoin="round"/>`;
 let vistaActual="";
@@ -290,7 +305,7 @@ function tipHTML(){
 }
 function ocard(v){const ok=v.i===8;
   return`<a class="ocard ${ok?"ok":""}" href="#${v.code}"><span class="oico">${ok?IC.check:IC.box}</span>
-    <span style="min-width:0"><span class="ost">${ESTADOS[v.i][0]}</span><span class="omet"><span class="mono">${v.code}</span><span>${hace(v.h[v.i])}</span></span>
+    <span style="min-width:0"><span class="ost">${ESTADOS[v.i][0]}</span><span class="omet"><span class="mono">${v.code}</span>${cp(v.code)}<span>${hace(v.h[v.i])}</span></span>
     <span class="bar9">${ESTADOS.map((_,k)=>`<i class="${k<=v.i?"on":""}"></i>`).join("")}</span></span>${IC.chev}</a>`}
 function inicio(anim){
   vistaActual="inicio";
@@ -311,7 +326,7 @@ function inicio(anim){
     ${hechos.length?`<section><h2 class="sec-t">Entregados</h2><div class="olist">${hechos.map(ocard).join("")}</div></section>`:""}
     ${!lista.length?`<div class="empty-c">${IC.box}<b>Aún no tienes pedidos</b><p>Cuando hagamos tu pedido en Temu aparece aquí con su seguimiento, paso a paso.</p></div>`:""}
     <section><h2 class="sec-t">${contactos.length>1?"Escríbenos":"Tu contacto"}</h2>
-      ${contactos.map(k=>`<div class="contact" style="margin-bottom:10px"><div class="av">${EQUIPO[k].nombre[0]}</div><b>${EQUIPO[k].nombre} · DC Marketing</b><span class="num">${fmtTel(EQUIPO[k].tel)}</span>
+      ${contactos.map(k=>`<div class="contact" style="margin-bottom:10px"><div class="av">${EQUIPO[k].nombre[0]}</div><b>${EQUIPO[k].nombre} · DC Marketing</b><span class="num">${fmtTel(EQUIPO[k].tel)}${cp(EQUIPO[k].tel,"teléfono")}</span>
         <div class="row"><a class="btn wa" href="${waLink(k,`Hola ${EQUIPO[k].nombre}, soy ${r.nombre} ${r.apellido}. Te escribo desde la app de DC Marketing.`)}" target="_blank" rel="noopener">Escribir por WhatsApp</a></div></div>`).join("")}
     </section>
     <div class="foot"><button class="linkbtn" data-salir>¿No eres ${esc(r.nombre)}? Cambiar nombre</button><a class="linkbtn" href="#codigo">Buscar por código</a></div>
@@ -353,7 +368,7 @@ function seguimiento(code){
   app.innerHTML=`
   <header class="hero pad grid-bg">
     <div class="brand"><div class="mark"><img src="${LOGO}" alt="">DC MARKETING</div><button class="code-chip" id="volver" aria-label="${r?"Volver a mis pedidos":"Buscar otro pedido"}">${r?"← Mis pedidos":code}</button></div>
-    <div class="greet"><p>Hola, ${esc(r?r.nombre:v.nombre)} · <span style="font-family:var(--f-mono)">${code}</span></p><h1>${titular}</h1>
+    <div class="greet"><p>Hola, ${esc(r?r.nombre:v.nombre)} · <span style="font-family:var(--f-mono)">${code}</span>${cp(code)}</p><h1>${titular}</h1>
       <div class="last"><span class="pulse"></span>${CORTO[i]} · ${hace(v.h[i])}</div>${varios}</div>
     <div class="route">${rutaSVG(i)}</div>
   </header>
@@ -364,7 +379,7 @@ function seguimiento(code){
         <span class="when">${v.h[k]?dia(v.h[k]):""}</span></li>`).join("")}</ol>
     </section>
     <section><h2 class="sec-t">Tu contacto</h2>
-      <div class="contact"><div class="av">${quien.nombre[0]}</div><b>${quien.nombre} · DC Marketing</b><span class="num">${fmtTel(quien.tel)}</span>
+      <div class="contact"><div class="av">${quien.nombre[0]}</div><b>${quien.nombre} · DC Marketing</b><span class="num">${fmtTel(quien.tel)}${cp(quien.tel,"teléfono")}</span>
         <div class="row"><a class="btn wa" href="${wa}" target="_blank" rel="noopener">Escribir por WhatsApp</a></div></div>
     </section>
     <p class="note">Las fechas se actualizan automáticamente con el rastreo de la paquetería. Los tiempos pueden variar en aduana.</p>
@@ -383,10 +398,8 @@ function pantallaCodigo(msg){
     <p>Escribe el código que te llegó por WhatsApp.</p>
     <form id="f" style="position:relative;z-index:1"><input id="code" placeholder="DC-0000" aria-label="Código de pedido" autocomplete="off"><button class="btn" type="submit">Buscar</button></form>
     ${msg?`<p class="err">${esc(msg)}</p>`:""}
-    <div class="demo">Códigos de ejemplo: ${Object.keys(PEDIDOS).map(c=>`<button data-c="${c}">${c}</button>`).join("")}</div>
   </div>`;
   $("#f").onsubmit=e=>{e.preventDefault();ir($("#code").value)};
-  app.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>ir(b.dataset.c));
   $("#atras").onclick=()=>{history.replaceState(null,"",location.pathname+location.search);ruta()};
 }
 function ir(v){const c=String(v).trim().toUpperCase().replace(/^(DC)?-?(\d{4})$/,"DC-$2");if(location.hash.slice(1)===c)ruta();else location.hash=c}
