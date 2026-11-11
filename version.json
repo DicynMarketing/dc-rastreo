@@ -1,7 +1,18 @@
 {
-  "admin": 9,
+  "admin": 10,
   "cliente": 6,
   "notas": [
+    {
+      "fecha": "2026-11-11",
+      "admin": 10,
+      "cliente": 6,
+      "titulo": "Pedidos de Temu automáticos",
+      "admin_items": [
+        "Las compras que manda el Claude de Chrome por correo (asunto DC-rastreo) se cargan solas en “Por repartir” cada 3 horas.",
+        "Si un pedido ya repartido trae guías nuevas o cambia de estado en Temu, se actualiza solo y tus clientes lo ven en su app."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-11",
       "admin": 9,

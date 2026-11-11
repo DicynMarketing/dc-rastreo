@@ -694,13 +694,14 @@ async function subir(){
   finally{subiendo=false}
 }
 async function cargar(){
-  const[c,p,r,t]=await Promise.all([sb.from("clientes").select("id,data"),sb.from("pedidos").select("id,data"),
+  const[c,p,r,t]=await Promise.all([sb.from("clientes").select("id,data"),sb.from("pedidos").select("id,data,vista"),
     sb.from("registros").select("id,nombre,apellido,fecha,cliente,invita,via,vinculado").order("fecha"),
     sb.from("temu_compras").select("numero,data,estado,importado").order("importado",{ascending:false})]);
   for(const x of[c,p,r,t])if(x.error)throw x.error;
   D={C:c.data.map(x=>x.data),P:p.data.map(x=>x.data).sort((a,b)=>new Date(b.creado)-new Date(a.creado))};REGS=r.data;TEMU=t.data;
+  const vistas=Object.fromEntries(p.data.map(x=>[x.id,x.vista??null]));
   for(const k in SNAP)SNAP[k]={};
-  D.C.forEach(x=>SNAP.c[x.id]=est(x));D.P.forEach(o=>SNAP.p[o.id]=est([o,vistaCli(o)]));REGS.forEach(x=>SNAP.r[x.id]=est(x));TEMU.forEach(x=>SNAP.t[x.numero]=est(x));
+  D.C.forEach(x=>SNAP.c[x.id]=est(x));D.P.forEach(o=>SNAP.p[o.id]=est([o,vistas[o.id]]));REGS.forEach(x=>SNAP.r[x.id]=est(x));TEMU.forEach(x=>SNAP.t[x.numero]=est(x));
 }
 /* Lo que guardó el otro llega aquí; se redibuja sin interrumpir si estás escribiendo */
 let refT=null;
@@ -711,7 +712,8 @@ function aplicar(lista,clave,snap,fila,obj,huella){const id=fila[clave];if(!id)r
 function escuchar(){
   sb.channel("dc-panel")
     .on("postgres_changes",{event:"*",schema:"public",table:"clientes"},m=>m.new?.id&&aplicar(D.C,"id",SNAP.c,m.new,m.new.data,m.new.data))
-    .on("postgres_changes",{event:"*",schema:"public",table:"pedidos"},m=>m.new?.id&&aplicar(D.P,"id",SNAP.p,m.new,m.new.data,[m.new.data,m.new.vista]))
+    .on("postgres_changes",{event:"*",schema:"public",table:"pedidos"},m=>{if(!m.new?.id)return;aplicar(D.P,"id",SNAP.p,m.new,m.new.data,[m.new.data,m.new.vista]);
+      const o=D.P.find(x=>x.id===m.new.id);if(o&&est([o,vistaCli(o)])!==SNAP.p[o.id])save()})
     .on("postgres_changes",{event:"*",schema:"public",table:"registros"},m=>{const x=m.new;if(!x?.id)return;const r={id:x.id,nombre:x.nombre,apellido:x.apellido,fecha:x.fecha,cliente:x.cliente,invita:x.invita,via:x.via,vinculado:x.vinculado};aplicar(REGS,"id",SNAP.r,r,r,r)})
     .on("postgres_changes",{event:"*",schema:"public",table:"temu_compras"},m=>{const x=m.new;if(!x?.numero)return;const t={numero:x.numero,data:x.data,estado:x.estado,importado:x.importado};aplicar(TEMU,"numero",SNAP.t,t,t,t)})
     .subscribe(st=>{if(st==="SUBSCRIBED")estadoSync(hayPendientes()?"guardando":"ok");else if(st==="CHANNEL_ERROR"||st==="TIMED_OUT")estadoSync("error")});
@@ -1514,7 +1516,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=9;
+const APP="admin",APP_VERSION=10;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
