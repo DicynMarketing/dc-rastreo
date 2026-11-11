@@ -1,7 +1,24 @@
 {
-  "admin": 5,
-  "cliente": 5,
+  "admin": 6,
+  "cliente": 6,
   "notas": [
+    {
+      "fecha": "2026-11-11",
+      "admin": 6,
+      "cliente": 6,
+      "titulo": "Base de datos compartida e Importar de Temu",
+      "admin_items": [
+        "Todo se guarda en la base de datos compartida: lo que registra Diego le aparece a Cinthya al instante, y al revés.",
+        "Se entra con tu correo y contraseña del equipo. El punto verde junto al logo indica que estás en línea.",
+        "Nuevo en Registrar: “Importar de Temu”. Pegas los pedidos que te da Claude en Chrome y quedan “Por repartir”.",
+        "Repartir: eliges de quién es cada artículo y pasas directo a poner precio y forma de pago.",
+        "Si importas de nuevo un pedido que ya registraste, se le agregan las guías nuevas solas."
+      ],
+      "cliente_items": [
+        "Tus pedidos ahora llegan desde DC Marketing en tiempo real, en cualquier teléfono.",
+        "Al abrir la app se actualiza sola con el último movimiento."
+      ]
+    },
     {
       "fecha": "2026-11-11",
       "admin": 5,

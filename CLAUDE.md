@@ -1,6 +1,6 @@
 # DC Marketing · Rastreo de pedidos de Temu
 
-Proyecto de DC Marketing (Aguadulce, Coclé, Panamá). El negocio hace pedidos de Temu por encargo para clientes (no vende en Temu). Este repo tiene dos apps web y hoy son **prototipos funcionales** con datos de ejemplo guardados en `localStorage`. El siguiente paso es conectarlas a una base de datos real.
+Proyecto de DC Marketing (Aguadulce, Coclé, Panamá). El negocio hace pedidos de Temu por encargo para clientes (no vende en Temu). Este repo tiene dos apps web conectadas a una **base de datos compartida en Supabase** (proyecto `dc-rastreo`, id `jmfyzohwffylzrwkbtwl`, organización DicynMarketing, región us-east-1).
 
 Habla siempre en español con el dueño. Escribe para alguien que no es programador: explica en lenguaje simple qué cambió y qué tiene que hacer él.
 
@@ -103,7 +103,7 @@ Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. L
 ## Pendientes, en orden sugerido
 
 1. ~~Crear el repo nuevo `DicynMarketing/dc-rastreo`~~ (hecho). **Falta activar GitHub Pages** (Settings → Pages → Deploy from a branch → `main` / root). El repo `dicyn-color` es de la app de colores, que ya no se usará. No mezclar.
-2. **Base de datos compartida en Supabase**, porque Diego y Cinthya deben ver los mismos datos.
+2. ~~Base de datos compartida en Supabase~~ (hecho, ver "Base de datos"). Antes era:
    - Tablas sugeridas: `clientes`, `pedidos_temu` (número único), `pedidos` (uno por cliente dentro de un pedido de Temu, con código DC), `articulos`, `guias`, `eventos_guia`, `abonos`.
    - Seguridad (RLS): el panel con inicio de sesión o PIN para Diego y Cinthya. La app del cliente solo puede leer un pedido por su código, y sin artículos ni precios de costo.
 3. **Rastreo automático**: Edge Function más cron con la API de 17TRACK. La clave va como secreto y nunca en el HTML.
@@ -120,10 +120,25 @@ Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. L
 - **Cada vez que se publique un cambio**: subir `APP_VERSION` en el HTML que cambió, poner el mismo número en `version.json` y agregar arriba una nota con lo nuevo, escrita para el dueño y sus clientes. Si un HTML no cambió, su número se queda igual.
 - Si al actualizar la página nueva todavía no está publicada, se avisa "intenta en uno o dos minutos" y no se queda en un ciclo.
 
+## Base de datos (Supabase)
+
+- Proyecto `dc-rastreo` (`https://jmfyzohwffylzrwkbtwl.supabase.co`). La clave publicable (`sb_publishable_…`) va en los HTML; es pública por diseño. **Nunca** poner la clave de servicio en el código.
+- Tablas: `equipo` (correos autorizados del panel), `clientes`, `pedidos` (`data` = el pedido completo como lo usa el panel; `vista` = solo lo que ve el cliente: etapas y fechas, sin artículos ni precios), `registros` (app del cliente), `temu_compras` (importadas de Temu: `por_repartir` | `repartido` | `descartado`).
+- **RLS**: solo usuarios con sesión cuyo correo esté en `equipo` leen o escriben las tablas. El público (app del cliente) **no** lee tablas: usa las funciones `app_registrar`, `app_mis_pedidos`, `app_usar_invitacion` y `app_seguimiento` (security definer), que devuelven solo `vista`.
+- **Cuentas del equipo**: agregar el correo a `public.equipo` (email, nombre "Diego"/"Cinthya"). La persona entra al panel, toca "¿Primera vez? Crea tu contraseña" y queda confirmada sola (trigger `autoconfirmar_equipo`). Un correo que no está en `equipo` no puede entrar.
+- **Panel**: al entrar carga todo en memoria (`D`, `REGS`, `TEMU`), guarda solo lo que cambió (`subir()`, comparando con `SNAP`) y escucha cambios en tiempo real (`escuchar()`). Si no hay internet, reintenta cada 15 s; el punto junto al logo es verde (en línea), dorado (guardando) o rojo (sin conexión). Lo que hubiera en `localStorage` (`dc-panel-v5`) se sube una sola vez al entrar.
+- **App del cliente**: guarda en `localStorage` `dc-app-yo2` = `{id, token, nombre, apellido}`; consulta sus pedidos con `app_mis_pedidos` al abrir, al volver a la app y cada minuto.
+
+## Importar de Temu (decisión tomada)
+
+- **No** se entra a Temu desde el servidor. El dueño usa **Claude in Chrome** (extensión, con su sesión de Temu abierta) para leer "Tus pedidos" y armar un bloque JSON: `[{"pedido":"PO-…","fecha":"AAAA-MM-DD","estado":"…","total":0,"guias":[{"guia":"…","paqueteria":"…"}],"articulos":[{"nombre":"…","variante":"…","cantidad":1,"precio":0}]}]`.
+- Ese bloque se pega en el panel: **Nuevo → Importar de Temu** (o el link directo `panel/#importar`). Las compras nuevas quedan **Por repartir**; las ya registradas reciben las guías nuevas y avanzan de etapa según el estado de Temu (`etapaTemu`: Entregado → 7 Recibido por DC, etc.).
+- **Repartir**: por cada artículo se escribe de qué cliente es (mismo nombre = mismo cliente) y se pasa al formulario normal prellenado para poner "Le cobras" y "¿Cómo pagó?".
+
 ## Notas técnicas
 
-- El panel guarda en `localStorage` con la llave `dc-panel-v5`. **Ya no hay datos de ejemplo**: arranca vacío. La llave `dc-reinicio=cero-1` hace que, una sola vez por teléfono, se borren los datos de prueba viejos (`dc-panel-v5`, `dc-app-registros`, `dc-app-yo`). Al conectar Supabase, quitar `localStorage`.
-- La app del cliente busca los pedidos en los datos del panel (`dc-panel-v5`); ya no tiene pedidos de ejemplo. Rutas: `#DC-4821` seguimiento, `#codigo` buscar por código, sin hash: bienvenida o Mis pedidos.
+- Los datos ya no viven en `localStorage` (ver "Base de datos"). Solo quedan ahí: la sesión del equipo (`dc-sesion`), quién usa el panel (`dc-panel-who`) y el registro del cliente (`dc-app-yo2`).
+- La app del cliente pide sus pedidos y el seguimiento a Supabase con las funciones `app_*`. Rutas: `#DC-4821` seguimiento, `#codigo` buscar por código, sin hash: bienvenida o Mis pedidos.
 - Las etapas del cliente son las mismas 1 a 9 del panel (índice 0 a 8 en `ESTADOS`).
 - `CLIENTE_URL` en el panel apunta a `../cliente/`.
 - Para probar en local: `python3 -m http.server` en la raíz y abrir `http://localhost:8000/panel/`.
