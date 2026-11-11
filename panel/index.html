@@ -747,6 +747,8 @@ function renderNB(){
   $("#nb").hidden=regModo!=="temu";$("#form").hidden=regModo!=="encargo"||!$("#done").hidden;
   if(regModo!=="temu")return;
   if(!nb)nbNuevo();
+  // Quitar el foco antes de redibujar: si no, el "change" del campo se dispara a mitad del redibujo y lo rompe.
+  const act=document.activeElement;if(act&&$("#nb").contains(act)){act.blur();if(!nb)return}
   const cart=D.P.filter(o=>etapa(o)===0&&!nb.clientes.some(k=>k.desde===o.id));
   $("#nb").innerHTML=`
    <div class="nb-step"><span class="nb-n">1</span><div><b>Lo que pidió cada cliente</b><p class="note">Un bloque por cliente. Agrega todos sus artículos con lo que costó en Temu y lo que le cobras.</p></div></div>
@@ -957,7 +959,7 @@ function renderNumeros(){
 }
 
 function renderAll(){autoVincular();renderInicio();renderPedidos();renderCompras();if(location.hash==="#registrar"&&$("#done").hidden)renderNB();renderRegistrar();renderClientes();renderNumeros()}
-function refresh(){abiertos=new Set($$("details.order[open][data-id]").map(d=>d.dataset.id));cliAbiertos=new Set($$("details.cli[open]").map(d=>d.dataset.cli));abiertasC=new Set($$("details.order[open][data-compra]").map(d=>d.dataset.compra));renderAll()}
+function refresh(){const act=document.activeElement;if(act&&act!==document.body&&$("main").contains(act))act.blur();abiertos=new Set($$("details.order[open][data-id]").map(d=>d.dataset.id));cliAbiertos=new Set($$("details.cli[open]").map(d=>d.dataset.cli));abiertasC=new Set($$("details.order[open][data-compra]").map(d=>d.dataset.compra));renderAll()}
 
 /* ---------- Navegación ---------- */
 const VIEWS=["inicio","pedidos","registrar","clientes","numeros"];
