@@ -419,6 +419,9 @@ body.hay-act .toast{bottom:calc(152px + env(safe-area-inset-bottom,0px))}
 .pad button:active{background:var(--panel-2);transform:scale(.94)}
 .pad .vacio{visibility:hidden}.pad .icono{border-color:transparent;background:transparent;color:var(--gold)}
 .pad .icono svg{width:30px;height:30px}
+.bio-grande{width:112px;height:112px;border-radius:32px;border:1.5px solid var(--gold);background:rgba(215,169,91,.1);color:var(--gold);display:grid;place-items:center;cursor:pointer}
+.bio-grande svg{width:60px;height:60px}.bio-grande:disabled{cursor:default}
+@media (prefers-reduced-motion:no-preference){.bio-grande.leyendo{animation:leer 1.4s ease-in-out infinite}@keyframes leer{50%{transform:scale(1.06);box-shadow:0 0 0 12px rgba(215,169,91,.12)}}}
 /* Importar de Temu y repartir */
 .imp-t{width:100%;box-sizing:border-box;min-height:140px;font:500 16px var(--f-mono);color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical}
 .tcard{display:grid;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
@@ -719,6 +722,7 @@ async function migrarLocal(){try{if(localStorage.getItem("dc-subido"))return;con
 const K_PIN="dc-pin",K_PINQ="dc-pin-ofrecido";
 const ICO_OJO=`<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>`;
 const ICO_BIO=`<svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 0 0-8 8v1M20 13v-1a8 8 0 0 0-4-6.9M8 20.5A11 11 0 0 1 7 16v-4a5 5 0 0 1 10 0v2M12 12v4a10 10 0 0 0 1.5 5.2M17 18c0 1 .1 2 .4 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+const ICO_CARA=`<svg viewBox="0 0 24 24"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M9 9v1.5M15 9v1.5M12 9v4h-1M9.5 16a4 4 0 0 0 5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const esIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 const pinCfg=()=>{try{const c=JSON.parse(localStorage.getItem(K_PIN));return c&&c.hash&&(c.len===4||c.len===6)?c:null}catch(e){return null}};
 const guardarPin=c=>{try{c?localStorage.setItem(K_PIN,JSON.stringify(c)):localStorage.removeItem(K_PIN)}catch(e){}};
@@ -741,7 +745,7 @@ function teclado(o){let L=$("#lock");if(!L){L=document.createElement("div");L.id
   L.innerHTML=`<div class="lock-box"><img src="${LOGO}" alt=""><div><h1>${o.titulo}</h1><p class="lead" id="pin-sub" aria-live="polite">${o.sub||""}</p></div>
     <div class="pin-dots" id="pin-dots" aria-hidden="true">${"<i></i>".repeat(o.len)}</div>
     <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" data-pk="${n}">${n}</button>`).join("")}
-      ${o.bio?`<button type="button" class="icono" data-pkbio aria-label="${esIOS?"Usar Face ID":"Usar huella"}">${ICO_BIO}</button>`:`<button type="button" class="vacio" tabindex="-1" aria-hidden="true"></button>`}
+      ${o.bio?`<button type="button" class="icono" data-pkbio aria-label="${esIOS?"Usar Face ID":"Usar huella"}">${esIOS?ICO_CARA:ICO_BIO}</button>`:`<button type="button" class="vacio" tabindex="-1" aria-hidden="true"></button>`}
       <button type="button" data-pk="0">0</button><button type="button" class="icono" data-pkdel aria-label="Borrar">⌫</button></div>
     ${o.olvide?`<button type="button" class="linkbtn" data-pkolv>¿Olvidaste tu PIN? Entra con tu contraseña</button>`:""}
     ${o.cancelar?`<button type="button" class="linkbtn" data-pkx>Cancelar</button>`:""}</div>`;
@@ -758,13 +762,29 @@ function teclado(o){let L=$("#lock");if(!L){L=document.createElement("div");L.id
 document.addEventListener("keydown",e=>{const L=$("#lock");if(!L||L.hidden)return;
   if(/^\d$/.test(e.key)){e.preventDefault();L.querySelector(`[data-pk="${e.key}"]`)?.click()}else if(e.key==="Backspace"){e.preventDefault();L.querySelector("[data-pkdel]")?.click()}},true);
 function cerrarTeclado(){const L=$("#lock");if(L){L.hidden=true;L.innerHTML=""}}
+/* Desbloqueo: si hay Face ID / huella, es lo primero. Se lanza solo; si no reconoce, un botón para
+   intentar de nuevo; al segundo fallo aparece el PIN (con el ícono para volver a intentar). */
 function bloquear(despues){const c=pinCfg();if(!c){despues?.();return}
-  const listo=()=>{fallosPin=0;cerrarTeclado();despues?.()};
-  const conBio=c.bio?async()=>{if(await usarBio(c.bio))listo()}:null;
-  teclado({titulo:"Centro de <span>Envíos</span>",sub:`Ingresa tu PIN de ${c.len} dígitos`,len:c.len,bio:conBio,olvide:true,
-    alTerminar:async pin=>{if(await hashPin(pin,c.salt)===c.hash){listo();return true}
+  let listoYa=false;const listo=()=>{if(listoYa)return;listoYa=true;fallosPin=0;cerrarTeclado();despues?.()};
+  const pin=()=>teclado({titulo:"Centro de <span>Envíos</span>",sub:`Ingresa tu PIN de ${c.len} dígitos`,len:c.len,bio:c.bio?bioManual:null,olvide:true,
+    alTerminar:async v=>{if(await hashPin(v,c.salt)===c.hash){listo();return true}
       fallosPin++;if(fallosPin>=5){olvidePin();return"Demasiados intentos"}return`PIN incorrecto · te quedan ${5-fallosPin} intentos`}});
-  if(conBio&&!esIOS)setTimeout(conBio,350)}   // en Android/PC se ofrece la huella sola; en iPhone se toca el botón
+  async function bioManual(){$("#pin-sub")&&($("#pin-sub").textContent=esIOS?"Mirando con Face ID…":"Coloca tu dedo…");
+    if(await usarBio(c.bio))listo();else if($("#pin-sub"))$("#pin-sub").textContent=`No te reconoció. Ingresa tu PIN de ${c.len} dígitos`}
+  if(!c.bio)return pin();
+  let fallos=0;
+  const pantalla=(msg,boton)=>{let L=$("#lock");if(!L){L=document.createElement("div");L.id="lock";L.className="lock";L.setAttribute("role","dialog");L.setAttribute("aria-modal","true");document.body.appendChild(L)}
+    L.onclick=null;L.hidden=false;
+    L.innerHTML=`<div class="lock-box"><img src="${LOGO}" alt=""><div><h1>Centro de <span>Envíos</span></h1><p class="lead" aria-live="polite">${msg}</p></div>
+      <button type="button" class="bio-grande ${boton?"":"leyendo"}" data-bioir ${boton?"":"disabled"} aria-label="${esIOS?"Usar Face ID":"Usar huella"}">${esIOS?ICO_CARA:ICO_BIO}</button>
+      ${boton?`<button type="button" class="btn gold" data-bioir style="justify-content:center;min-width:220px">Intentar de nuevo</button>`:""}
+      <button type="button" class="linkbtn" data-biopin>Usar PIN</button></div>`;
+    L.querySelectorAll("[data-bioir]").forEach(b=>b.onclick=intento);L.querySelector("[data-biopin]").onclick=pin};
+  async function intento(){pantalla(esIOS?"Mirando con Face ID…":"Coloca tu dedo en el lector…",false);
+    if(await usarBio(c.bio))return listo();
+    fallos++;if(fallos>=2)return pin();
+    pantalla(esIOS?"No te reconoció. Toca para intentar otra vez con Face ID.":"No te reconoció. Toca para intentar otra vez con tu huella.",true)}
+  intento()}   // primer intento automático, sin tocar nada
 async function olvidePin(){guardarPin(null);cerrarTeclado();try{await sb?.auth.signOut()}catch(e){}location.reload()}
 function crearPin(len){let primero="";
   const paso1=()=>teclado({titulo:"Crea tu <span>PIN</span>",sub:`Elige ${len} números que recuerdes`,len,cancelar:true,alCancelar:abrirSeguridad,
@@ -1482,7 +1502,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=7;
+const APP="admin",APP_VERSION=8;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

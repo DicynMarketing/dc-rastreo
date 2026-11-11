@@ -1,7 +1,19 @@
 {
-  "admin": 7,
+  "admin": 8,
   "cliente": 6,
   "notas": [
+    {
+      "fecha": "2026-11-11",
+      "admin": 8,
+      "cliente": 6,
+      "titulo": "Face ID primero",
+      "admin_items": [
+        "Si tienes Face ID o huella activado, al abrir el panel se lanza solo, sin tocar nada.",
+        "Si no te reconoce, aparece “Intentar de nuevo”; al segundo intento fallido sale el teclado del PIN.",
+        "En el teclado del PIN está el ícono de Face ID o huella para volver a intentarlo cuando quieras."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-11",
       "admin": 7,
