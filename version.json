@@ -1,7 +1,22 @@
 {
-  "admin": 6,
+  "admin": 7,
   "cliente": 6,
   "notas": [
+    {
+      "fecha": "2026-11-11",
+      "admin": 7,
+      "cliente": 6,
+      "titulo": "Cuentas del equipo, PIN y Face ID",
+      "admin_items": [
+        "Crea tu cuenta desde el panel: eliges si eres Diego o Cinthya, tu correo y tu contraseña. Solo se permiten esas 2 cuentas.",
+        "Ojito para ver la contraseña mientras la escribes.",
+        "Seguridad y PIN: PIN de 6 o 4 dígitos que se pide al abrir el panel y al volver después de 1 minuto.",
+        "Desbloqueo con Face ID en iPhone o con huella en Android, si tu teléfono lo permite.",
+        "Cambiar contraseña, bloquear ahora y cerrar sesión desde el mismo menú.",
+        "Ya están en “Por repartir” tus 8 compras de Temu del 8 de octubre al 6 de noviembre."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-11",
       "admin": 6,

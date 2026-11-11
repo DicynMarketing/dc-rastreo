@@ -403,6 +403,22 @@ body.hay-act .toast{bottom:calc(152px + env(safe-area-inset-bottom,0px))}
 .sync{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--muted);margin-left:6px;vertical-align:1px;flex:none}
 .sync[data-s="ok"]{background:var(--ok)}.sync[data-s="guardando"]{background:var(--gold)}.sync[data-s="error"]{background:var(--red)}
 @media (prefers-reduced-motion:no-preference){.sync[data-s="guardando"]{animation:latido 1s infinite}}
+.pass{position:relative;display:block}.pass input{width:100%;box-sizing:border-box;padding-right:50px}
+.ojo{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:42px;height:42px;border:0;background:none;color:var(--muted);cursor:pointer;display:grid;place-items:center;border-radius:10px}
+.ojo svg{width:20px;height:20px}.ojo[aria-pressed="true"]{color:var(--gold)}
+/* Bloqueo con PIN */
+.lock{position:fixed;inset:0;z-index:85;background:var(--bg);display:grid;place-items:center;padding:24px 18px calc(24px + env(safe-area-inset-bottom,0px));overflow:auto}
+.lock-box{width:100%;max-width:340px;display:grid;justify-items:center;gap:20px;text-align:center}
+.lock-box img{width:52px}.lock-box h1{font-size:24px}
+.pin-dots{display:flex;gap:14px;justify-content:center;min-height:18px}
+.pin-dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--muted);transition:background .15s,border-color .15s,transform .15s}
+.pin-dots i.on{background:var(--gold);border-color:var(--gold);transform:scale(1.1)}
+@media (prefers-reduced-motion:no-preference){.pin-dots.mal{animation:sacude .4s}@keyframes sacude{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}}
+.pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px;justify-content:center}
+.pad button{width:72px;height:72px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:600 26px var(--f-body);cursor:pointer;display:grid;place-items:center;transition:background .12s,transform .12s}
+.pad button:active{background:var(--panel-2);transform:scale(.94)}
+.pad .vacio{visibility:hidden}.pad .icono{border-color:transparent;background:transparent;color:var(--gold)}
+.pad .icono svg{width:30px;height:30px}
 /* Importar de Temu y repartir */
 .imp-t{width:100%;box-sizing:border-box;min-height:140px;font:500 16px var(--f-mono);color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical}
 .tcard{display:grid;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
@@ -449,11 +465,14 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
     <img id="logo-l" alt="DC Marketing">
     <div><h1>Centro de <span>Envíos</span></h1><p class="lead" id="login-lead">Entra con tu correo del equipo.</p></div>
     <form id="login-f" novalidate>
+      <div class="block" id="l-quien" hidden><span class="f-lab">¿Quién eres?</span>
+        <div class="seg" id="l-seg"><button type="button" data-lq="Diego" aria-pressed="false">Diego</button><button type="button" data-lq="Cinthya" aria-pressed="false">Cinthya</button></div>
+        <p class="note" id="l-cupos"></p></div>
       <label class="f" for="l-email">Correo<input id="l-email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" placeholder="tucorreo@gmail.com"></label>
-      <label class="f" for="l-pass">Contraseña<input id="l-pass" type="password" autocomplete="current-password" placeholder="6 caracteres o más"></label>
+      <label class="f" for="l-pass">Contraseña<span class="pass"><input id="l-pass" type="password" autocomplete="current-password" placeholder="6 caracteres o más"><button type="button" class="ojo" data-ojo="l-pass" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button></span></label>
       <p class="err" id="l-err" hidden></p>
       <button class="btn gold" type="submit" id="l-go">Entrar</button>
-      <button class="linkbtn" type="button" id="l-modo">¿Primera vez? Crea tu contraseña</button>
+      <button class="linkbtn" type="button" id="l-modo">¿Primera vez? Crea tu cuenta</button>
     </form>
   </div>
 </div>
@@ -467,7 +486,8 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
       <a href="#clientes" data-nav="clientes"><svg><use href="#i-users"/></svg>Clientes</a>
       <a href="#numeros" data-nav="numeros"><svg><use href="#i-chart"/></svg>Ganancias</a>
     </div>
-    <button class="novedades-link" data-novedades style="margin-top:auto;justify-self:start;padding:0 12px">Novedades</button>
+    <button class="novedades-link" data-segabrir style="margin-top:auto;justify-self:start;padding:0 12px">Seguridad y PIN</button>
+    <button class="novedades-link" data-novedades style="justify-self:start;padding:6px 12px 0">Novedades</button>
   </nav>
 
   <main>
@@ -488,7 +508,7 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
         <div><div class="h2row"><h2>Tablero de ruta</h2><span class="note">Toca una etapa para ver sus pedidos</span></div>
           <div class="board-scroll"><div class="board" id="board"></div></div></div>
         <p class="note">Todo se guarda en la base de datos compartida: lo que registra uno le aparece al otro al instante. El punto verde junto al logo indica que estás en línea.</p>
-        <p class="note">Conectado como <b id="yo-mail"></b> · <button class="novedades-link" data-logout>Cerrar sesión</button></p>
+        <p class="note">Conectado como <b id="yo-mail"></b> · <button class="novedades-link" data-segabrir>Seguridad y PIN</button> · <button class="novedades-link" data-logout>Cerrar sesión</button></p>
         <p class="note">Versión <span id="ver-txt"></span> · <button class="novedades-link" data-novedades>Ver novedades</button></p>
       </section>
 
@@ -692,37 +712,145 @@ function escuchar(){
 async function migrarLocal(){try{if(localStorage.getItem("dc-subido"))return;const L=JSON.parse(localStorage.getItem(KEY)||"null");let n=0;
   if(L&&Array.isArray(L.P)){(L.C||[]).forEach(c=>{if(!D.C.some(x=>x.id===c.id)){D.C.push(c);n++}});L.P.forEach(o=>{if(!D.P.some(x=>x.id===o.id)){D.P.push(o);n++}})}
   localStorage.setItem("dc-subido","1");if(n){save();setTimeout(()=>toast(`Se subieron ${n} registros de este teléfono a la base compartida`),900)}}catch(e){}}
+/* ---------- PIN y Face ID / huella ----------
+   Se guarda solo en este dispositivo: el PIN como huella SHA-256 con sal (nunca el número) y, si se activa,
+   la credencial de Face ID / huella del teléfono (WebAuthn). Pide el PIN al abrir y al volver después de 1 minuto.
+   Si se olvida el PIN: se cierra la sesión y se entra con correo y contraseña. */
+const K_PIN="dc-pin",K_PINQ="dc-pin-ofrecido";
+const ICO_OJO=`<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>`;
+const ICO_BIO=`<svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 0 0-8 8v1M20 13v-1a8 8 0 0 0-4-6.9M8 20.5A11 11 0 0 1 7 16v-4a5 5 0 0 1 10 0v2M12 12v4a10 10 0 0 0 1.5 5.2M17 18c0 1 .1 2 .4 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+const esIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const pinCfg=()=>{try{const c=JSON.parse(localStorage.getItem(K_PIN));return c&&c.hash&&(c.len===4||c.len===6)?c:null}catch(e){return null}};
+const guardarPin=c=>{try{c?localStorage.setItem(K_PIN,JSON.stringify(c)):localStorage.removeItem(K_PIN)}catch(e){}};
+const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+const b64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const deB64u=s=>Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")+"===".slice((s.length+3)%4)),c=>c.charCodeAt(0));
+async function hashPin(pin,salt){return hex(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(salt+"|"+pin)))}
+async function bioDisponible(){try{return!!window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()}catch(e){return false}}
+async function activarBio(){const{data:{user}}=await sb.auth.getUser();
+  const cred=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:"Centro de Envíos DC"},
+    user:{id:crypto.getRandomValues(new Uint8Array(16)),name:user?.email||"equipo",displayName:EQUIPO[yo]?.nombre||"Equipo DC"},
+    pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],timeout:60000,
+    authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required",residentKey:"discouraged"}}});
+  return b64u(cred.rawId)}
+async function usarBio(id){try{await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),timeout:60000,userVerification:"required",
+  allowCredentials:[{type:"public-key",id:deB64u(id),transports:["internal","hybrid"]}]}});return true}catch(e){return false}}
+let fallosPin=0,ocultoDesde=0;
+function teclado(o){let L=$("#lock");if(!L){L=document.createElement("div");L.id="lock";L.className="lock";L.setAttribute("role","dialog");L.setAttribute("aria-modal","true");document.body.appendChild(L)}
+  let v="";document.activeElement?.blur?.();
+  L.innerHTML=`<div class="lock-box"><img src="${LOGO}" alt=""><div><h1>${o.titulo}</h1><p class="lead" id="pin-sub" aria-live="polite">${o.sub||""}</p></div>
+    <div class="pin-dots" id="pin-dots" aria-hidden="true">${"<i></i>".repeat(o.len)}</div>
+    <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" data-pk="${n}">${n}</button>`).join("")}
+      ${o.bio?`<button type="button" class="icono" data-pkbio aria-label="${esIOS?"Usar Face ID":"Usar huella"}">${ICO_BIO}</button>`:`<button type="button" class="vacio" tabindex="-1" aria-hidden="true"></button>`}
+      <button type="button" data-pk="0">0</button><button type="button" class="icono" data-pkdel aria-label="Borrar">⌫</button></div>
+    ${o.olvide?`<button type="button" class="linkbtn" data-pkolv>¿Olvidaste tu PIN? Entra con tu contraseña</button>`:""}
+    ${o.cancelar?`<button type="button" class="linkbtn" data-pkx>Cancelar</button>`:""}</div>`;
+  L.hidden=false;
+  const pintar=()=>$$("#pin-dots i").forEach((d,i)=>d.classList.toggle("on",i<v.length));
+  const mal=t=>{const d=$("#pin-dots");if(!d)return;d.classList.remove("mal");void d.offsetWidth;d.classList.add("mal");if(t)$("#pin-sub").textContent=t;v="";pintar()};
+  let ocupado=false;
+  L.onclick=async e=>{const b=e.target.closest("button");if(!b||ocupado)return;
+    if(b.dataset.pk!==undefined&&v.length<o.len){v+=b.dataset.pk;pintar();if(v.length===o.len){ocupado=true;const r=await o.alTerminar(v);ocupado=false;if(r!==true)mal(typeof r==="string"?r:"PIN incorrecto")}}
+    else if("pkdel" in b.dataset){v=v.slice(0,-1);pintar()}
+    else if("pkbio" in b.dataset)o.bio();
+    else if("pkolv" in b.dataset){if(confirm("Se cerrará la sesión y entrarás con tu correo y contraseña. Después puedes crear un PIN nuevo."))olvidePin()}
+    else if("pkx" in b.dataset){cerrarTeclado();o.alCancelar?.()}}}
+document.addEventListener("keydown",e=>{const L=$("#lock");if(!L||L.hidden)return;
+  if(/^\d$/.test(e.key)){e.preventDefault();L.querySelector(`[data-pk="${e.key}"]`)?.click()}else if(e.key==="Backspace"){e.preventDefault();L.querySelector("[data-pkdel]")?.click()}},true);
+function cerrarTeclado(){const L=$("#lock");if(L){L.hidden=true;L.innerHTML=""}}
+function bloquear(despues){const c=pinCfg();if(!c){despues?.();return}
+  const listo=()=>{fallosPin=0;cerrarTeclado();despues?.()};
+  const conBio=c.bio?async()=>{if(await usarBio(c.bio))listo()}:null;
+  teclado({titulo:"Centro de <span>Envíos</span>",sub:`Ingresa tu PIN de ${c.len} dígitos`,len:c.len,bio:conBio,olvide:true,
+    alTerminar:async pin=>{if(await hashPin(pin,c.salt)===c.hash){listo();return true}
+      fallosPin++;if(fallosPin>=5){olvidePin();return"Demasiados intentos"}return`PIN incorrecto · te quedan ${5-fallosPin} intentos`}});
+  if(conBio&&!esIOS)setTimeout(conBio,350)}   // en Android/PC se ofrece la huella sola; en iPhone se toca el botón
+async function olvidePin(){guardarPin(null);cerrarTeclado();try{await sb?.auth.signOut()}catch(e){}location.reload()}
+function crearPin(len){let primero="";
+  const paso1=()=>teclado({titulo:"Crea tu <span>PIN</span>",sub:`Elige ${len} números que recuerdes`,len,cancelar:true,alCancelar:abrirSeguridad,
+    alTerminar:async p=>{primero=p;paso2();return true}});
+  const paso2=()=>teclado({titulo:"Repite tu <span>PIN</span>",sub:"Escríbelo otra vez para confirmar",len,cancelar:true,alCancelar:abrirSeguridad,
+    alTerminar:async p=>{if(p!==primero){setTimeout(paso1,900);return"No coinciden. Créalo de nuevo."}
+      const salt=hex(crypto.getRandomValues(new Uint8Array(16))),viejo=pinCfg();guardarPin({salt,hash:await hashPin(p,salt),len,bio:viejo?.bio||null});
+      cerrarTeclado();toast("PIN activado");abrirSeguridad();return true}});
+  paso1()}
+async function abrirSeguridad(){if(!sb)return;const c=pinCfg(),bioOk=await bioDisponible();const{data:{user}}=await sb.auth.getUser();
+  document.getElementById("upd")?.remove();const d=document.createElement("div");d.className="upd";d.id="upd";
+  const bioNombre=esIOS?"Face ID / Touch ID":"Huella o rostro";
+  d.innerHTML=`<div class="upd-bg" data-updx></div><div class="upd-sheet" role="dialog" aria-modal="true" aria-labelledby="seg-t"><div class="upd-grab"></div>
+    <p class="upd-k">Seguridad</p><h2 id="seg-t">Protege tu panel</h2>
+    <div class="upd-nota"><b>PIN de desbloqueo</b>
+      <small>${c?`Activado · ${c.len} dígitos. Se pide al abrir el panel y al volver después de 1 minuto.`:"Sin PIN. Con un PIN, nadie que tome tu teléfono puede ver tus pedidos ni tus cobros."}</small>
+      ${c?`<div class="upd-btns"><button class="upd-btn sec" data-segpin="${c.len}">Cambiar PIN</button><button class="upd-btn sec" data-segquitar>Quitar PIN</button></div>`
+        :`<div class="seg" id="seg-len"><button type="button" data-seglen="6" aria-pressed="true">6 dígitos · más seguro</button><button type="button" data-seglen="4" aria-pressed="false">4 dígitos</button></div>
+          <button class="upd-btn" data-segpin="6" id="seg-crear">Crear PIN</button>`}</div>
+    ${c?(bioOk?`<div class="upd-nota"><b>${bioNombre}</b><small>${c.bio?"Activado: desbloqueas sin escribir el PIN. El PIN sigue funcionando.":"Desbloquea el panel con tu rostro o tu huella en este dispositivo."}</small>
+        <button class="upd-btn ${c.bio?"sec":""}" data-segbio>${c.bio?"Desactivar":"Activar "+bioNombre}</button></div>`
+      :`<div class="upd-nota"><small>Este dispositivo o navegador no permite Face ID ni huella para páginas web. Se usa solo el PIN.</small></div>`):""}
+    <div class="upd-nota"><b>Tu cuenta</b><small>${esc(user?.email||"")}</small>
+      <label class="f" for="seg-pass" style="margin-top:4px">Nueva contraseña<span class="pass"><input id="seg-pass" type="password" autocomplete="new-password" placeholder="6 caracteres o más"><button type="button" class="ojo" data-ojo="seg-pass" aria-label="Mostrar contraseña">${ICO_OJO}</button></span></label>
+      <div class="upd-btns"><button class="upd-btn sec" data-segpass>Cambiar contraseña</button>${c?`<button class="upd-btn sec" data-seglock>Bloquear ahora</button>`:""}<button class="upd-btn sec" data-logout>Cerrar sesión</button></div></div>
+    <div class="upd-btns"><button class="upd-btn sec" data-updx>Listo</button></div></div>`;
+  document.body.appendChild(d)}
+document.addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+  if(d.ojo){e.preventDefault();const i=document.getElementById(d.ojo);const ver=i.type==="password";i.type=ver?"text":"password";b.setAttribute("aria-pressed",ver);b.setAttribute("aria-label",ver?"Ocultar contraseña":"Mostrar contraseña");i.focus({preventScroll:true})}
+  else if("segabrir" in d)abrirSeguridad();
+  else if(d.seglen){$$("#seg-len button").forEach(x=>x.setAttribute("aria-pressed",x===b));$("#seg-crear").dataset.segpin=d.seglen}
+  else if(d.segpin){document.getElementById("upd")?.remove();crearPin(+d.segpin)}
+  else if("segquitar" in d){if(confirm("¿Quitar el PIN de este dispositivo?")){guardarPin(null);toast("PIN quitado");abrirSeguridad()}}
+  else if("seglock" in d){document.getElementById("upd")?.remove();bloquear()}
+  else if("segbio" in d){const c=pinCfg();if(!c)return;
+    if(c.bio){c.bio=null;guardarPin(c);toast("Desactivado");return abrirSeguridad()}
+    try{c.bio=await activarBio();guardarPin(c);toast(esIOS?"Face ID activado":"Huella activada")}catch(x){toast("No se activó. Puedes intentar de nuevo.")}abrirSeguridad()}
+  else if("segpass" in d){const v=$("#seg-pass").value;if(v.length<6)return toast("La contraseña debe tener 6 caracteres o más");
+    b.disabled=true;const{error}=await sb.auth.updateUser({password:v});b.disabled=false;
+    if(error)toast(/different|same/i.test(error.message)?"Debe ser distinta a la actual":"No se pudo cambiar. Intenta de nuevo.");else{$("#seg-pass").value="";toast("Contraseña cambiada")}}});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")ocultoDesde=Date.now();
+  else if(pinCfg()&&$("#login").hidden&&ocultoDesde&&Date.now()-ocultoDesde>60000&&($("#lock")?.hidden!==false))bloquear()});
+
 /* ---------- Entrar (solo correos del equipo) ---------- */
-let modoLogin="entrar";
-function mostrarLogin(msg){$("#login").hidden=false;$("#login-lead").textContent="Entra con tu correo del equipo.";const er=$("#l-err");er.textContent=msg||"";er.hidden=!msg;$("#l-go").disabled=false;$("#l-go").textContent=modoLogin==="crear"?"Crear mi cuenta":"Entrar"}
+let modoLogin="entrar",quienNuevo="";
+function mostrarLogin(msg){$("#login").hidden=false;$("#login-lead").textContent=modoLogin==="crear"?"Crea tu cuenta: elige quién eres, tu correo y una contraseña.":"Entra con tu correo y tu contraseña.";
+  $("#l-quien").hidden=modoLogin!=="crear";const er=$("#l-err");er.textContent=msg||"";er.hidden=!msg;$("#l-go").disabled=false;$("#l-go").textContent=modoLogin==="crear"?"Crear mi cuenta":"Entrar"}
 async function entrar(){
   $("#login-lead").textContent="Cargando los pedidos…";
   const{data:quien,error}=await sb.rpc("soy_equipo");
   if(error)return mostrarLogin("No se pudo conectar. Revisa tu internet e intenta de nuevo.");
-  if(!quien){await sb.auth.signOut();return mostrarLogin("Ese correo no está autorizado. Pide que lo agreguen al equipo.")}
+  if(!quien){await sb.auth.signOut();return mostrarLogin("Esa cuenta todavía no tiene lugar en el equipo. Toca “¿Primera vez? Crea tu cuenta”, elige quién eres y usa este mismo correo y contraseña.")}
   try{await cargar()}catch(e){return mostrarLogin("No se pudieron cargar los datos. Intenta de nuevo.")}
   await migrarLocal();
   const{data:{user}}=await sb.auth.getUser();$("#yo-mail").textContent=`${quien} (${user?.email||""})`;
   const k=norm(quien).split(" ")[0];if(EQUIPO[k])yo=k;
   $("#login").hidden=true;setYo(yo);go();escuchar();estadoSync(hayPendientes()?"guardando":"ok");if(hayPendientes())save();
+  try{if(!pinCfg()&&!localStorage.getItem(K_PINQ)){localStorage.setItem(K_PINQ,"1");setTimeout(abrirSeguridad,1300)}}catch(e){}
 }
 async function iniciar(){
   $("#logo-l").src=LOGO;
   if(!sb)return mostrarLogin("No se pudo cargar la conexión. Revisa tu internet y recarga la página.");
   const{data:{session}}=await sb.auth.getSession();
   if(!session)return mostrarLogin();
-  $("#login").hidden=false;entrar();
+  bloquear(()=>{$("#login").hidden=false;entrar()});
 }
-$("#l-modo").onclick=()=>{modoLogin=modoLogin==="entrar"?"crear":"entrar";$("#l-modo").textContent=modoLogin==="crear"?"Ya tengo cuenta: entrar":"¿Primera vez? Crea tu contraseña";
-  $("#l-pass").autocomplete=modoLogin==="crear"?"new-password":"current-password";mostrarLogin()};
+$("#l-modo").onclick=async()=>{modoLogin=modoLogin==="entrar"?"crear":"entrar";$("#l-modo").textContent=modoLogin==="crear"?"Ya tengo cuenta: entrar":"¿Primera vez? Crea tu cuenta";
+  $("#l-pass").autocomplete=modoLogin==="crear"?"new-password":"current-password";mostrarLogin();
+  if(modoLogin!=="crear")return;$("#l-cupos").textContent="Revisando cuentas disponibles…";
+  try{const{data}=await sb.rpc("cupos_equipo");const libres=data?.libres||[];
+    $$("#l-seg button").forEach(b=>{const ok=libres.includes(b.dataset.lq);b.disabled=!ok;b.title=ok?"":"Ya tiene cuenta"});
+    if(!libres.includes(quienNuevo))quienNuevo=libres.length===1?libres[0]:"";$$("#l-seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lq===quienNuevo));
+    $("#l-cupos").textContent=!libres.length?"Ya se crearon las 2 cuentas del equipo. Toca “Ya tengo cuenta: entrar”.":libres.length===1?`Solo queda la cuenta de ${libres[0]}.`:"Se pueden crear 2 cuentas: una para Diego y otra para Cinthya.";
+    $("#l-go").disabled=!libres.length}catch(e){$("#l-cupos").textContent=""}};
+$("#l-seg").onclick=e=>{const b=e.target.closest("[data-lq]");if(!b||b.disabled)return;quienNuevo=b.dataset.lq;$$("#l-seg button").forEach(x=>x.setAttribute("aria-pressed",x===b))};
 $("#login-f").addEventListener("submit",async e=>{e.preventDefault();
   const email=$("#l-email").value.trim().toLowerCase(),password=$("#l-pass").value,b=$("#l-go");
+  if(modoLogin==="crear"&&!quienNuevo)return mostrarLogin("Elige quién eres: Diego o Cinthya.");
   if(!/^\S+@\S+\.\S+$/.test(email)||password.length<6)return mostrarLogin("Escribe tu correo y una contraseña de 6 caracteres o más.");
   b.disabled=true;b.textContent=modoLogin==="crear"?"Creando…":"Entrando…";
-  let r=modoLogin==="crear"?await sb.auth.signUp({email,password}):await sb.auth.signInWithPassword({email,password});
+  let r=modoLogin==="crear"?await sb.auth.signUp({email,password,options:{data:{nombre:quienNuevo}}}):await sb.auth.signInWithPassword({email,password});
+  if(modoLogin==="crear"&&r.error&&/registered|already|exists/i.test(r.error.message||""))r=await sb.auth.signInWithPassword({email,password}); // la cuenta ya existía
   if(modoLogin==="crear"&&!r.error&&!r.data.session)r=await sb.auth.signInWithPassword({email,password});
   if(r.error){const m=String(r.error.message||"").toLowerCase();
-    return mostrarLogin(/confirm/.test(m)?"Ese correo no está autorizado. Pide que lo agreguen al equipo.":/registered|already/.test(m)?"Ese correo ya tiene cuenta. Toca “Ya tengo cuenta: entrar”.":/invalid/.test(m)?"Correo o contraseña incorrectos.":"No se pudo entrar. Revisa tu internet e intenta de nuevo.")}
+    return mostrarLogin(/confirm/.test(m)?(modoLogin==="crear"?"Esa cuenta no se pudo crear: ese lugar del equipo ya está ocupado.":"Ese correo no está autorizado. Las cuentas del equipo ya están creadas."):/registered|already/.test(m)?"Ese correo ya tiene cuenta. Toca “Ya tengo cuenta: entrar”.":/invalid/.test(m)?"Correo o contraseña incorrectos.":"No se pudo entrar. Revisa tu internet e intenta de nuevo.")}
+  if(modoLogin==="crear")await sb.rpc("reclamar_lugar",{p_nombre:quienNuevo});
   entrar()});
 
 /* ---------- Lógica de pedido ---------- */
@@ -937,7 +1065,7 @@ function renderCompras(){
 /* ---------- Importar de Temu ----------
    Se pega el bloque JSON que arma Claude en Chrome desde "Tus pedidos" de Temu. Cada compra queda "Por repartir":
    se elige de qué cliente es cada artículo y se pasa al formulario normal para poner precio y pago. */
-const etapaTemu=t=>{t=norm(t);return/entregad|delivered/.test(t)?7:/aduana/.test(t)?6:/panam/.test(t)?5:/envi|camino|transit|shipped/.test(t)?3:/prepar|process/.test(t)?2:1};
+const etapaTemu=t=>{t=norm(t);return/parcial|aduan|custom/.test(t)?6:/entregad|delivered/.test(t)?7:/aduana/.test(t)?6:/panam/.test(t)?5:/envi|camino|transit|shipped/.test(t)?3:/prepar|process/.test(t)?2:1};
 const fechaCorta=f=>{const d=new Date(/^\d{4}-\d{2}-\d{2}$/.test(f||"")?f+"T12:00":f);return isNaN(d)?"":d.toLocaleDateString("es-PA",{day:"numeric",month:"short"})};
 let repartiendo=null;
 function renderImp(){const el=$("#imp");el.hidden=regModo!=="importar";if(el.hidden)return;
@@ -1354,7 +1482,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=6;
+const APP="admin",APP_VERSION=7;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
