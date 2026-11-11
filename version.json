@@ -1,7 +1,19 @@
 {
-  "admin": 8,
+  "admin": 9,
   "cliente": 6,
   "notas": [
+    {
+      "fecha": "2026-11-11",
+      "admin": 9,
+      "cliente": 6,
+      "titulo": "Configuración en el logo",
+      "admin_items": [
+        "Toca el logo de DC Marketing (arriba, con el engranaje) para abrir la Configuración: PIN, Face ID, tu cuenta y la versión del panel.",
+        "Después de entrar con tu PIN o Face ID, si hay una versión nueva te aparece la hoja para actualizarla tú mismo.",
+        "En Configuración también puedes buscar actualizaciones cuando quieras."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-11",
       "admin": 8,
