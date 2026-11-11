@@ -123,21 +123,23 @@ Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. L
 ## Base de datos (Supabase)
 
 - Proyecto `dc-rastreo` (`https://jmfyzohwffylzrwkbtwl.supabase.co`). La clave publicable (`sb_publishable_…`) va en los HTML; es pública por diseño. **Nunca** poner la clave de servicio en el código.
-- Tablas: `equipo` (correos autorizados del panel), `clientes`, `pedidos` (`data` = el pedido completo como lo usa el panel; `vista` = solo lo que ve el cliente: etapas y fechas, sin artículos ni precios), `registros` (app del cliente), `temu_compras` (importadas de Temu: `por_repartir` | `repartido` | `descartado`).
+- Tablas: `equipo` (correos autorizados del panel), `clientes`, `pedidos` (`data` = el pedido completo como lo usa el panel; `vista` = solo lo que ve el cliente: etapas y fechas, sin artículos ni precios), `registros` (app del cliente), `temu_compras` (ya no se usa; ver "Registro manual").
 - **RLS**: solo usuarios con sesión cuyo correo esté en `equipo` leen o escriben las tablas. El público (app del cliente) **no** lee tablas: usa las funciones `app_registrar`, `app_mis_pedidos`, `app_usar_invitacion` y `app_seguimiento` (security definer), que devuelven solo `vista`.
 - **Cuentas del equipo (solo 2: Diego y Cinthya)**: se crean desde el panel con "¿Primera vez? Crea tu cuenta": se elige quién es, correo y contraseña (con ojito). El trigger `autoconfirmar_equipo` la confirma y la agrega a `equipo` si ese lugar está libre; `cupos_equipo()` dice qué lugares quedan. Si la cuenta ya existía, `reclamar_lugar(nombre)` le da el lugar libre. Con los 2 lugares ocupados nadie más entra. Para liberar un lugar: borrar la fila de `equipo` (y el usuario en `auth.users` si se quiere).
 - **PIN y Face ID / huella** (solo en el dispositivo, `localStorage` `dc-pin`): PIN de 4 o 6 dígitos guardado como SHA-256 con sal, se pide al abrir y al volver tras 1 minuto; 5 intentos fallidos cierran la sesión. Face ID / huella con WebAuthn (credencial de plataforma): si está activado es **lo primero** al abrir: se lanza solo; si falla, botón "Intentar de nuevo"; al segundo fallo aparece el PIN, que tiene el ícono para reintentar Face ID / huella. "Olvidé mi PIN" cierra sesión y se entra con contraseña. Menú **Configuración**: se abre tocando el **logo de DC Marketing** (arriba, con engranaje; en computadora, el logo del menú lateral) o el enlace al final de Inicio. Incluye PIN, Face ID / huella, cambiar contraseña, bloquear, cerrar sesión y versión del panel ("Buscar actualización").
 - Después de desbloquear o entrar, si `version.json` trae una versión mayor se abre sola la hoja "Nueva actualización" (`avisarActualizacion()`); el dueño actualiza a mano con "Actualizar ahora".
-- **Panel**: al entrar carga todo en memoria (`D`, `REGS`, `TEMU`), guarda solo lo que cambió (`subir()`, comparando con `SNAP`) y escucha cambios en tiempo real (`escuchar()`). Si no hay internet, reintenta cada 15 s; el punto junto al logo es verde (en línea), dorado (guardando) o rojo (sin conexión). Lo que hubiera en `localStorage` (`dc-panel-v5`) se sube una sola vez al entrar.
+- **Panel**: al entrar carga todo en memoria (`D`, `REGS`), guarda solo lo que cambió (`subir()`, comparando con `SNAP`) y escucha cambios en tiempo real (`escuchar()`). Si no hay internet, reintenta cada 15 s; el punto junto al logo es verde (en línea), dorado (guardando) o rojo (sin conexión). Lo que hubiera en `localStorage` (`dc-panel-v5`) se sube una sola vez al entrar.
 - **App del cliente**: guarda en `localStorage` `dc-app-yo2` = `{id, token, nombre, apellido}`; consulta sus pedidos con `app_mis_pedidos` al abrir, al volver a la app y cada minuto.
 
-## Importar de Temu (decisión tomada)
+## Registro manual (decisión tomada)
 
-- **No** se entra a Temu desde el servidor. El dueño usa **Claude in Chrome** (extensión, con su sesión de Temu abierta) para leer "Tus pedidos" y armar un bloque JSON: `[{"pedido":"PO-…","fecha":"AAAA-MM-DD","estado":"…","total":0,"guias":[{"guia":"…","paqueteria":"…"}],"articulos":[{"nombre":"…","variante":"…","cantidad":1,"precio":0}]}]`.
-- Ese bloque se pega en el panel: **Nuevo → Importar de Temu** (o el link directo `panel/#importar`). Las compras nuevas quedan **Por repartir**; las ya registradas reciben las guías nuevas y avanzan de etapa según el estado de Temu (`etapaTemu`: Entregado → 7 Recibido por DC, etc.).
-- **Sin correo ni revisión automática** (decisión tomada, por consumo): se probó comunicarse con el Claude de Chrome por Gmail (asunto "DC-rastreo") con una revisión cada 3 horas, pero gastaba mucho uso y se desactivó en los dos lados. Ahora el **Claude de Chrome pega el JSON directo en `panel/#importar`** (con la sesión de Diego abierta en ese Chrome); no pasa por esta conversación. No volver a crear tareas programadas de revisión sin que el dueño lo pida.
-- `importar_temu(jsonb)` (solo servidor): compras nuevas → `temu_compras` por repartir; si ya estaban por repartir, actualiza estado y guías (conserva a quién se asignó cada artículo); si ya están en `pedidos`, agrega guías nuevas y avanza la etapa. El panel, al cargar o al recibir el cambio en tiempo real, recalcula la `vista` del cliente y la guarda.
-- **Repartir**: por cada artículo se escribe de qué cliente es (mismo nombre = mismo cliente) y se pasa al formulario normal prellenado para poner "Le cobras" y "¿Cómo pagó?".
+- **Se quitó "Importar de Temu"** (no le funcionó al dueño): ya no hay pantalla de importar, "Por repartir", "Repartir" ni `#importar`, y el panel no lee `temu_compras`. Registrar queda solo manual: **"Pedido de Temu"** y **"Encargo por comprar"**.
+- Pendiente de limpiar en Supabase (si no se hizo): borrar las filas de `temu_compras` y la función `importar_temu(jsonb)`; la tabla se puede eliminar cuando nadie use versiones viejas del panel (v10 o menos la leen).
+- No volver a crear revisiones automáticas de correo ni tareas programadas sin que el dueño lo pida.
+
+## Cambio de persona en el panel
+
+- El selector Diego / Cinthya (y las tarjetas del equipo en Inicio) piden **confirmar con PIN o Face ID / huella** para ver la vista de la otra persona (`pedirCambio()`); volver a la propia cuenta (`CUENTA`) es libre. Sin PIN configurado, se confirma con un mensaje.
 
 ## Notas técnicas
 

@@ -428,14 +428,6 @@ body.hay-act .toast{bottom:calc(152px + env(safe-area-inset-bottom,0px))}
 .bio-grande{width:112px;height:112px;border-radius:32px;border:1.5px solid var(--gold);background:rgba(215,169,91,.1);color:var(--gold);display:grid;place-items:center;cursor:pointer}
 .bio-grande svg{width:60px;height:60px}.bio-grande:disabled{cursor:default}
 @media (prefers-reduced-motion:no-preference){.bio-grande.leyendo{animation:leer 1.4s ease-in-out infinite}@keyframes leer{50%{transform:scale(1.06);box-shadow:0 0 0 12px rgba(215,169,91,.12)}}}
-/* Importar de Temu y repartir */
-.imp-t{width:100%;box-sizing:border-box;min-height:140px;font:500 16px var(--f-mono);color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical}
-.tcard{display:grid;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
-.rep{display:grid;gap:8px}
-.rep-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,44%);gap:10px;align-items:center;background:var(--panel-2);border-radius:12px;padding:10px 12px}
-.rep-row input{width:100%;box-sizing:border-box}
-@media (max-width:520px){.rep-row{grid-template-columns:minmax(0,1fr)}}
-#imp .o-actions .btn{white-space:normal;text-align:center;justify-content:center;min-width:0}
 /* App del cliente: registros y vinculación */
 .notif.app{background:linear-gradient(100deg,rgba(232,220,196,.12),transparent 60%),var(--panel);border-color:rgba(232,220,196,.35)}
 .notif.app .stage{background:var(--beige);color:var(--gold-ink)}
@@ -538,10 +530,9 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
       </section>
 
       <section data-view="registrar" hidden>
-        <div><h1>Registrar <span>pedido</span></h1><p class="lead">Primero el número de pedido y la guía de Temu, después lo que pidió cada cliente. O impórtalos directo de Temu.</p></div>
-        <div class="seg" id="seg-reg"><button type="button" data-reg="temu" aria-pressed="true">Pedido de Temu</button><button type="button" data-reg="encargo" aria-pressed="false">Encargo por comprar</button><button type="button" data-reg="importar" aria-pressed="false">Importar de Temu</button></div>
+        <div><h1>Registrar <span>pedido</span></h1><p class="lead">Primero el número de pedido y la guía de Temu, después lo que pidió cada cliente.</p></div>
+        <div class="seg" id="seg-reg"><button type="button" data-reg="temu" aria-pressed="true">Pedido de Temu</button><button type="button" data-reg="encargo" aria-pressed="false">Encargo por comprar</button></div>
         <div class="form" id="nb"></div>
-        <div class="form" id="imp" hidden></div>
         <form class="form" id="form" novalidate hidden>
           <div class="block"><span class="f-lab">Registrado por</span>
             <div class="pick" id="pick">
@@ -628,7 +619,7 @@ const KEY="dc-panel-v5",KEYW="dc-panel-who";
 /* Registros de la app del cliente: los escribe cliente/ cuando alguien entra con su nombre; aquí se vinculan a un cliente.
    Prototipo: viven en este navegador. Con Supabase serán la tabla registros_app. */
 const KEYR="dc-app-registros";
-let REGS=[],TEMU=[];   // registros de la app y compras de Temu importadas (vienen de Supabase)
+let REGS=[];   // registros de la app del cliente (vienen de Supabase)
 const regs=()=>REGS;
 const saveRegs=R=>{REGS=R;save()};
 const APP_URL=new URL(CLIENTE_URL,location.href).href;
@@ -670,14 +661,14 @@ function linkApp(c){if(!c.invita){c.invita=Math.random().toString(36).slice(2,8)
 const SB_URL="https://jmfyzohwffylzrwkbtwl.supabase.co",SB_KEY="sb_publishable_uHHIQNP0Loat3fEnfhXyIA_yIbHZ43_";
 const sb=window.supabase?window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,storageKey:"dc-sesion"}}):null;
 const est=x=>JSON.stringify(x,(k,v)=>v&&typeof v==="object"&&!Array.isArray(v)?Object.keys(v).sort().reduce((a,k)=>(a[k]=v[k],a),{}):v);
-const SNAP={c:{},p:{},r:{},t:{}};let subiendo=false;
+const SNAP={c:{},p:{},r:{}};let subiendo=false;
 /* Lo que puede ver el cliente de un pedido: etapas y fechas, nunca artículos ni precios */
 function vistaCli(o){const e=etapa(o);if(e<1)return null;const c=cli(o);
   const lenta=o.paq.length?o.paq.reduce((a,p)=>p.h.length<a.h.length?p:a):null;
   const h=(lenta?lenta.h.slice(0,7):[o.creado]).concat(e>=7?o.local.slice(0,2):[]);
   return{code:o.id,nombre:(c.nombre||"").split(" ")[0],quien:o.quien,h,i:Math.min(e,9)-1,ent:c.ent||"local",prov:c.prov||"",envio:o.envio?{t:o.envio.t}:null,paq:o.paq.map(p=>p.h.length)}}
 function estadoSync(st){$$(".sync").forEach(el=>{el.dataset.s=st;el.title={ok:"En línea y guardado",guardando:"Guardando…",error:"Sin conexión: se guardará al volver"}[st]||""})}
-const hayPendientes=()=>D.C.some(c=>est(c)!==SNAP.c[c.id])||D.P.some(o=>est([o,vistaCli(o)])!==SNAP.p[o.id])||REGS.some(r=>est(r)!==SNAP.r[r.id])||TEMU.some(t=>est(t)!==SNAP.t[t.numero]);
+const hayPendientes=()=>D.C.some(c=>est(c)!==SNAP.c[c.id])||D.P.some(o=>est([o,vistaCli(o)])!==SNAP.p[o.id])||REGS.some(r=>est(r)!==SNAP.r[r.id]);
 async function subir(){
   if(!sb)return;if(subiendo){clearTimeout(save.t);save.t=setTimeout(subir,600);return}
   subiendo=true;const ahora=new Date().toISOString();
@@ -687,21 +678,18 @@ async function subir(){
     const ps=D.P.map(o=>[o,vistaCli(o)]).filter(x=>est(x)!==SNAP.p[x[0].id]);
     if(ps.length){const{error}=await sb.from("pedidos").upsert(ps.map(([o,v])=>({id:o.id,cliente:o.cli,data:o,vista:v,actualizado:ahora})));if(error)throw error;ps.forEach(x=>SNAP.p[x[0].id]=est(x))}
     for(const r of REGS.filter(r=>est(r)!==SNAP.r[r.id])){const{error}=await sb.from("registros").update({cliente:r.cliente||null,invita:r.invita||null,vinculado:r.vinculado||null}).eq("id",r.id);if(error)throw error;SNAP.r[r.id]=est(r)}
-    const ts=TEMU.filter(t=>est(t)!==SNAP.t[t.numero]);
-    if(ts.length){const{error}=await sb.from("temu_compras").upsert(ts.map(t=>({numero:t.numero,data:t.data,estado:t.estado,actualizado:ahora})));if(error)throw error;ts.forEach(t=>SNAP.t[t.numero]=est(t))}
     estadoSync("ok");
   }catch(e){console.warn("No se pudo guardar",e);estadoSync("error");clearTimeout(save.t);save.t=setTimeout(subir,15000)}
   finally{subiendo=false}
 }
 async function cargar(){
-  const[c,p,r,t]=await Promise.all([sb.from("clientes").select("id,data"),sb.from("pedidos").select("id,data,vista"),
-    sb.from("registros").select("id,nombre,apellido,fecha,cliente,invita,via,vinculado").order("fecha"),
-    sb.from("temu_compras").select("numero,data,estado,importado").order("importado",{ascending:false})]);
-  for(const x of[c,p,r,t])if(x.error)throw x.error;
-  D={C:c.data.map(x=>x.data),P:p.data.map(x=>x.data).sort((a,b)=>new Date(b.creado)-new Date(a.creado))};REGS=r.data;TEMU=t.data;
+  const[c,p,r]=await Promise.all([sb.from("clientes").select("id,data"),sb.from("pedidos").select("id,data,vista"),
+    sb.from("registros").select("id,nombre,apellido,fecha,cliente,invita,via,vinculado").order("fecha")]);
+  for(const x of[c,p,r])if(x.error)throw x.error;
+  D={C:c.data.map(x=>x.data),P:p.data.map(x=>x.data).sort((a,b)=>new Date(b.creado)-new Date(a.creado))};REGS=r.data;
   const vistas=Object.fromEntries(p.data.map(x=>[x.id,x.vista??null]));
   for(const k in SNAP)SNAP[k]={};
-  D.C.forEach(x=>SNAP.c[x.id]=est(x));D.P.forEach(o=>SNAP.p[o.id]=est([o,vistas[o.id]]));REGS.forEach(x=>SNAP.r[x.id]=est(x));TEMU.forEach(x=>SNAP.t[x.numero]=est(x));
+  D.C.forEach(x=>SNAP.c[x.id]=est(x));D.P.forEach(o=>SNAP.p[o.id]=est([o,vistas[o.id]]));REGS.forEach(x=>SNAP.r[x.id]=est(x));
 }
 /* Lo que guardó el otro llega aquí; se redibuja sin interrumpir si estás escribiendo */
 let refT=null;
@@ -715,7 +703,6 @@ function escuchar(){
     .on("postgres_changes",{event:"*",schema:"public",table:"pedidos"},m=>{if(!m.new?.id)return;aplicar(D.P,"id",SNAP.p,m.new,m.new.data,[m.new.data,m.new.vista]);
       const o=D.P.find(x=>x.id===m.new.id);if(o&&est([o,vistaCli(o)])!==SNAP.p[o.id])save()})
     .on("postgres_changes",{event:"*",schema:"public",table:"registros"},m=>{const x=m.new;if(!x?.id)return;const r={id:x.id,nombre:x.nombre,apellido:x.apellido,fecha:x.fecha,cliente:x.cliente,invita:x.invita,via:x.via,vinculado:x.vinculado};aplicar(REGS,"id",SNAP.r,r,r,r)})
-    .on("postgres_changes",{event:"*",schema:"public",table:"temu_compras"},m=>{const x=m.new;if(!x?.numero)return;const t={numero:x.numero,data:x.data,estado:x.estado,importado:x.importado};aplicar(TEMU,"numero",SNAP.t,t,t,t)})
     .subscribe(st=>{if(st==="SUBSCRIBED")estadoSync(hayPendientes()?"guardando":"ok");else if(st==="CHANNEL_ERROR"||st==="TIMED_OUT")estadoSync("error")});
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&!hayPendientes())cargar().then(refresh).catch(()=>estadoSync("error"))});
 }
@@ -853,7 +840,7 @@ async function entrar(){
   try{await cargar()}catch(e){return mostrarLogin("No se pudieron cargar los datos. Intenta de nuevo.")}
   await migrarLocal();
   const{data:{user}}=await sb.auth.getUser();$("#yo-mail").textContent=`${quien} (${user?.email||""})`;
-  const k=norm(quien).split(" ")[0];if(EQUIPO[k])yo=k;
+  const k=norm(quien).split(" ")[0];if(EQUIPO[k]){yo=k;CUENTA=k}
   $("#login").hidden=true;setYo(yo);go();escuchar();estadoSync(hayPendientes()?"guardando":"ok");if(hayPendientes())save();
   try{if(!pinCfg()&&!localStorage.getItem(K_PINQ)){localStorage.setItem(K_PINQ,"1");setTimeout(abrirSeguridad,1300)}}catch(e){}
   setTimeout(avisarActualizacion,1600);
@@ -1096,60 +1083,6 @@ function renderCompras(){
       </div></details>`}).join(""):`<div class="empty">${q?"Ningún pedido coincide.":"Aún no hay pedidos de Temu. Toca “Nuevo pedido de Temu”."}</div>`;
 }
 
-/* ---------- Importar de Temu ----------
-   Se pega el bloque JSON que arma Claude en Chrome desde "Tus pedidos" de Temu. Cada compra queda "Por repartir":
-   se elige de qué cliente es cada artículo y se pasa al formulario normal para poner precio y pago. */
-const etapaTemu=t=>{t=norm(t);return/parcial|aduan|custom/.test(t)?6:/entregad|delivered/.test(t)?7:/aduana/.test(t)?6:/panam/.test(t)?5:/envi|camino|transit|shipped/.test(t)?3:/prepar|process/.test(t)?2:1};
-const fechaCorta=f=>{const d=new Date(/^\d{4}-\d{2}-\d{2}$/.test(f||"")?f+"T12:00":f);return isNaN(d)?"":d.toLocaleDateString("es-PA",{day:"numeric",month:"short"})};
-let repartiendo=null;
-function renderImp(){const el=$("#imp");el.hidden=regModo!=="importar";if(el.hidden)return;
-  const t=repartiendo&&TEMU.find(x=>x.numero===repartiendo&&x.estado==="por_repartir");if(t)return renderRepartir(t);repartiendo=null;
-  const pend=TEMU.filter(t=>t.estado==="por_repartir");
-  el.innerHTML=`<div class="nb-step"><span class="nb-n">1</span><div><b>Pega los pedidos de Temu</b><p class="note">El bloque que te da Claude en Chrome, el que empieza con <span class="mono">[{"pedido":"PO-</span>. Los que ya estén registrados no se repiten: si traen guías nuevas, se agregan.</p></div></div>
-    <textarea id="imp-texto" class="imp-t" placeholder='[{"pedido":"PO-...","fecha":"2026-10-22", ...}]' spellcheck="false" aria-label="Pedidos de Temu"></textarea>
-    <p class="err" id="imp-err" hidden></p>
-    <div class="o-actions"><button type="button" class="btn gold" id="imp-go"><svg><use href="#i-plus"/></svg>Importar</button></div>
-    <div class="nb-step"><span class="nb-n">2</span><div><b>Por repartir${pend.length?`<span class="cnt-b">${pend.length}</span>`:""}</b><p class="note">En cada compra eliges de qué cliente es cada artículo. Después pones cuánto le cobras y cómo pagó.</p></div></div>
-    ${pend.length?`<div class="orders">${pend.map(t=>{const d=t.data,n=(d.articulos||[]).length,g=(d.guias||[]).length;
-      return`<div class="tcard"><div style="min-width:0"><b class="mono">${esc(t.numero)}</b>${cp(t.numero,"número de pedido")}
-        <div class="o-sub"><span>${fechaCorta(d.fecha)}</span>${d.estado?`<span>${esc(d.estado)}</span>`:""}<span>${n} art.</span><span>${$$m(d.total)}</span><span>${g?`${g} guía${g>1?"s":""}`:"sin guía"}</span></div></div>
-        <div class="o-actions"><button type="button" class="btn gold sm" data-repartir="${esc(t.numero)}"><svg><use href="#i-users"/></svg>Repartir</button><button type="button" class="btn sm" data-descartar="${esc(t.numero)}">No es de clientes</button></div></div>`}).join("")}</div>`
-      :`<div class="empty">No hay compras por repartir. Cuando importes pedidos de Temu aparecen aquí.</div>`}`}
-function importarTexto(){const err=$("#imp-err"),fail=t=>{err.textContent=t;err.hidden=false};const s=$("#imp-texto").value,a=s.indexOf("["),b=s.lastIndexOf("]");
-  if(a<0||b<a)return fail("No encontré el bloque de pedidos. Debe empezar con [ y terminar con ].");
-  let L;try{L=JSON.parse(s.slice(a,b+1))}catch(e){return fail("El bloque está incompleto o cortado. Cópialo completo otra vez.")}
-  if(!Array.isArray(L))return fail("El bloque no tiene la lista de pedidos.");
-  const now=new Date().toISOString();let nuevos=0,ya=0,guiasN=0,malos=0;
-  L.forEach(x=>{const n=String(x?.pedido||"").trim().toUpperCase();if(!/^PO-/.test(n)){malos++;return}
-    const guias=(Array.isArray(x.guias)?x.guias:[]).map(g=>({guia:String(g?.guia??g??"").trim().toUpperCase(),paqueteria:String(g?.paqueteria||"").trim()})).filter(g=>g.guia);
-    const et=etapaTemu(x.estado);
-    const os=D.P.filter(o=>o.tpo===n);
-    if(os.length){ya++;guias.forEach(g=>os.forEach(o=>{let p=o.paq.find(q=>q.g===g.guia);if(!p){p={g:g.guia,h:[now]};o.paq.push(p);guiasN++}while(p.h.length<et)p.h.push(now)}));return}
-    const prev=TEMU.find(t=>t.numero===n);
-    const arts=(Array.isArray(x.articulos)?x.articulos:[]).filter(y=>String(y?.nombre||"").trim()).map(y=>({nombre:String(y.nombre).trim(),variante:String(y.variante||"").trim(),cantidad:Math.max(1,parseInt(y.cantidad)||1),precio:num(y.precio)}));
-    const data={pedido:n,fecha:String(x.fecha||""),estado:String(x.estado||""),total:num(x.total),guias,articulos:arts};
-    if(prev){ya++;if(prev.estado==="por_repartir"){(prev.data.articulos||[]).forEach((a,i)=>{if(a.de&&arts[i])arts[i].de=a.de});prev.data=data}return}
-    TEMU.unshift({numero:n,data,estado:"por_repartir",importado:now});nuevos++});
-  err.hidden=true;$("#imp-texto").value="";save();renderImp();
-  toast([`${nuevos} ${nuevos===1?"compra nueva":"compras nuevas"}`,ya&&`${ya} ya estaban`,guiasN&&`${guiasN} guías nuevas`,malos&&`${malos} sin número`].filter(Boolean).join(" · "))}
-function renderRepartir(t){const d=t.data,arts=d.articulos||[];
-  $("#dl-clientes").innerHTML=D.C.map(c=>`<option value="${esc(c.nombre)}">`).join("");
-  $("#imp").innerHTML=`<button type="button" class="btn sm" data-repx style="justify-self:start">← Volver a Por repartir</button>
-    <div class="nb-step"><span class="nb-n">2</span><div><b>¿De quién es cada artículo?</b><p class="note">Pedido <span class="mono">${esc(t.numero)}</span>${cp(t.numero,"número de pedido")} · ${arts.length} artículos · ${$$m(d.total)}. Escribe o elige el cliente; los artículos con el mismo nombre quedan juntos.</p></div></div>
-    <div class="rep">${arts.map((a,i)=>`<div class="rep-row"><div style="min-width:0"><b>${esc(a.nombre)}</b><span class="o-sub" style="display:block">${a.variante?esc(a.variante)+" · ":""}${a.cantidad>1?`x${a.cantidad} · `:""}${$$m(a.precio)}</span></div>
-      <input data-rep="${i}" list="dl-clientes" value="${esc(a.de||"")}" placeholder="¿De quién?" aria-label="Cliente de ${esc(a.nombre)}" autocomplete="off" enterkeyhint="next"></div>`).join("")||`<div class="empty">Esta compra no trae artículos. Vuelve a importarla con los artículos.</div>`}</div>
-    <p class="err" id="rep-err" hidden></p>
-    <div class="o-actions"><button type="button" class="btn sm" data-reptodos>Todo al mismo cliente</button><button type="button" class="btn gold" data-repok><svg><use href="#i-check"/></svg>Continuar: precio y pago</button></div>`}
-function repartirListo(numero){const t=TEMU.find(x=>x.numero===numero);if(!t)return;const arts=t.data.articulos||[],err=$("#rep-err");
-  if(!arts.length)return;const falta=arts.findIndex(a=>!String(a.de||"").trim());
-  if(falta>=0){err.textContent=`Falta decir de quién es: ${arts[falta].nombre}.`;err.hidden=false;$(`[data-rep="${falta}"]`)?.focus();return}
-  const grupos=new Map();arts.forEach(a=>{const k=norm(a.de);if(!grupos.has(k))grupos.set(k,{nombre:a.de.trim(),items:[]});grupos.get(k).items.push(a)});
-  nb={numero:t.numero,guias:(t.data.guias||[]).map(g=>g.guia).concat((t.data.guias||[]).length?[]:[""]),clientes:[],temu:t.numero,etapa:etapaTemu(t.data.estado)};
-  grupos.forEach(g=>{const c=D.C.find(x=>norm(x.nombre)===norm(g.nombre));
-    nb.clientes.push({nombre:c?c.nombre:tc(g.nombre),tel:c?fmtTel(c.tel):"",quien:c?atiende(c):yo,ent:c?.ent||"local",prov:c?.prov||"Chiriquí",adel:"",pago:"nada",
-      items:g.items.map(a=>({d:a.nombre+(a.variante?` · ${a.variante}`:"")+(a.cantidad>1?` x${a.cantidad}`:""),costo:a.precio?String(a.precio):"",precio:""}))})});
-  repartiendo=null;regModo="temu";$("#done").hidden=true;renderNB();scrollTo({top:0});toast("Ahora pon cuánto le cobras a cada uno y cómo pagó")}
-
 /* ---------- Registrar pedido de Temu (varios clientes, varios artículos) ---------- */
 let nb=null,regModo="temu";
 function nbNuevo(desdeCarrito){
@@ -1162,7 +1095,7 @@ const nbCli=()=>({nombre:"",tel:"",quien:yo,ent:"local",prov:"Chiriquí",adel:""
 const nbPagado=k=>k.pago==="completo"?sumItems(k.items).precio:k.pago==="adelanto"?Math.min(num(k.adel),sumItems(k.items).precio||num(k.adel)):0;
 function nbTot(){let c=0,p=0;nb.clientes.forEach(k=>k.items.forEach(x=>{c+=num(x.costo);p+=num(x.precio)}));return{c,p}}
 function renderNB(){
-  $$("#seg-reg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.reg===regModo));renderImp();
+  $$("#seg-reg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.reg===regModo));
   $("#nb").hidden=regModo!=="temu";$("#form").hidden=regModo!=="encargo"||!$("#done").hidden;
   if(regModo!=="temu")return;
   if(!nb)nbNuevo();
@@ -1242,7 +1175,6 @@ function nbGuardar(){
     if(o){Object.assign(o,{items,tpo:numero,quien:k.quien,paq:paqDe(),abonado,creado:now})}
     else{o={id:newCode(),cli:c.id,quien:k.quien,items,costo:0,precio:0,abonado,nota:"",tpo:numero,creado:now,local:[],envio:null,avisado:-1,paq:paqDe()};D.P.unshift(o)}
     syncItems(o);creados.push(o)});
-  if(nb.temu){const t=TEMU.find(x=>x.numero===nb.temu);if(t)t.estado="repartido";if(nb.etapa>1)creados.forEach(o=>o.paq.forEach(p=>{while(p.h.length<nb.etapa)p.h.push(now)}))}
   save();nb=null;renderAll();
   $("#nb").hidden=true;const d=$("#done");d.hidden=false;const t=creados.reduce((a,o)=>a+num(o.costo),0);
   d.innerHTML=`<h2 style="color:var(--ok)">Pedido de Temu registrado</h2><div class="mono" style="font-size:16px;font-weight:700">${esc(numero)}${cp(numero,"número de pedido")}</div>
@@ -1399,19 +1331,28 @@ function refresh(){const act=document.activeElement;if(act&&act!==document.body&
 /* ---------- Navegación ---------- */
 const VIEWS=["inicio","pedidos","registrar","clientes","numeros"];
 function go(){
-  if(location.hash==="#importar"){regModo="importar";history.replaceState(null,"","#registrar")}
   const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"inicio";
   $$("section[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
   $$("[data-nav]").forEach(a=>{if(a.dataset.nav===v)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
   const act=$(`#navlist [data-nav="${v}"]`);if(act)$("#ind").style.transform=`translateY(${act.offsetTop}px)`;
   if(v==="registrar"){$("#done").hidden=true;renderNB()}
-  if(v==="registrar"&&regModo==="importar")setTimeout(()=>$("#imp-texto")?.focus({preventScroll:true}),300);
   scrollTo({top:0});animar($(`section[data-view="${v}"]`));
 }
 addEventListener("hashchange",go);
 function setYo(v){yo=v;pick=v;try{localStorage.setItem(KEYW,v)}catch(e){}
   $("#who").dataset.v=v;$$("#who button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.who===v));renderAll();animar(seccion())}
-$("#who").addEventListener("click",e=>{const b=e.target.closest("[data-who]");if(b)setYo(b.dataset.who)});
+/* Ver la vista de la otra persona (Diego ↔ Cinthya) pide confirmar con PIN o Face ID / huella.
+   Volver a la propia es libre. Sin PIN configurado, pide confirmar con un mensaje. */
+let CUENTA=null;   // quién entró (según su cuenta)
+function pedirCambio(v){if(!EQUIPO[v]||v===yo)return;if(!CUENTA||v===CUENTA)return setYo(v);
+  const nom=EQUIPO[v].nombre,c=pinCfg();
+  if(!c){if(confirm(`Estás en la cuenta de ${EQUIPO[CUENTA].nombre}. ¿Entrar a la vista de ${nom}?`))setYo(v);return}
+  const listo=()=>{cerrarTeclado();setYo(v);toast(`Viendo como ${nom}`)};
+  const bio=c.bio?async()=>{if(await usarBio(c.bio))listo();else if($("#pin-sub"))$("#pin-sub").textContent="No te reconoció. Escribe tu PIN"}:null;
+  teclado({titulo:`Ver como <span>${nom}</span>`,sub:`Confirma con tu PIN${c.bio?(esIOS?" o Face ID":" o huella"):""}`,len:c.len,bio,cancelar:true,
+    alTerminar:async pin=>{if(await hashPin(pin,c.salt)===c.hash){listo();return true}return"PIN incorrecto"}});
+  if(bio)bio()}
+$("#who").addEventListener("click",e=>{const b=e.target.closest("[data-who]");if(b)pedirCambio(b.dataset.who)});
 
 /* ---------- Acciones ---------- */
 const find=id=>D.P.find(o=>o.id===id);
@@ -1419,7 +1360,7 @@ document.addEventListener("click",e=>{
   const t=e.target.closest("button,a");if(!t)return;const d=t.dataset;
   if(d.cp){e.preventDefault();e.stopPropagation();return copiar(d.cp,t)}
   if(d.avisar){const o=find(d.avisar);o.avisado=etapa(o);save();setTimeout(refresh,400)}
-  else if(d.yo){setYo(d.yo)}
+  else if(d.yo){pedirCambio(d.yo)}
   else if(d.jump){filtro=d.jump;modo="cliente";$("#scope").value="todos";location.hash="pedidos";renderCompras();renderPedidos()}
   else if(d.etapa!==undefined){const k=+d.etapa;filtro="todos";modo="cliente";$("#scope").value="todos";location.hash="pedidos";$("#q").value="";
     renderCompras();renderPedidos();$$("#orders details").forEach(x=>{if(etapa(find(x.dataset.id))!==k)x.remove()})}
@@ -1438,13 +1379,6 @@ document.addEventListener("click",e=>{
     if(blank)nb.clientes[0]=k;else nb.clientes.push(k);renderNB()}
   else if(t.id==="nb-addg"){nb.guias.push("");renderNB();document.querySelector(`[data-nbg="${nb.guias.length-1}"]`)?.focus()}
   else if(d.nbgdel){nb.guias.splice(+d.nbgdel,1);renderNB()}
-  else if(t.id==="imp-go"){importarTexto()}
-  else if(d.repartir){repartiendo=d.repartir;renderImp();scrollTo({top:0})}
-  else if("repx" in d){repartiendo=null;renderImp()}
-  else if("repok" in d){repartirListo(repartiendo)}
-  else if("reptodos" in d){const t=TEMU.find(x=>x.numero===repartiendo),v=$$("[data-rep]").map(i=>i.value.trim()).find(Boolean);
-    if(!v){toast("Escribe el cliente en el primer artículo");$('[data-rep="0"]')?.focus();return}(t.data.articulos||[]).forEach(a=>a.de=v);save();renderImp()}
-  else if(d.descartar){const t=TEMU.find(x=>x.numero===d.descartar);if(t&&confirm(`¿Quitar ${t.numero} de Por repartir? Úsalo para compras que no son de clientes.`)){t.estado="descartado";save();renderImp();toast("Quitado de Por repartir")}}
   else if("logout" in d){if(confirm("¿Cerrar sesión en este teléfono?"))sb?.auth.signOut().finally(()=>location.reload())}
   else if(d.nbpago){const[ci,v]=d.nbpago.split("|");nb.clientes[+ci].pago=v;renderNB();if(v==="adelanto")document.querySelector(`[data-nb="${ci}|adel"]`)?.focus()}
   else if(t.id==="nb-save"){nbGuardar()}
@@ -1488,8 +1422,7 @@ document.addEventListener("change",e=>{
     if(f==="tarifa"){o.envio.tarifa=num(t.value)}else o[f]=num(t.value);save();refresh()}
 });
 /* Enter en los artículos: pasa al siguiente campo; al final de la última fila agrega otro artículo. */
-document.addEventListener("keydown",e=>{const t=e.target;if(e.key==="Enter"&&t.dataset.rep!==undefined){e.preventDefault();const n=$(`[data-rep="${+t.dataset.rep+1}"]`);n?n.focus():t.blur();return}
-  if(e.key!=="Enter"||!nb)return;
+document.addEventListener("keydown",e=>{const t=e.target;if(e.key!=="Enter"||!nb)return;
   if(t.id==="nb-num"){e.preventDefault();document.querySelector('[data-nbg="0"]')?.focus();return}
   const a=(t.dataset.nb||"").split("|");if(a.length!==3)return;e.preventDefault();
   const ci=+a[0],ii=+a[1],k=nb.clientes[ci],orden=["d","costo","precio"],f=orden.indexOf(a[2]);
@@ -1499,7 +1432,6 @@ document.addEventListener("keydown",e=>{const t=e.target;if(e.key==="Enter"&&t.d
 $("#q").addEventListener("input",renderPedidos);
 $("#qc").addEventListener("input",renderCompras);
 document.addEventListener("input",e=>{const t=e.target;
-  if(t.dataset.rep!==undefined){const x=TEMU.find(x=>x.numero===repartiendo);if(x){x.data.articulos[+t.dataset.rep].de=t.value;clearTimeout(t._s);t._s=setTimeout(save,800)}return}
   if(!nb)return;
   if(t.dataset.nb){const a=t.dataset.nb.split("|");const k=nb.clientes[+a[0]];if(!k)return;if(a.length===2)k[a[1]]=t.value;else k.items[+a[1]][a[2]]=t.value;nbGrand()}
   else if(t.dataset.nbg!==undefined){nb.guias[+t.dataset.nbg]=t.value}
@@ -1516,7 +1448,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=10;
+const APP="admin",APP_VERSION=11;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

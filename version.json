@@ -1,7 +1,18 @@
 {
-  "admin": 10,
+  "admin": 11,
   "cliente": 6,
   "notas": [
+    {
+      "fecha": "2026-11-11",
+      "admin": 11,
+      "cliente": 6,
+      "titulo": "Registro manual y cambio de persona con confirmación",
+      "admin_items": [
+        "Se quitó “Importar de Temu”: el registro vuelve a ser manual con “Pedido de Temu” y “Encargo por comprar”.",
+        "Para ver la vista de la otra persona (Diego o Cinthya) ahora se confirma con tu PIN o Face ID. Volver a la tuya es libre."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-11",
       "admin": 10,
