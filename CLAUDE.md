@@ -10,7 +10,8 @@ Habla siempre en español con el dueño. Escribe para alguien que no es programa
 index.html           Raíz: redirige a cliente/ (conserva el #código)
 panel/index.html     Centro de Envíos: app interna para Diego y Cinthya (oscura, de trabajo)
 cliente/index.html   Mi Pedido DC: lo que ve el cliente con su código (clara, visual)
-assets/              Logo en PNG transparente, versión 160 px (dc-logo-160.png)
+assets/              Logo 160 px (dc-logo-160.png) e íconos de la app instalable (icon-192/512, apple-touch-icon)
+*/manifest.webmanifest  Para instalar cada app en el teléfono
 .nojekyll            Para que GitHub Pages sirva los archivos tal cual
 ```
 
@@ -68,6 +69,16 @@ Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. L
 - **Se usan casi siempre en celular.** Deben quedar al ancho exacto de la pantalla, sin zoom ni scroll horizontal. Los campos de texto llevan letra de 16 px o más, porque con menos el iPhone hace zoom al tocarlos. Antes de entregar cualquier cambio, revisa a 390 px de ancho.
 - Ojo con grid/flex: un hijo con scroll horizontal puede estirar toda la página. Usa `minmax(0,1fr)` y `min-width:0`.
 
+## App del cliente: entrar con nombre y vincular (decisión tomada)
+
+- El cliente **no crea cuenta**: al abrir la app escribe **Nombre** y **Apellido** y toca **Iniciar** (con animación del paquete recorriendo la ruta). Queda recordado en ese teléfono.
+- Después ve **Mis pedidos**: "Aún no tienes pedidos", sus pedidos en camino y entregados, encargos anotados y su contacto. Tocando uno ve el seguimiento. Nunca ve artículos ni precios.
+- Cada registro llega al panel (Inicio → "Por hacer" y Clientes → "En la app de clientes"). Diego o Cinthya lo **vinculan** con el cliente de su lista, que puede tener otro nombre escrito. El panel sugiere los parecidos. También se puede crear un cliente nuevo con ese nombre.
+- **Link personal**: en la ficha del cliente, "Enviar link de la app" manda por WhatsApp `cliente/?i=CÓDIGO&n=Nombre&q=quien`. Al abrirlo el nombre ya viene escrito y el registro queda **vinculado solo**. En la ficha se ve con qué nombre entró y se puede desvincular.
+- El link del código (`cliente/#DC-1234`) sigue funcionando sin registrarse.
+- Datos: `localStorage` `dc-app-registros` (lista `{id,nombre,apellido,fecha,cliente,invita,via}`) y `dc-app-yo` (registro de ese teléfono). **Solo se comparte con el panel si están en el mismo navegador**; entre teléfonos distintos hace falta Supabase (tabla `registros_app`).
+- El manifiesto del cliente no tiene `start_url` a propósito: al instalarla desde el link personal, el ícono abre con ese mismo link y no se pierde la vinculación.
+
 ## Estado actual del panel (prototipo)
 
 - **Inicio**: KPIs del equipo, una tarjeta por persona, "Por hacer" de la persona elegida y un tablero de etapas. Tocar un KPI o una etapa abre Pedidos en la vista "Por cliente" ya filtrada.
@@ -87,14 +98,15 @@ Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. L
    - Tablas sugeridas: `clientes`, `pedidos_temu` (número único), `pedidos` (uno por cliente dentro de un pedido de Temu, con código DC), `articulos`, `guias`, `eventos_guia`, `abonos`.
    - Seguridad (RLS): el panel con inicio de sesión o PIN para Diego y Cinthya. La app del cliente solo puede leer un pedido por su código, y sin artículos ni precios de costo.
 3. **Rastreo automático**: Edge Function más cron con la API de 17TRACK. La clave va como secreto y nunca en el HTML.
-4. **App del cliente leyendo datos reales**: soportar varios paquetes ("2 de 3 paquetes en Panamá") y las etapas 7 a 9 de entrega local o por transporte. Mostrar el saldo pendiente solo si el dueño lo aprueba.
+4. **App del cliente leyendo datos reales**: ya lee los pedidos del panel (mismo navegador), muestra varios paquetes y las etapas 7 a 9. Falta leerlos de Supabase. Mostrar el saldo pendiente solo si el dueño lo aprueba.
 5. **Editar artículos** de un pedido ya guardado. Hoy no se puede.
-6. **Instalable en el iPhone** (PWA: manifest, ícono y pantalla completa) para el panel y para la app del cliente.
+6. ~~Instalable en el teléfono~~ (manifiesto e íconos hechos). Falta: logo original grande para íconos más nítidos, y modo sin conexión (service worker) si se quiere.
 7. **Dominio propio** (opcional). Hoy el link de seguimiento se arma solo desde donde está publicado el panel (`LINK_BASE` = `../cliente/#` relativo al panel), así que en GitHub Pages ya funciona. Si se compra dominio, cambiar `LINK_BASE` en `panel/index.html`.
 
 ## Notas técnicas
 
 - El panel guarda en `localStorage` con la llave `dc-panel-v5`. Los datos de ejemplo están marcados `ej:1`. Al conectar Supabase, eliminar el ejemplo y `localStorage`.
-- La app del cliente tiene sus pedidos de ejemplo dentro del código (`PEDIDOS`) y lee el código desde el `#hash` de la URL (`cliente/#DC-4821`). Sin código muestra la pantalla para escribirlo.
+- La app del cliente busca primero los pedidos en los datos del panel (`dc-panel-v5`) y, si no están, en sus ejemplos (`PEDIDOS`). Rutas: `#DC-4821` seguimiento, `#codigo` buscar por código, sin hash: bienvenida o Mis pedidos.
+- Las etapas del cliente son las mismas 1 a 9 del panel (índice 0 a 8 en `ESTADOS`).
 - `CLIENTE_URL` en el panel apunta a `../cliente/`.
 - Para probar en local: `python3 -m http.server` en la raíz y abrir `http://localhost:8000/panel/`.

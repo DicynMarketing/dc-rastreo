@@ -7,7 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" type="image/png" href="../assets/dc-logo-160.png">
-<link rel="apple-touch-icon" href="../assets/dc-logo-160.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Envíos DC">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Centro de Envíos DC</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
@@ -300,6 +302,18 @@ details.cli summary::-webkit-details-marker{display:none}
 .split-row .bar{height:12px;border-radius:6px;background:var(--line);overflow:hidden}
 .split-row .bar i{display:block;height:100%;border-radius:6px;background:var(--gold)}
 .split-row b{font-variant-numeric:tabular-nums}
+/* App del cliente: registros y vinculación */
+.notif.app{background:linear-gradient(100deg,rgba(142,162,230,.16),transparent 60%),var(--panel);border-color:rgba(142,162,230,.45)}
+.notif.app .stage{background:#8EA2E6;color:#0A1433}
+.reg{background:var(--panel);border:1px solid rgba(142,162,230,.45);border-radius:16px;padding:14px;display:grid;gap:10px}
+.reg-h{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center}
+.reg-h .av{width:40px;height:40px;border-radius:12px;background:#8EA2E6;color:#0A1433;display:grid;place-items:center;font:800 13px var(--f-display)}
+.reg-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.reg-row select{width:100%}
+@media (max-width:520px){.reg-row{grid-template-columns:minmax(0,1fr)}.reg-row .btn{justify-content:center}}
+details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-size:13px;padding:4px 0}
+.lrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:inherit;font:inherit;text-align:left;width:100%;cursor:pointer;margin-top:6px}
+.lrow:hover{border-color:var(--gold)}
 </style>
 </head>
 <body>
@@ -414,6 +428,7 @@ details.cli summary::-webkit-details-marker{display:none}
         <div><h1>Clientes</h1><p class="lead">Todos los clientes del equipo: quién compra más, quién debe y quién lo atiende.</p></div>
         <div class="seg" id="seg-cli"><button data-cf="todos" aria-pressed="true">Todo el equipo</button><button data-cf="diego" aria-pressed="false">Diego</button><button data-cf="cinthya" aria-pressed="false">Cinthya</button></div>
         <div class="kpis" id="c-kpis"></div>
+        <div class="block" id="app-regs"></div>
         <div class="ficha" id="ficha" hidden></div>
         <div><div class="h2row"><h2>Ranking</h2><div class="seg" id="seg-rank" style="width:auto"><button data-rk="pedidos" aria-pressed="true">Pedidos</button><button data-rk="gasto" aria-pressed="false">Gastado</button></div></div>
           <div class="rank" id="rank"></div></div>
@@ -451,6 +466,14 @@ const TRANSPORTE=["Ferguson","Servientrega"];
 const ET=["Por comprar","Comprado","Preparando","Salió del almacén","En vuelo","Llegó a Panamá","En aduana","Recibido por DC","Por entregar","Entregado"];
 const DIAS_ATASCADO=5;
 const KEY="dc-panel-v5",KEYW="dc-panel-who";
+/* Registros de la app del cliente: los escribe cliente/ cuando alguien entra con su nombre; aquí se vinculan a un cliente.
+   Prototipo: viven en este navegador. Con Supabase serán la tabla registros_app. */
+const KEYR="dc-app-registros";
+const regs=()=>{try{return JSON.parse(localStorage.getItem(KEYR))||[]}catch(e){return[]}};
+const saveRegs=R=>{try{localStorage.setItem(KEYR,JSON.stringify(R))}catch(e){}};
+const APP_URL=new URL(CLIENTE_URL,location.href).href;
+const norm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
+const regNombre=r=>`${r.nombre} ${r.apellido}`.trim();
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmtTel=t=>t&&t.length===8?t.slice(0,4)+"-"+t.slice(4):t;
@@ -498,12 +521,21 @@ function seed(){
  return {C,P};
 }
 let D;try{D=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-if(!D||!Array.isArray(D.P))D=seed();
+if(!D||!Array.isArray(D.P)){D=seed();try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}}
 let yo="diego";try{yo=localStorage.getItem(KEYW)||"diego"}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
 const cli=o=>D.C.find(c=>c.id===o.cli)||{nombre:"?",tel:"",ent:"local"};
 function atiende(c){if(c.atiende)return c.atiende;const ps=D.P.filter(o=>o.cli===c.id).sort((a,b)=>new Date(b.creado)-new Date(a.creado));return ps[0]?.quien||"diego"}
 const comparten=(g,oid)=>D.P.filter(o=>o.id!==oid&&o.paq.some(p=>p.g===g));
+/* Quien entró con el link personal de su ficha queda vinculado solo. */
+function autoVincular(){const R=regs();let n=0;R.forEach(r=>{if(!r.cliente&&r.invita){const c=D.C.find(c=>c.invita===r.invita);if(c){r.cliente=c.id;r.vinculado=new Date().toISOString();n++}}});if(n)saveRegs(R)}
+const pendientes=()=>regs().filter(r=>!r.cliente||!D.C.some(c=>c.id===r.cliente));
+const haceTxt=iso=>{const d=dias(iso);return d===0?"hoy":d===1?"ayer":`hace ${d} días`};
+function parecidos(r){const t=norm(regNombre(r)).split(/\s+/);
+  return D.C.map(c=>{const cn=norm(c.nombre).split(/\s+/);let s=cn[0]===t[0]?3:0;t.forEach(x=>{if(x.length>2&&cn.includes(x))s+=2});return{c,s}})
+    .filter(x=>x.s>0).sort((a,b)=>b.s-a.s).map(x=>x.c)}
+function linkApp(c){if(!c.invita){c.invita=Math.random().toString(36).slice(2,8);save()}
+  return`${APP_URL}?i=${c.invita}&n=${encodeURIComponent(c.nombre)}&q=${atiende(c)}`}
 
 /* ---------- Lógica de pedido ---------- */
 const pkgSt=p=>p.h.length; // 1..7
@@ -533,7 +565,8 @@ function msg(o,tipo){const c=cli(o),n=c.nombre.split(" ")[0],e=etapa(o),yoN=EQUI
   if(e===8)return`Hola ${n}, quedamos en entregarte el pedido ${o.id}.${saldo(o)?` Saldo: *${$$m(saldo(o))}*.`:""}${firma}`;
   if(e===9)return`Hola ${n}, gracias por recibir tu pedido ${o.id}. ¡Gracias por confiar en DC Marketing!`;
   const r=resumenPaq(o);return`Hola ${n}, tu pedido ${o.id} avanzó: *${r||ET[e]}*.${link}${firma}`}
-function wa(o,tipo){let n=cli(o).tel.replace(/\D/g,"");if(n.length===8)n="507"+n;return`https://wa.me/${n}?text=${encodeURIComponent(msg(o,tipo))}`}
+function waTel(tel,text){let n=String(tel||"").replace(/\D/g,"");if(n.length===8)n="507"+n;return`https://wa.me/${n}?text=${encodeURIComponent(text)}`}
+function wa(o,tipo){return waTel(cli(o).tel,msg(o,tipo))}
 function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2400)}
 const saludo=()=>{const h=new Date().getHours();return h<12?"Buenos días":h<19?"Buenas tardes":"Buenas noches"};
 const mineOrAll=()=>D.P.filter(o=>o.quien===yo);
@@ -544,7 +577,8 @@ function renderInicio(){
   const T=D.P,deuda=T.reduce((a,o)=>a+saldo(o),0),enCamino=T.filter(o=>etapa(o)>=1&&etapa(o)<9).length;
   const listos=T.filter(o=>etapa(o)===7||etapa(o)===8).length,tBuy=T.filter(o=>etapa(o)===0),tStuck=T.filter(atascado);
   $("#hello").innerHTML=`${saludo()}, <span>${EQUIPO[yo].nombre}</span>`;
-  const tareas=avisos.length+stuck.length+buy.length;
+  const nuevos=pendientes();
+  const tareas=avisos.length+stuck.length+buy.length+nuevos.length;
   $("#lead").textContent=tareas?`Tienes ${tareas} ${tareas===1?"cosa":"cosas"} por hacer con tus clientes.`:"Tus clientes están al día.";
   $("#h-tareas").textContent=`Por hacer · ${EQUIPO[yo].nombre}`;
   $("#kpis").innerHTML=`
@@ -558,6 +592,8 @@ function renderInicio(){
       <span class="o-sub" style="display:flex"><span>${cl.length} clientes</span><span>${ps.filter(o=>etapa(o)>=1&&etapa(o)<9).length} activos</span></span></span>
       <span class="pill ${pend?"gold":"ok"}">${pend?pend+" por hacer":"Al día"}</span></button>`}).join("");
   const items=[
+   ...nuevos.map(r=>`<div class="notif app"><div class="stage">${esc(r.nombre[0]||"?")}</div><p><b>${esc(regNombre(r))}</b> entró a la app<br><small>${haceTxt(r.fecha)} · Vincúlalo con su cliente para que vea sus pedidos.</small></p>
+     <button class="btn gold" data-vincir="${r.id}"><svg><use href="#i-users"/></svg>Vincular</button></div>`),
    ...stuck.map(o=>{const a=atascado(o);return`<div class="notif red"><div class="stage">${a.d}d</div><p><b>${esc(cli(o).nombre)}</b> · ${a.et}<br><small>Guía ${esc(a.g)} sin movimiento hace ${a.d} días. Avísale antes de que pregunte.</small></p>
      <a class="btn" href="${wa(o)}" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Escribirle</a></div>`}),
    ...avisos.map(o=>`<div class="notif"><div class="stage">${etapa(o)}</div><p><b>${esc(cli(o).nombre)}</b> · ${etNombre(o)}<br><small>${resumenPaq(o)||`Avisar desde tu WhatsApp (${fmtTel(EQUIPO[yo].tel)})`}</small></p>
@@ -852,23 +888,49 @@ function renderClientes(){
     <div class="kpi"><span class="k">Frecuentes</span><span class="v gold">${frec}</span><small>3 pedidos o más</small></div>
     <div class="kpi"><span class="k">Te deben</span><span class="v">${deben.length}</span><small>${$$m(deben.reduce((a,s)=>a+s.debe,0))} en total</small></div>
     <div class="kpi"><span class="k">Ticket promedio</span><span class="v">${$$m(D.P.filter(o=>num(o.precio)).reduce((a,o)=>a+num(o.precio),0)/Math.max(1,D.P.filter(o=>num(o.precio)).length))}</span><small>por pedido</small></div>`;
+  renderAppRegs();
+  const conApp=new Set(regs().map(r=>r.cliente).filter(Boolean));
   S.sort((a,b)=>rankBy==="pedidos"?b.n-a.n||b.gasto-a.gasto:b.gasto-a.gasto);
   const max=Math.max(1,...S.map(s=>rankBy==="pedidos"?s.n:s.gasto));
   $$("#seg-rank button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.rk===rankBy));
   $("#rank").innerHTML=S.map((s,i)=>`<button class="rk" data-ficha="${s.c.id}"><span class="pos">${i+1}</span>
-     <span style="min-width:0"><b>${esc(s.c.nombre)}</b> ${s.n>=3?'<span class="pill gold">Frecuente</span>':""} ${s.debe?`<span class="pill red">Debe ${$$m(s.debe)}</span>`:""}
+     <span style="min-width:0"><b>${esc(s.c.nombre)}</b> ${conApp.has(s.c.id)?'<span class="pill ok">App</span>':""} ${s.n>=3?'<span class="pill gold">Frecuente</span>':""} ${s.debe?`<span class="pill red">Debe ${$$m(s.debe)}</span>`:""}
        <span class="o-sub" style="display:flex"><span>Atiende ${EQUIPO[atiende(s.c)].nombre}</span><span>${s.c.ent==="envio"?esc(s.c.prov):"Aguadulce"}</span><span>${s.ultimo?`último hace ${dias(s.ultimo)} d`:""}</span></span>
        <span class="bar"><i style="width:${(rankBy==="pedidos"?s.n:s.gasto)/max*100}%"></i></span></span>
      <span class="num"><b>${rankBy==="pedidos"?s.n:$$m(s.gasto)}</b><small>${rankBy==="pedidos"?$$m(s.gasto):s.n+" pedidos"}</small></span></button>`).join("");
   renderFicha();
 }
+/* Personas que entraron a la app del cliente con su nombre. Se vinculan con un cliente de la lista (el nombre puede ser distinto). */
+function renderAppRegs(){
+  const P=pendientes(),pid=new Set(P.map(r=>r.id)),V=regs().filter(r=>!pid.has(r.id));
+  const opt=c=>`<option value="${c.id}">${esc(c.nombre)} · ${EQUIPO[atiende(c)].nombre}</option>`;
+  $("#app-regs").innerHTML=`<div class="h2row" style="margin:0"><h2>En la app de clientes</h2><span class="note">${V.length} ${V.length===1?"vinculado":"vinculados"}</span></div>
+   ${P.map(r=>{const par=parecidos(r),resto=D.C.filter(c=>!par.includes(c)).sort((a,b)=>a.nombre.localeCompare(b.nombre));
+     return`<div class="reg" id="reg-${r.id}"><div class="reg-h"><span class="av">${esc((r.nombre[0]||"")+(r.apellido[0]||""))}</span>
+       <span style="min-width:0"><b>${esc(regNombre(r))}</b><span class="o-sub" style="display:flex"><span>Se registró ${haceTxt(r.fecha)}</span><span>${r.via==="link"?"con un link":"por su cuenta"}</span></span></span></div>
+       <label class="f-lab" for="vs-${r.id}">¿Quién es en tu lista?</label>
+       <div class="reg-row"><select id="vs-${r.id}"><option value="">Elige el cliente…</option>
+         ${par.length?`<optgroup label="Se parecen">${par.map(opt).join("")}</optgroup>`:""}<optgroup label="Todos los clientes">${resto.map(opt).join("")}</optgroup>
+         <option value="nuevo">+ Cliente nuevo: ${esc(regNombre(r))}</option></select>
+         <button class="btn gold" data-vincular="${r.id}"><svg><use href="#i-check"/></svg>Vincular</button></div></div>`}).join("")}
+   ${!P.length?`<div class="empty">${V.length?"No hay registros nuevos.":"Cuando un cliente abra la app y escriba su nombre, aparece aquí para que lo vincules."} Para que entre ya vinculado, mándale su link desde su ficha.</div>`:""}
+   ${V.length?`<details class="reg-list"><summary>Ya vinculados (${V.length})</summary>${V.map(r=>{const c=D.C.find(x=>x.id===r.cliente);
+     return`<button class="lrow" data-ficha="${r.cliente}"><span style="min-width:0"><b>${esc(regNombre(r))}</b><span class="o-sub" style="display:block">es ${esc(c?.nombre||"?")} en tu lista</span></span><span class="note">${haceTxt(r.fecha)}</span></button>`}).join("")}</details>`:""}`;
+  P.forEach(r=>{const par=parecidos(r);if(par.length===1)$(`#vs-${r.id}`).value=par[0].id});
+}
 function renderFicha(){const f=$("#ficha"),c=D.C.find(x=>x.id===fichaId);if(!c){f.hidden=true;return}
   const s=statsCliente(c);f.hidden=false;
+  const ap=regs().filter(r=>r.cliente===c.id),link=linkApp(c);
+  const msgApp=`Hola ${c.nombre.split(" ")[0]}, te comparto la app de DC Marketing para seguir tus pedidos de Temu:\n${link}\n\n1. Ábrela y agrégala a tu pantalla de inicio.\n2. Entra, revisa que tu nombre esté bien y toca *Iniciar*.\n— ${EQUIPO[atiende(c)].nombre}, DC Marketing`;
   f.innerHTML=`<div class="ficha-h"><div class="av">${esc(c.nombre[0])}</div><div style="min-width:0"><h2 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:18px">${esc(c.nombre)}</h2>
      <div class="o-sub"><span>${fmtTel(c.tel)}</span><span>${c.ent==="envio"?"Envío a "+esc(c.prov):"Entrega en Aguadulce"}</span></div>
      <label class="o-sub" for="at-${c.id}" style="align-items:center;margin-top:6px">Lo atiende <select id="at-${c.id}" data-atiende="${c.id}" style="padding:5px 8px;font-size:16px">${Object.keys(EQUIPO).map(k=>`<option value="${k}" ${atiende(c)===k?"selected":""}>${EQUIPO[k].nombre}</option>`).join("")}</select></label></div>
      <button class="btn sm" style="margin-left:auto" id="cerrar-ficha" aria-label="Cerrar ficha">Cerrar</button></div>
    <div class="sum"><span>Pedidos <b>${s.n}</b></span><span>Gastado <b>${$$m(s.gasto)}</b></span><span>Ganancia que te dejó <b>${$$m(s.ps.reduce((a,o)=>a+ganancia(o),0))}</b></span><span class="${s.debe?"due":"paid"}">${s.debe?`Debe <b>${$$m(s.debe)}</b>`:"Sin deudas"}</span></div>
+   <div class="block"><span class="f-lab">App del cliente</span>
+     ${ap.length?ap.map(r=>`<div class="sum" style="align-items:center"><span class="paid">Entró como <b>${esc(regNombre(r))}</b></span><span>${haceTxt(r.fecha)}</span><button class="btn sm red" style="margin-left:auto" data-desv="${r.id}">Desvincular</button></div>`).join("")
+       :`<p class="note">Todavía no entra a la app. Mándale su link: al abrirlo ya le sale su nombre y queda vinculado a esta ficha.</p>`}
+     <div class="o-actions"><a class="btn sm wa" href="${waTel(c.tel,msgApp)}" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Enviar link de la app</a><button class="btn sm" data-copiar="${esc(link)}">Copiar link</button></div></div>
    <div class="hist">${s.ps.sort((a,b)=>new Date(b.creado)-new Date(a.creado)).map(o=>`<div><span class="mono">${o.id}</span><span>${etNombre(o)} · ${new Date(o.creado).toLocaleDateString("es-PA",{day:"numeric",month:"short",year:"2-digit"})}</span><b>${$$m(total(o))}</b></div>`).join("")}</div>`;
   $("#cerrar-ficha").onclick=()=>{fichaId=null;renderFicha()};
 }
@@ -894,7 +956,7 @@ function renderNumeros(){
   $("#chart").innerHTML=meses.map(x=>`<div class="c ${x.k===0?"now":""}"><span class="val">${x.g?"$"+Math.round(x.g):""}</span><span class="bw"><span class="b" style="height:${x.g/gm*100}%"></span></span><span>${x.l}</span></div>`).join("");
 }
 
-function renderAll(){renderInicio();renderPedidos();renderCompras();if(location.hash==="#registrar"&&$("#done").hidden)renderNB();renderRegistrar();renderClientes();renderNumeros()}
+function renderAll(){autoVincular();renderInicio();renderPedidos();renderCompras();if(location.hash==="#registrar"&&$("#done").hidden)renderNB();renderRegistrar();renderClientes();renderNumeros()}
 function refresh(){abiertos=new Set($$("details.order[open][data-id]").map(d=>d.dataset.id));cliAbiertos=new Set($$("details.cli[open]").map(d=>d.dataset.cli));abiertasC=new Set($$("details.order[open][data-compra]").map(d=>d.dataset.compra));renderAll()}
 
 /* ---------- Navegación ---------- */
@@ -952,6 +1014,14 @@ document.addEventListener("click",e=>{
     o.envio={t:$(`#t-${o.id}`).value,tarifa:tf};o.local=[new Date().toISOString()];save();refresh();toast(`Despachado por ${o.envio.t}. Avísale al cliente`)}
   else if(d.coord){const o=find(d.coord);o.local=[new Date().toISOString()];o.avisado=8;save();refresh();toast("Entrega coordinada")}
   else if(d.entregar){const o=find(d.entregar);if(o.local.length<1)o.local.push(new Date().toISOString());o.local[1]=new Date().toISOString();save();refresh();toast(saldo(o)?`Entregado. Aún debe ${$$m(saldo(o))}`:"Entregado y pagado")}
+  else if(d.vincir){location.hash="clientes";renderClientes();setTimeout(()=>{const el=$("#reg-"+d.vincir);if(el){el.scrollIntoView({behavior:"smooth",block:"center"});$("#vs-"+d.vincir).focus({preventScroll:true})}},60)}
+  else if(d.vincular){const v=$("#vs-"+d.vincular).value;if(!v)return toast("Elige quién es en tu lista");
+    const R=regs(),r=R.find(x=>x.id===d.vincular);if(!r)return;let c;
+    if(v==="nuevo"){c={id:"c"+Date.now(),nombre:regNombre(r),tel:"",ent:"local",prov:"",atiende:yo};D.C.push(c);save()}else c=D.C.find(x=>x.id===v);
+    r.cliente=c.id;r.vinculado=new Date().toISOString();saveRegs(R);refresh();toast(`${r.nombre} ya puede ver los pedidos de ${c.nombre}`)}
+  else if(d.desv){const R=regs(),r=R.find(x=>x.id===d.desv);if(!r||!confirm(`¿Desvincular a ${regNombre(r)}? Dejará de ver estos pedidos.`))return;
+    r.cliente=null;r.invita=null;saveRegs(R);refresh();toast("Desvinculado")}
+  else if(d.copiar){const l=d.copiar;(navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(()=>toast("Link copiado")).catch(()=>prompt("Copia el link:",l))}
   else if(d.pagado){const o=find(d.pagado);o.abonado=total(o);save();refresh();toast("Marcado como pagado")}
 });
 document.addEventListener("change",e=>{
@@ -975,6 +1045,8 @@ document.addEventListener("input",e=>{const t=e.target;if(!nb)return;
   else if(t.dataset.nbtop){nb[t.dataset.nbtop]=t.value}});
 document.addEventListener("toggle",e=>{if(e.target.matches?.("details.cli")){e.target.open?cliAbiertos.add(e.target.dataset.cli):cliAbiertos.delete(e.target.dataset.cli);return}if(e.target.matches?.("details.order[data-compra]")){e.target.open?abiertasC.add(e.target.dataset.compra):abiertasC.delete(e.target.dataset.compra);return}if(e.target.matches?.("details.order")){e.target.open?abiertos.add(e.target.dataset.id):abiertos.delete(e.target.dataset.id)}},true);
 
+// Si en otra pestaña de este navegador alguien se registra en la app del cliente, se ve aquí al momento.
+addEventListener("storage",e=>{if(e.key===KEY){try{D=JSON.parse(e.newValue)||D}catch(_){}}if(e.key===KEY||e.key===KEYR)refresh()});
 $("#logo-r").src=LOGO;$("#logo-m").src=LOGO;
 setYo(yo);go();
 addEventListener("resize",()=>{const a=$('#navlist [aria-current="page"]');if(a)$("#ind").style.transform=`translateY(${a.offsetTop}px)`});
