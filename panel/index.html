@@ -1055,17 +1055,18 @@ function resumenPaq(o){const n=o.paq.length;if(n<2)return"";const e=Math.min(...
   const max=Math.max(...o.paq.map(pkgSt));return`${o.paq.filter(p=>pkgSt(p)===max).length} de ${n} paquetes ${ET[max].toLowerCase()}`}
 
 /* ---------- Mensajes ---------- */
-function msg(o,tipo){const c=cli(o),n=c.nombre.split(" ")[0],e=etapa(o),yoN=EQUIPO[o.quien].nombre,firma=`\n— ${yoN}, DC Marketing`,link=`\nSíguelo aquí: ${LINK_BASE}${o.id}`;
-  if(tipo==="cobro")return`Hola ${n}, te recuerdo que del pedido ${o.id} queda un saldo de *${$$m(saldo(o))}*.${firma}`;
-  if(e===0)return`Hola ${n}, anotamos tu pedido. En cuanto lo compremos te mando el código de seguimiento.${firma}`;
-  if(e===1)return`Hola ${n}, ya compramos tu pedido. Tu código es *${o.id}*.${link}${firma}`;
-  if(e===7)return entrega(o)==="local"?`Hola ${n}, tu pedido ${o.id} ya llegó a Aguadulce. ¿Cuándo te queda bien para entregártelo?${saldo(o)?` Saldo: *${$$m(saldo(o))}*.`:""}${firma}`
-                                     :`Hola ${n}, tu pedido ${o.id} ya llegó. Te lo enviamos a ${c.prov}; en cuanto lo despachemos te paso la tarifa del envío.${firma}`;
-  if(e===8&&entrega(o)==="envio"&&!o.envio)return`Hola ${n}, estamos preparando tu pedido ${o.id} para enviártelo a ${c.prov}. En cuanto lo despachemos te paso la tarifa del envío.${firma}`;
-  if(e===8&&entrega(o)==="envio")return`Hola ${n}, tu pedido ${o.id} salió por *${o.envio.t}* hacia ${c.prov}. Envío: ${$$m(tarifa(o))}. Saldo total: *${$$m(saldo(o))}*.${firma}`;
-  if(e===8)return`Hola ${n}, estamos preparando tu pedido ${o.id} para entregártelo. ¿Cuándo te queda bien?${saldo(o)?` Saldo: *${$$m(saldo(o))}*.`:""}${firma}`;
-  if(e===9)return`Hola ${n}, gracias por recibir tu pedido ${o.id}. ¡Gracias por confiar en DC Marketing!`;
-  const r=resumenPaq(o);return`Hola ${n}, tu pedido ${o.id} avanzó: *${r||ET[e]}*.${link}${firma}`}
+/* Mensajes de WhatsApp. Solo se avisa al despachar (con el saldo en negrita) y al entregar; el resto lo ve el cliente en su app. */
+function msg(o,tipo){const c=cli(o),n=c.nombre.split(" ")[0],e=etapa(o),yoN=EQUIPO[o.quien].nombre,sal=saldo(o),
+    hola=`Hola ${n} 👋\n`,app=`\n\nNo olvides revisar en tu app el estado de tus paquetes 📲`,firma=`\n— ${yoN}, Dicyn Marketing`;
+  if(tipo==="cobro")return`${hola}Te escribo para recordarte que de tu pedido *${o.id}* queda un saldo de *${$$m(sal)}* 💳\nCuando puedas, me avisas. ¡Gracias!\n\nPuedes ver tus pagos en tu app 📲${firma}`;
+  if(e===0)return`${hola}Ya anotamos tu pedido 📝 En cuanto hagamos la compra en Temu te avisamos.${app}${firma}`;
+  if(e===1)return`${hola}¡Buenas noticias! Ya hicimos la compra de tu pedido en Temu 🛍️\nTu código de seguimiento es *${o.id}*.${app}${firma}`;
+  if(e===7||e===8){const env=entrega(o)==="envio",cuenta=sal>0?`\n\n*Para proceder con la entrega, recuerda cancelar tu saldo pendiente de ${$$m(sal)}* 💳`:`\n\n*Tu pedido ya está pagado* ✅ ¡Gracias!`;
+    if(env&&o.envio)return`${hola}¡Tu pedido *${o.id}* ya está en despacho! 📦\nVa hacia *${c.prov}* por *${o.envio.t}* 🚚${tarifa(o)?`\nFlete: ${$$m(tarifa(o))}`:""}${cuenta}${app}${firma}`;
+    if(env)return`${hola}¡Tu pedido *${o.id}* ya está en despacho! 📦\nLo estamos preparando para enviártelo a *${c.prov}*.${cuenta}${app}${firma}`;
+    return`${hola}¡Tu pedido *${o.id}* ya está en despacho! 📦\nCoordinamos contigo el día y la hora de la entrega.${cuenta}${app}${firma}`}
+  if(e===9)return`${hola}¡Tu pedido *${o.id}* ya fue entregado! ✅\nGracias por hacer tu pedido con *Dicyn Marketing*. Esperamos que lo disfrutes 💛\n\nNo olvides revisar en tu app tus paquetes y tus pedidos guardados 📲${firma}`;
+  const r=resumenPaq(o);return`${hola}Tu pedido *${o.id}* va avanzando: *${(r||ET[e]).toLowerCase()}* ✈️${app}${firma}`}
 function waTel(tel,text){let n=String(tel||"").replace(/\D/g,"");if(n.length===8)n="507"+n;return`https://wa.me/${n}?text=${encodeURIComponent(text)}`}
 function wa(o,tipo){return waTel(cli(o).tel,msg(o,tipo))}
 /* Copiar al portapapeles con el botón de la esquina (el texto no se puede seleccionar a mano). */
@@ -1086,7 +1087,7 @@ const mineOrAll=()=>D.P.filter(o=>o.quien===yo);
 
 /* ---------- Inicio ---------- */
 function renderInicio(){
-  const mios=mineOrAll(),llegaron=mios.filter(prsEntrego),avisos=mios.filter(o=>etapa(o)!==o.avisado&&etapa(o)>0),stuck=mios.filter(atascado),buy=mios.filter(o=>etapa(o)===0);
+  const mios=mineOrAll(),llegaron=mios.filter(prsEntrego),avisos=mios.filter(o=>etapa(o)>=8&&etapa(o)!==o.avisado),stuck=mios.filter(atascado),buy=mios.filter(o=>etapa(o)===0);
   const T=D.P,deuda=T.reduce((a,o)=>a+saldo(o),0),enCamino=T.filter(o=>etapa(o)>=1&&etapa(o)<9).length;
   const listos=T.filter(o=>etapa(o)===7||etapa(o)===8).length,tBuy=T.filter(o=>etapa(o)===0),tStuck=T.filter(atascado);
   $("#hello").innerHTML=`${saludo()}, <span>${EQUIPO[yo].nombre}</span>`;
@@ -1960,7 +1961,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=30;
+const APP="admin",APP_VERSION=31;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
