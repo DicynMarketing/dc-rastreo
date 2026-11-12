@@ -308,6 +308,7 @@ details.cli summary::-webkit-details-marker{display:none}
 .ya-ent{grid-column:1/-1;display:flex;gap:10px;align-items:center;font-size:14px;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer}
 .ya-ent input{width:20px;height:20px;accent-color:var(--gold)}
 .flete-in{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}.flete-in input{flex:1;min-width:0}
+.edit-top{width:100%;justify-content:center;border:1px dashed var(--gold);color:var(--gold);background:transparent}
 .edit-box{border:1px dashed var(--gold);border-radius:14px;padding:12px}
 .segbox{background:var(--panel);border:1px solid var(--line);border-radius:16px}
 .segbox summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer}
@@ -1158,7 +1159,7 @@ function card(o){
     <div class="o-body">${detalle(o)}</div></details>`}
 function detalle(o){
   const e=etapa(o),c=cli(o);
-  let h="";
+  let h=e>0&&!EDIT.has(o.id)?`<button class="btn edit-top" data-editp="${o.id}">✏️ Editar pedido (fecha, artículos, número)</button>`:"";
   if(e===0){h+=`<div class="block"><p class="block-t">Por comprar</p><div class="sum">${esc(o.nota||"Sin nota")}</div>
      <div class="o-actions"><button class="btn gold" data-compre="${o.id}"><svg><use href="#i-check"/></svg>Ya lo compré</button><button class="btn sm" data-open="${o.id}">Registrarlo en un pedido de Temu</button></div></div>`}
   else if(!o.paq.length){h+=`<div class="block"><p class="block-t">Pedido Temu <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}</p><div class="sum">${o.rec?`Recibido sin guía · ${new Date(o.rec).toLocaleDateString("es-PA",{day:"numeric",month:"short"})}`:"Realizado. Agrega el número de pedido y la guía cuando los tengas."}</div>
@@ -1211,7 +1212,7 @@ function detalle(o){
   h+=`<div class="o-actions">${e>0&&e<9&&e!==7&&!(e===8&&!o.envio&&c.ent!=="envio")?`<a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar etapa</a>`:""}
      ${e>0?`<a class="btn" href="${CLIENTE_URL}#${o.id}" target="_blank" rel="noopener"><svg><use href="#i-eye"/></svg>Ver como cliente</a>`:""}
      <button class="btn sm" data-ficha="${o.cli}">Ficha del cliente</button>
-     ${e>0&&!EDIT.has(o.id)?`<button class="btn sm" data-editp="${o.id}">✏️ Editar pedido</button>`:""}</div>`;
+</div>`;
   return h}
 /* Editar un pedido ya guardado: artículos (nombre, costo, cobro), número de pedido de Temu, o borrarlo */
 const EDIT=new Set();
@@ -1966,7 +1967,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=32;
+const APP="admin",APP_VERSION=33;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
