@@ -663,7 +663,7 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
               <label for="f-adel" hidden>Adelanto recibido<input id="f-adel" inputmode="decimal" placeholder="0.00"></label>
               <label hidden>Ganancia<input id="f-gan" readonly tabindex="-1" value="$0.00"></label>
             </div>
-            <p class="note">Es un estimado: los precios reales los pones cuando lo compras y lo pasas a un pedido de Temu.</p>
+            <p class="note">Se calcula solo con los precios de las capturas y lo puedes cambiar. Es un estimado: no cuenta como deuda ni como venta hasta que lo compres y lo registres.</p>
             <p class="note" id="envio-note" hidden>La tarifa de Ferguson o Servientrega la pones al despachar, y se suma al saldo del cliente.</p>
           </div>
           <div class="preview"><div><div class="note">Código que verá el cliente</div><div class="code" id="newcode">DC-0000</div></div>
@@ -1020,7 +1020,9 @@ function atascado(o){const e=etapa(o);if(e<1||e>=7||prsEntrego(o))return null;
   return p?{g:p.g,d:dias(ultMov(p)),et:ET[pkgSt(p)]}:null}
 const entrega=o=>cli(o).ent;
 const tarifa=o=>o.envio?num(o.envio.tarifa):0;
-const total=o=>num(o.precio)+tarifa(o);
+/* Lo que se cobra de verdad. Un encargo por comprar (etapa 0) tiene un total estimado, pero no es venta ni deuda. */
+const cobra=o=>etapa(o)===0?0:num(o.precio);
+const total=o=>cobra(o)+tarifa(o);
 const saldo=o=>Math.max(0,+(total(o)-num(o.abonado)).toFixed(2));
 /* Pagos y abonos con fecha. Los pedidos viejos solo tenían "abonado": se ven como un pago en la fecha del pedido. */
 const pagosDe=o=>Array.isArray(o.pagos)?o.pagos:num(o.abonado)>0?[{m:num(o.abonado),f:o.creado}]:[];
@@ -1029,7 +1031,7 @@ const addPago=(o,m,f)=>ponerPagos(o,[...pagosDe(o),{m:+num(m).toFixed(2),f:f||ne
 const pagoIni=(m,f,q)=>num(m)>0?[{m:+num(m).toFixed(2),f,por:q}]:[];
 const hoyISO=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
 const fechaC=f=>f?new Date(f).toLocaleDateString("es-PA",{day:"numeric",month:"short",year:"2-digit"}):"";
-const ganancia=o=>num(o.precio)-num(o.costo);
+const ganancia=o=>etapa(o)===0?0:num(o.precio)-num(o.costo);
 const etNombre=(o,e=etapa(o))=>e===8?(o.envio?`Enviado por ${o.envio.t}`:"Preparando despacho"):e===7&&o.paq.length>1?"Todo recibido":ET[e];
 function resumenPaq(o){const n=o.paq.length;if(n<2)return"";const e=Math.min(...o.paq.map(pkgSt));if(e>=7)return"";
   const max=Math.max(...o.paq.map(pkgSt));return`${o.paq.filter(p=>pkgSt(p)===max).length} de ${n} paquetes ${ET[max].toLowerCase()}`}
@@ -1119,7 +1121,7 @@ function renderPedidos(){
 function card(o){
   const e=etapa(o),c=cli(o),a=atascado(o),done=e===9,pct=Math.round(e/9*100);
   const st=a?"red":done?"done":"";
-  const pills=[saldo(o)>0?`<span class="pill gold">Debe ${$$m(saldo(o))}</span>`:num(o.precio)?`<span class="pill ok">Pagado</span>`:"",
+  const pills=[etapa(o)===0?(num(o.precio)?`<span class="pill">Estimado ${$$m(o.precio)}</span>`:""):saldo(o)>0?`<span class="pill gold">Debe ${$$m(saldo(o))}</span>`:num(o.precio)?`<span class="pill ok">Pagado</span>`:"",
     o.paq.length>1?`<span class="pill">${o.paq.length} guías</span>`:"", c.ent==="envio"?`<span class="pill">${esc(c.prov)}</span>`:"",
     o.ej?`<span class="tag">Ejemplo</span>`:""].join("");
   return`<details class="order" data-id="${o.id}" ${abiertos.has(o.id)?"open":""}><summary>
@@ -1157,6 +1159,9 @@ function detalle(o){
     h+=`</div>`}
   if(o.items&&o.items.length)h+=`<div class="block"><p class="block-t">Lo que pidió ${o.tpo?`· pedido <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}`:""}</p><div class="items">${o.items.map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}</div></div>`;
   const ro=o.items&&o.items.length?'readonly title="Se calcula de los artículos"':"";
+  // dinero (un encargo solo tiene un total estimado: no es deuda ni venta todavía)
+  if(e===0)h+=`<div class="block"><p class="block-t">Total estimado</p><div class="sum"><span>Para el cliente <b>${$$m(o.precio)}</b></span><span class="note">No es deuda: se cobra cuando lo compres y lo registres.</span></div></div>`;
+  else{
   // dinero
   h+=`<div class="block"><p class="block-t">Cobro</p><div class="money">
      <label>Costo Temu<input ${ro} data-money="${o.id}|costo" inputmode="decimal" value="${num(o.costo)||""}" placeholder="0.00"></label>
@@ -1168,6 +1173,7 @@ function detalle(o){
      ${pagosDe(o).length?`<div class="pagos-mini">${pagosDe(o).map((x,i)=>`<div><span>${fechaC(x.f)}</span><b>${$$m(x.m)}</b><button type="button" class="x" data-delpago="${o.id}|${i}" aria-label="Borrar este pago">×</button></div>`).join("")}</div>`:""}
      ${saldo(o)?`<div class="guia-row"><input id="pg-${o.id}" inputmode="decimal" placeholder="Monto del pago o abono" aria-label="Monto del pago"><button class="btn sm gold" data-pagar="${o.id}|pg">Registrar pago</button></div>`:""}
      ${saldo(o)?`<div class="o-actions"><button class="btn sm" data-pagado="${o.id}"><svg><use href="#i-check"/></svg>Marcar pagado</button><a class="btn sm" href="${wa(o,"cobro")}" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Recordar saldo</a></div>`:""}</div>`;
+  }
   h+=`<div class="o-actions">${e>0&&e<9&&e!==7&&!(e===8&&!o.envio&&c.ent!=="envio")?`<a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar etapa</a>`:""}
      ${e>0?`<a class="btn" href="${CLIENTE_URL}#${o.id}" target="_blank" rel="noopener"><svg><use href="#i-eye"/></svg>Ver como cliente</a>`:""}
      <button class="btn sm" data-ficha="${o.cli}">Ficha del cliente</button></div>`;
@@ -1347,8 +1353,9 @@ async function leerEncargo(files){if(!files.length)return;
   const lect=Date.now();ENC=ENC.filter(x=>x.d.trim());lineas.forEach(k=>ENC.push({d:nom[k],p:pre[k]||"",l:lect}));encLect={id:lect,caps:files.length};renderEnc(true);
   toast(`Leí ${lineas.length} artículo${lineas.length>1?"s":""}. Revisa la lista: quita con × o deshaz la lectura.`)}
 /* Lista de artículos del encargo (solo nombres). Se guarda en o.nota, un artículo por línea. */
-let ENC=[],encLect=null;
-function syncEnc(){const n=$("#f-nota");if(n)n.value=ENC.map(x=>x.d.trim()).filter(Boolean).join("\n")}
+let ENC=[],encLect=null,encAuto=true;
+function syncEnc(){const n=$("#f-nota");if(n)n.value=ENC.map(x=>x.d.trim()).filter(Boolean).join("\n");
+  const t=ENC.reduce((a,x)=>a+num(x.p),0),pr=$("#f-precio");if(pr&&encAuto&&ENC.some(x=>x.p))pr.value=t?t.toFixed(2):""}
 function renderEnc(entra){const box=$("#enc-arts");if(!box)return;if(!ENC.length)ENC.push({d:""});const nl=ENC.filter(x=>x.d.trim()).length;
   box.innerHTML=`${encLect&&ENC.some(x=>x.l===encLect.id)?`<div class="lect-bar"><span>Leídos <b>${ENC.filter(x=>x.l===encLect.id).length}</b> artículos de ${encLect.caps} captura${encLect.caps>1?"s":""}. ¿Algo salió mal?</span>
       <div class="lect-btns"><button type="button" class="btn sm" data-encdes>Deshacer lectura</button><button type="button" class="btn sm" data-encotra>Volver a leer</button></div></div>`:""}
@@ -1357,7 +1364,7 @@ function renderEnc(entra){const box=$("#enc-arts");if(!box)return;if(!ENC.length
     ${ENC.some(x=>x.p)?`<p class="note">En Temu hoy: <b>${$$m(ENC.reduce((a,x)=>a+num(x.p),0))}</b> (referencia; al comprar puede cambiar).</p>`:""}`;
   syncEnc();
   if(entra){box.classList.remove("entra");void box.offsetWidth;box.classList.add("entra");setTimeout(()=>box.classList.remove("entra"),1600)}}
-document.addEventListener("input",e=>{const t=e.target;if(t.dataset.enci!==undefined){ENC[+t.dataset.enci].d=t.value;syncEnc()}});
+document.addEventListener("input",e=>{const t=e.target;if(t.dataset.enci!==undefined){ENC[+t.dataset.enci].d=t.value;syncEnc()}else if(t.id==="f-precio")encAuto=!t.value.trim()});
 document.addEventListener("keydown",e=>{const t=e.target;if(e.key!=="Enter"||t.dataset.enci===undefined)return;e.preventDefault();const i=+t.dataset.enci;
   if(i===ENC.length-1){if(!t.value.trim())return;ENC.push({d:""});renderEnc()}document.querySelector(`[data-enci="${i+1}"]`)?.focus()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-encadd],[data-encx],[data-encdes],[data-encotra],[data-encborrar]");if(!b)return;const d=b.dataset;
@@ -1598,7 +1605,7 @@ $("#form").addEventListener("submit",e=>{
   const now=new Date().toISOString();
   const o={id:pendingCode,cli:c.id,quien:pick,costo:num($("#f-costo").value),precio:num($("#f-precio").value),abonado:num($("#f-adel").value),pagos:pagoIni($("#f-adel").value,now,pick),
     nota:$("#f-nota").value.trim(),arts:ENC.filter(x=>x.d.trim()).map(x=>({d:x.d.trim(),costo:num(x.p)})),creado:now,local:[],envio:null,avisado:-1,paq:fCmp==="si"?guias.map(g=>{const ex=D.P.flatMap(x=>x.paq).find(q=>q.g===g);return{g,h:ex?[...ex.h]:[now]}}):[]};
-  D.P.unshift(o);save();e.target.reset();ENC=[];encLect=null;renderEnc();pendingCode=newCode();renderAll();
+  D.P.unshift(o);save();e.target.reset();ENC=[];encLect=null;encAuto=true;renderEnc();pendingCode=newCode();renderAll();
   $("#form").hidden=true;const d=$("#done");d.hidden=false;
   d.innerHTML=`<h2 style="color:var(--ok)">${o.paq.length?"Pedido registrado":"Anotado en por comprar"}</h2><div style="font:800 26px var(--f-display);display:flex;align-items:center;gap:6px">${o.id}${cp(o.id)}</div>
     <p class="note">${esc(c.nombre)} · ${o.paq.length?`${o.paq.length} ${o.paq.length===1?"guía":"guías"}`:"pendiente de comprar"} · registrado por ${EQUIPO[o.quien].nombre}.</p>
@@ -1609,7 +1616,7 @@ $("#form").addEventListener("submit",e=>{
 
 /* ---------- Clientes ---------- */
 let rankBy="pedidos",fichaId=null,cFiltro="todos";
-function statsCliente(c){const ps=D.P.filter(o=>o.cli===c.id);return{ps,n:ps.length,gasto:ps.reduce((a,o)=>a+total(o),0),debe:ps.reduce((a,o)=>a+saldo(o),0),
+function statsCliente(c){const ps=D.P.filter(o=>o.cli===c.id&&etapa(o)>0);return{ps,n:ps.length,gasto:ps.reduce((a,o)=>a+total(o),0),debe:ps.reduce((a,o)=>a+saldo(o),0),
   ultimo:ps.length?ps.map(o=>o.creado).sort().at(-1):null}}
 function renderClientes(){
   const S=D.C.filter(c=>cFiltro==="todos"||atiende(c)===cFiltro).map(c=>({c,...statsCliente(c)}));
@@ -1619,7 +1626,7 @@ function renderClientes(){
   $("#c-kpis").innerHTML=`<div class="kpi"><span class="k">Clientes</span><span class="v" data-n="${S.length}">${S.length}</span><small>${activos} compraron este mes</small></div>
     <div class="kpi"><span class="k">Frecuentes</span><span class="v gold">${frec}</span><small>3 pedidos o más</small></div>
     <div class="kpi"><span class="k">Te deben</span><span class="v">${deben.length}</span><small>${$$m(deben.reduce((a,s)=>a+s.debe,0))} en total</small></div>
-    <div class="kpi"><span class="k">Ticket promedio</span><span class="v">${$$m(D.P.filter(o=>num(o.precio)).reduce((a,o)=>a+num(o.precio),0)/Math.max(1,D.P.filter(o=>num(o.precio)).length))}</span><small>por pedido</small></div>`;
+    <div class="kpi"><span class="k">Ticket promedio</span><span class="v">${$$m(D.P.filter(o=>cobra(o)).reduce((a,o)=>a+cobra(o),0)/Math.max(1,D.P.filter(o=>cobra(o)).length))}</span><small>por pedido</small></div>`;
   renderAppRegs();
   const conApp=new Set(regs().map(r=>r.cliente).filter(Boolean));
   S.sort((a,b)=>rankBy==="pedidos"?b.n-a.n||b.gasto-a.gasto:b.gasto-a.gasto);
@@ -1698,7 +1705,7 @@ function renderPagos(){
         <div class="pago-r"><b class="m">${$$m(p.x.m)}</b><span class="pill ${p.tipo==="Abono"?"gold":"ok"}">${p.tipo}</span></div></div>`}).join("")}</div>`
       :`<div class="empty">${q?"Ningún pago coincide.":"Todavía no hay pagos registrados. Se registran al guardar un pedido con adelanto o pago completo, o con “Registrar pago” dentro del pedido."}</div>`}
   else{const soloDeuda=pgModo==="deudas";
-    const C=D.C.map(c=>{const os=D.P.filter(o=>o.cli===c.id&&(num(o.precio)||pagosDe(o).length)&&coincide(o)&&(!soloDeuda||saldo(o)>0));
+    const C=D.C.map(c=>{const os=D.P.filter(o=>o.cli===c.id&&etapa(o)>0&&(num(o.precio)||pagosDe(o).length)&&coincide(o)&&(!soloDeuda||saldo(o)>0));
       return{c,os,debe:os.reduce((a,o)=>a+saldo(o),0),pagado:os.reduce((a,o)=>a+num(o.abonado),0)}}).filter(x=>x.os.length)
       .sort((a,b)=>soloDeuda?b.debe-a.debe:a.c.nombre.localeCompare(b.c.nombre));
     h=C.length?`<div class="pagos">${C.map(({c,os,debe,pagado})=>`<details class="pago-cli"><summary><div style="min-width:0"><b>${esc(c.nombre)}</b><div class="o-sub"><span>${os.length} pedido${os.length>1?"s":""}</span><span>Pagó ${$$m(pagado)}</span></div></div>
@@ -1720,7 +1727,7 @@ function mesDe(o){const d=new Date(o.local[1]||o.creado);return d.getFullYear()*
 function renderNumeros(){
   const hoy=new Date(),m0=hoy.getFullYear()*12+hoy.getMonth();
   $("#mes").textContent=hoy.toLocaleDateString("es-PA",{month:"long"});
-  const delMes=D.P.filter(o=>num(o.precio)&&mesDe(o)===m0);
+  const delMes=D.P.filter(o=>cobra(o)&&mesDe(o)===m0);
   const vend=delMes.reduce((a,o)=>a+num(o.precio),0),cost=delMes.reduce((a,o)=>a+num(o.costo),0),gan=vend-cost;
   const cobrar=D.P.reduce((a,o)=>a+saldo(o),0);
   $("#n-kpis").innerHTML=`<div class="kpi"><span class="k">Ganancia</span><span class="v gold" data-n="${gan}" data-m="1">${$$m(gan)}</span><small>${delMes.length} pedidos</small></div>
@@ -1730,7 +1737,7 @@ function renderNumeros(){
   const per=Object.keys(EQUIPO).map(k=>({k,g:delMes.filter(o=>o.quien===k).reduce((a,o)=>a+ganancia(o),0),n:delMes.filter(o=>o.quien===k).length}));
   const mx=Math.max(1,...per.map(p=>p.g));
   $("#split").innerHTML=per.map(p=>`<div class="split-row"><span>${EQUIPO[p.k].nombre} <small class="note">${p.n} ped.</small></span><span class="bar"><i style="width:${p.g/mx*100}%"></i></span><b>${$$m(p.g)}</b></div>`).join("");
-  const meses=[5,4,3,2,1,0].map(k=>{const m=m0-k,g=D.P.filter(o=>num(o.precio)&&mesDe(o)===m).reduce((a,o)=>a+ganancia(o),0);
+  const meses=[5,4,3,2,1,0].map(k=>{const m=m0-k,g=D.P.filter(o=>cobra(o)&&mesDe(o)===m).reduce((a,o)=>a+ganancia(o),0);
     return{k,g,l:new Date(Math.floor(m/12),m%12,1).toLocaleDateString("es-PA",{month:"short"})}});
   const gm=Math.max(1,...meses.map(x=>x.g));
   $("#chart").innerHTML=meses.map(x=>`<div class="c ${x.k===0?"now":""}"><span class="val">${x.g?"$"+Math.round(x.g):""}</span><span class="bw"><span class="b" style="height:${x.g/gm*100}%"></span></span><span>${x.l}</span></div>`).join("");
@@ -1886,7 +1893,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=25;
+const APP="admin",APP_VERSION=26;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
