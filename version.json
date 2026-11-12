@@ -1,7 +1,19 @@
 {
-  "admin": 23,
+  "admin": 24,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 24,
+      "cliente": 7,
+      "titulo": "Encargos con lista de artículos",
+      "admin_items": [
+        "En “Encargo por comprar” ya no hay que escribir: “Leer captura” pone cada artículo en su propia fila, igual que en pedido de Temu (×2 sale dos veces).",
+        "Puedes quitar uno por uno con la ×, deshacer la lectura, volver a leer o borrar todos. “Artículo a mano” agrega uno escrito por ti.",
+        "Si la captura es del carrito y no muestra precios, igual toma los nombres de los productos."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 23,
