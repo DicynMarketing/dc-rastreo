@@ -57,6 +57,8 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 
 ## WhatsApp (decisión tomada)
 
+- **Mensajes** (`msg()`): estilo "Hola Nombre 👋", pocos emojis, **sin link**, cierran con "No olvides revisar en tu app el estado de tus paquetes 📲" y "— Diego/Cinthya, Dicyn Marketing". En "Seguimiento" de Inicio **solo se pide avisar en etapa 8 (despacho) y 9 (entregado)**; los movimientos los ve el cliente en su app. El de despacho lleva en negrita "*Para proceder con la entrega, recuerda cancelar tu saldo pendiente de $X*" (el pedido no se entrega con saldo). El de entregado lo manda el dueño al final.
+
 - Se usa el **WhatsApp personal** de Diego y Cinthya, **no** la WhatsApp Business API, porque cobra.
 - El envío es semiautomático: la app arma un link `https://wa.me/507XXXXXXXX?text=...` con el mensaje y el link de seguimiento. La persona lo toca en su teléfono y le da enviar.
 - Un link de wa.me no elige desde qué número se envía; sale del WhatsApp abierto en ese teléfono. Por eso cada uno usa el panel en su propio celular.

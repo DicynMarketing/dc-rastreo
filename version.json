@@ -1,7 +1,19 @@
 {
-  "admin": 30,
+  "admin": 31,
   "cliente": 13,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 31,
+      "cliente": 13,
+      "titulo": "Mensajes de WhatsApp más bonitos",
+      "admin_items": [
+        "Los mensajes de WhatsApp para los clientes ahora son más elaborados, con algunos emojis y sin link: le recuerdan revisar su app.",
+        "Ya no te pide avisar cada movimiento del paquete: el cliente lo ve en su app. Solo te pide avisar cuando el pedido está en despacho y cuando se entrega.",
+        "El mensaje de despacho le recuerda al cliente, en negrita, el saldo pendiente para proceder con la entrega."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 30,
