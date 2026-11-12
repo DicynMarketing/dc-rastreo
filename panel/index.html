@@ -303,7 +303,8 @@ details.cli summary::-webkit-details-marker{display:none}
 .sug button{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;text-align:left;background:none;border:0;border-radius:10px;padding:8px;color:var(--ink);font:inherit;cursor:pointer}
 .sug button:hover,.sug button:focus{background:var(--panel-2)}
 .sug .cfg-tx small{color:var(--muted)}
-#f-nota{width:100%;box-sizing:border-box;font:500 16px var(--f-body);line-height:1.5;resize:vertical;min-height:110px}
+.enc-box{display:grid;gap:10px}.enc-arts{display:grid;gap:8px}
+.enc-arts .art{padding:8px 10px}
 .upd label.f{display:grid;gap:6px;font-size:13px;font-weight:700;color:var(--u-mute)}
 .upd label.f input,.upd label.f select{width:100%;box-sizing:border-box;font-size:16px}
 .ec-it{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:10px;align-items:center;background:var(--u-card);border:1px solid var(--u-line);border-radius:14px;padding:10px;cursor:pointer}
@@ -332,7 +333,7 @@ details.cli summary::-webkit-details-marker{display:none}
 .chip-a span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .chip-a b{color:var(--gold);font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion:no-preference){
- #nb.entra .art,#nb.entra .nb-cli{animation:up .45s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(min(var(--i),14)*55ms)}
+ #nb.entra .art,#nb.entra .nb-cli,.enc-arts.entra .art{animation:up .45s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(min(var(--i),14)*55ms)}
  details.order.just>.o-body{animation:none}
  details.order.just>.o-body>*{animation:up .45s cubic-bezier(.2,.8,.2,1) both}
  details.order.just>.o-body>*:nth-child(2){animation-delay:.06s}details.order.just>.o-body>*:nth-child(3){animation-delay:.12s}
@@ -648,9 +649,10 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
             <div class="seg" id="seg-compra" hidden><button type="button" data-cmp="si" aria-pressed="true">Sí, tengo la guía</button><button type="button" data-cmp="no" aria-pressed="false">Por comprar</button></div>
             <div class="guias" id="guias"></div>
             <button type="button" class="btn sm" id="add-guia" style="justify-self:start"><svg><use href="#i-plus"/></svg>Otra guía (Temu lo dividió)</button>
-            <div class="f" id="nota-wrap" hidden><label for="f-nota">Qué hay que comprar (solo lo ves tú) · un artículo por línea</label>
-              <textarea id="f-nota" rows="4" placeholder="Ej. Funda iPhone 13 negra&#10;Collar con colgante" autocomplete="off"></textarea>
-              <button type="button" class="btn sm gold" data-encleer style="justify-self:start"><svg><use href="#i-cam"/></svg>Leer captura</button></div>
+            <div id="nota-wrap" class="enc-box" hidden><span class="f-lab">Qué hay que comprar (solo lo ves tú)</span>
+              <div class="nb-bar"><button type="button" class="btn gold" data-encleer><svg><use href="#i-cam"/></svg>Leer captura</button><button type="button" class="btn" data-encadd><svg><use href="#i-plus"/></svg>Artículo a mano</button></div>
+              <div id="enc-arts" class="enc-arts"></div>
+              <input type="hidden" id="f-nota"></div>
           </div>
           <div class="block"><span class="f-lab">Dinero</span>
             <div class="money">
@@ -1315,13 +1317,34 @@ async function leerEncargo(files){if(!files.length)return;
   for(let i=0;i<files.length;i++){const msg=document.getElementById("ocr-msg");if(msg)msg.textContent=`Leyendo captura ${i+1} de ${files.length}…`;
     try{let{data:{text}}=await ocrWorker.recognize(await sinFotos(files[i]));let r=parseTemu(text);
       if(!r.items.length){({data:{text}}=await ocrWorker.recognize(files[i]));r=parseTemu(text)}
+      if(!r.items.length)r.items=text.split(/\n/).map(x=>x.replace(/\s+/g," ").trim()).filter(x=>/(\.{2,}|…)\s*$/.test(x.replace(PRECIOS,"").trim()))
+        .map(x=>limpiar(x.replace(PRECIOS,""))).filter(d=>d.split(" ").length>=2&&/[a-záéíóúñ]{3}/i.test(d)&&!NO_ART.test(d)).map(d=>({d,q:1}));
       const aqui={};r.items.forEach(x=>{const k=x.d.toLowerCase();aqui[k]=(aqui[k]||0)+x.q;nom[k]=x.d});
       Object.entries(aqui).forEach(([k,v])=>cuenta[k]=Math.max(cuenta[k]||0,v))}catch(e){}}
   hoja.remove();
   const lineas=Object.entries(cuenta).flatMap(([k,v])=>Array(v).fill(nom[k]));
-  if(!lineas.length)return toast("No encontré artículos. Prueba con capturas donde se vean el nombre y el precio.");
-  const ta=$("#f-nota"),ya=ta.value.trim();ta.value=(ya?ya+"\n":"")+lineas.join("\n");
-  toast(`Agregué ${lineas.length} artículo${lineas.length>1?"s":""} a la lista. Puedes borrar o corregir líneas.`)}
+  if(!lineas.length)return toast("No encontré artículos. Prueba con capturas donde se vean el nombre y el precio de cada producto.");
+  const lect=Date.now();ENC=ENC.filter(x=>x.d.trim());lineas.forEach(d=>ENC.push({d,l:lect}));encLect={id:lect,caps:files.length};renderEnc(true);
+  toast(`Leí ${lineas.length} artículo${lineas.length>1?"s":""}. Revisa la lista: quita con × o deshaz la lectura.`)}
+/* Lista de artículos del encargo (solo nombres). Se guarda en o.nota, un artículo por línea. */
+let ENC=[],encLect=null;
+function syncEnc(){const n=$("#f-nota");if(n)n.value=ENC.map(x=>x.d.trim()).filter(Boolean).join("\n")}
+function renderEnc(entra){const box=$("#enc-arts");if(!box)return;if(!ENC.length)ENC.push({d:""});const nl=ENC.filter(x=>x.d.trim()).length;
+  box.innerHTML=`${encLect&&ENC.some(x=>x.l===encLect.id)?`<div class="lect-bar"><span>Leídos <b>${ENC.filter(x=>x.l===encLect.id).length}</b> artículos de ${encLect.caps} captura${encLect.caps>1?"s":""}. ¿Algo salió mal?</span>
+      <div class="lect-btns"><button type="button" class="btn sm" data-encdes>Deshacer lectura</button><button type="button" class="btn sm" data-encotra>Volver a leer</button></div></div>`:""}
+    ${nl>1?`<div class="arts-h"><span class="note">${nl} artículos · toca × para quitar uno</span><button type="button" class="linkbtn red" data-encborrar>Borrar todos</button></div>`:""}
+    ${ENC.map((x,i)=>`<div class="art" style="--i:${i}"><div class="art-top"><span class="art-n">${i+1}</span><input data-enci="${i}" value="${esc(x.d)}" placeholder="${i?"Artículo "+(i+1):"Ej. Funda iPhone 13 negra"}" aria-label="Artículo ${i+1}" autocomplete="off" enterkeyhint="next"><button type="button" class="x" data-encx="${i}" aria-label="Quitar artículo">×</button></div></div>`).join("")}`;
+  syncEnc();
+  if(entra){box.classList.remove("entra");void box.offsetWidth;box.classList.add("entra");setTimeout(()=>box.classList.remove("entra"),1600)}}
+document.addEventListener("input",e=>{const t=e.target;if(t.dataset.enci!==undefined){ENC[+t.dataset.enci].d=t.value;syncEnc()}});
+document.addEventListener("keydown",e=>{const t=e.target;if(e.key!=="Enter"||t.dataset.enci===undefined)return;e.preventDefault();const i=+t.dataset.enci;
+  if(i===ENC.length-1){if(!t.value.trim())return;ENC.push({d:""});renderEnc()}document.querySelector(`[data-enci="${i+1}"]`)?.focus()});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-encadd],[data-encx],[data-encdes],[data-encotra],[data-encborrar]");if(!b)return;const d=b.dataset;
+  if("encadd" in d){ENC=ENC.filter(x=>x.d.trim());ENC.push({d:""});renderEnc();document.querySelector(`[data-enci="${ENC.length-1}"]`)?.focus()}
+  else if(d.encx!==undefined){ENC.splice(+d.encx,1);renderEnc()}
+  else if("encdes" in d||"encotra" in d){const n=ENC.filter(x=>x.l===encLect?.id).length;ENC=ENC.filter(x=>x.l!==encLect?.id);encLect=null;renderEnc();
+    if("encotra" in d){ocrDestino="enc";ocrFile.click()}else toast(`Quité los ${n} artículos de esa lectura`)}
+  else if("encborrar" in d){if(!confirm("¿Borrar todos los artículos del encargo?"))return;ENC=[];encLect=null;renderEnc()}});
 const deshacerLectura=()=>{if(!nb?.lect)return 0;const n=nb.items.filter(x=>x.l===nb.lect.id).length;nb.items=nb.items.filter(x=>x.l!==nb.lect.id);nb.lect=null;if(!nb.items.length)nb.items.push(nbArt());return n};
 document.addEventListener("click",e=>{if(e.target.closest("[data-encleer]")){ocrDestino="enc";ocrFile.click();return}
   const b=e.target.closest("[data-nbleer],[data-lectdes],[data-lectotra],[data-artsborrar]");if(!b||!nb)return;const d=b.dataset;
@@ -1514,7 +1537,7 @@ function renderRegistrar(){
   $$("#seg-compra button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.cmp===fCmp));
   $("#prov-wrap").hidden=fEnt!=="envio";$("#envio-note").hidden=fEnt!=="envio";
   $("#ent-note").textContent=fEnt==="envio"?"Al llegar a DC lo despachas por Ferguson o Servientrega.":"Lo entregas directamente y coordinan por WhatsApp.";
-  fCmp="no";$("#guias").hidden=true;$("#add-guia").hidden=true;$("#nota-wrap").hidden=false;
+  fCmp="no";$("#guias").hidden=true;$("#add-guia").hidden=true;$("#nota-wrap").hidden=false;if(!$("#enc-arts").children.length)renderEnc();
 
   $("#dl-clientes").innerHTML=D.C.map(c=>`<option value="${esc(c.nombre)}">`).join("");
   const gs={};D.P.filter(o=>etapa(o)>=1&&etapa(o)<7).forEach(o=>o.paq.forEach(p=>(gs[p.g]=gs[p.g]||[]).push(cli(o).nombre.split(" ")[0])));
@@ -1545,7 +1568,7 @@ $("#form").addEventListener("submit",e=>{
   if(!nombre)return fail("Falta el nombre del cliente.");
   if(tel.length<8)return fail("El WhatsApp del cliente debe tener 8 dígitos.");
   if(fCmp==="si"&&!guias.length)return fail("Pega al menos una guía, o elige “Por comprar”.");
-  if(fCmp==="no"&&!$("#f-nota").value.trim())return fail("Anota qué hay que comprar para no olvidarlo.");
+  syncEnc();if(fCmp==="no"&&!$("#f-nota").value.trim())return fail("Agrega los artículos: toca “Leer captura” o “Artículo a mano”.");
   err.hidden=true;
   let c=D.C.find(x=>x.nombre.toLowerCase()===nombre.toLowerCase());
   if(!c){c={id:"c"+Date.now(),nombre,tel,ent:fEnt,prov:fEnt==="envio"?$("#f-prov").value:"",atiende:pick};D.C.push(c)}
@@ -1553,7 +1576,7 @@ $("#form").addEventListener("submit",e=>{
   const now=new Date().toISOString();
   const o={id:pendingCode,cli:c.id,quien:pick,costo:num($("#f-costo").value),precio:num($("#f-precio").value),abonado:num($("#f-adel").value),pagos:pagoIni($("#f-adel").value,now,pick),
     nota:$("#f-nota").value.trim(),creado:now,local:[],envio:null,avisado:-1,paq:fCmp==="si"?guias.map(g=>{const ex=D.P.flatMap(x=>x.paq).find(q=>q.g===g);return{g,h:ex?[...ex.h]:[now]}}):[]};
-  D.P.unshift(o);save();e.target.reset();pendingCode=newCode();renderAll();
+  D.P.unshift(o);save();e.target.reset();ENC=[];encLect=null;renderEnc();pendingCode=newCode();renderAll();
   $("#form").hidden=true;const d=$("#done");d.hidden=false;
   d.innerHTML=`<h2 style="color:var(--ok)">${o.paq.length?"Pedido registrado":"Anotado en por comprar"}</h2><div style="font:800 26px var(--f-display);display:flex;align-items:center;gap:6px">${o.id}${cp(o.id)}</div>
     <p class="note">${esc(c.nombre)} · ${o.paq.length?`${o.paq.length} ${o.paq.length===1?"guía":"guías"}`:"pendiente de comprar"} · registrado por ${EQUIPO[o.quien].nombre}.</p>
@@ -1841,7 +1864,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=23;
+const APP="admin",APP_VERSION=24;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
