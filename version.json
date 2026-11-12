@@ -1,7 +1,18 @@
 {
-  "admin": 16,
+  "admin": 17,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 17,
+      "cliente": 7,
+      "titulo": "Pedidos con varias guías",
+      "admin_items": [
+        "Si Temu divide el pedido en dos o más guías, cada artículo tiene “¿En qué guía vino?”. Así cada cliente sigue solo la guía de sus artículos y no espera por el otro paquete.",
+        "Si no sabes en qué guía vino, deja “No sé / en todas” y ese cliente sigue todas las guías del pedido."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 16,
