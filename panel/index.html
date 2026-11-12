@@ -305,6 +305,19 @@ details.cli summary::-webkit-details-marker{display:none}
 .sug button:hover,.sug button:focus{background:var(--panel-2)}
 .sug .cfg-tx small{color:var(--muted)}
 .enc-box{display:grid;gap:10px}
+.ya-ent{grid-column:1/-1;display:flex;gap:10px;align-items:center;font-size:14px;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer}
+.ya-ent input{width:20px;height:20px;accent-color:var(--gold)}
+.flete-in{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}.flete-in input{flex:1;min-width:0}
+.edit-box{border:1px dashed var(--gold);border-radius:14px;padding:12px}
+.segbox{background:var(--panel);border:1px solid var(--line);border-radius:16px}
+.segbox summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer}
+.segbox summary::-webkit-details-marker{display:none}
+.sb-t{font:800 13px var(--f-display);letter-spacing:.06em;text-transform:uppercase}
+.sb-n{background:#E5484D;color:#fff;font:800 11px var(--f-body);border-radius:999px;min-width:20px;height:20px;display:grid;place-items:center;padding:0 6px;box-sizing:border-box}
+.segbox .chev{margin-left:auto;width:18px;height:18px;color:var(--muted);transition:transform .3s cubic-bezier(.3,1.3,.5,1)}
+.segbox[open] .chev{transform:rotate(180deg)}
+.segbox .inbox{padding:0 12px 12px}
+@media (prefers-reduced-motion:no-preference){.segbox[open] .inbox>*{animation:up .35s cubic-bezier(.2,.8,.2,1) both}}
 .btn.confirma{background:var(--red);border-color:var(--red);color:#fff}
 @media (prefers-reduced-motion:no-preference){.btn.confirma{animation:sacude .35s}}
 .art-top.con-p{grid-template-columns:auto minmax(0,1fr) auto 30px}
@@ -607,6 +620,7 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
 
       <section data-view="inicio">
         <div><p class="fecha" id="fecha"></p><h1 id="hello">Buenas, <span>Diego</span></h1><p class="lead" id="lead"></p></div>
+        <details class="segbox" id="segbox"><summary><span class="sb-t">Seguimiento</span><span class="sb-n" id="sb-n"></span><svg class="chev"><use href="#i-chev"/></svg></summary><div class="inbox" id="inbox-seg"></div></details>
         <div><div class="h2row"><h2 id="h-tareas">Por hacer</h2></div><div class="inbox" id="inbox"></div></div>
         <div class="block"><div class="h2row" style="margin:0"><h2>Equipo DC</h2><span class="note">Números de los dos</span></div><div class="kpis" id="kpis"></div><div class="teamrow" id="team"></div></div>
         <div><div class="h2row"><h2>Tablero de ruta</h2><span class="note">Toca una etapa para ver sus pedidos</span></div>
@@ -1079,7 +1093,7 @@ function renderInicio(){
   const nuevos=pendientes();
   const tareas=avisos.length+stuck.length+buy.length+nuevos.length+llegaron.length;
   $("#lead").textContent=tareas?`Tienes ${tareas} ${tareas===1?"cosa":"cosas"} por hacer con tus clientes.`:"Tus clientes están al día.";
-  $("#h-tareas").innerHTML=`Por hacer · ${EQUIPO[yo].nombre}${tareas?`<span class="cnt-b">${tareas}</span>`:""}`;
+  $("#h-tareas").innerHTML=`Por hacer · ${EQUIPO[yo].nombre}${buy.length+nuevos.length?`<span class="cnt-b">${buy.length+nuevos.length}</span>`:""}`;
   $("#fecha").textContent=new Date().toLocaleDateString("es-PA",{weekday:"long",day:"numeric",month:"long"});
   $("#kpis").innerHTML=`
    <button class="kpi" data-jump="saldo"><span class="k">Nos deben</span><span class="v gold" data-n="${deuda}" data-m="1">${$$m(deuda)}</span><small>${T.filter(o=>saldo(o)>0).length} pedidos con saldo</small></button>
@@ -1092,17 +1106,23 @@ function renderInicio(){
       <span class="o-sub" style="display:flex"><span>${cl.length} clientes</span><span>${ps.filter(o=>etapa(o)>=1&&etapa(o)<9).length} activos</span></span></span>
       <span class="pill ${pend?"gold":"ok"}">${pend?pend+" por hacer":"Al día"}</span></button>`}).join("");
   const items=[
+   ...buy.map(o=>`<div class="notif buy"><div class="stage"><svg width="20" height="20"><use href="#i-cart"/></svg></div><p><b>${esc(cli(o).nombre)}</b> · por comprar${dias(o.creado)?` hace ${dias(o.creado)} d`:""}<br><small>${esc(o.nota||"Sin nota")}</small></p>
+     <button class="btn gold" data-compre="${o.id}"><svg><use href="#i-check"/></svg>Ya lo compré</button></div>`),
    ...nuevos.map(r=>`<div class="notif app"><div class="stage">${esc(r.nombre[0]||"?")}</div><p><b>${esc(regNombre(r))}</b> entró a la app<br><small>${haceTxt(r.fecha)} · Vincúlalo con su cliente para que vea sus pedidos.</small></p>
      <button class="btn gold" data-vincir="${r.id}"><svg><use href="#i-users"/></svg>Vincular</button></div>`),
+   ],seg=[
    ...llegaron.map(o=>`<div class="notif"><div class="stage">7</div><p><b>${esc(cli(o).nombre)}</b> · PRS ya lo entregó<br><small>${o.tpo?`Pedido ${esc(o.tpo)} · `:""}Cuando lo tengas en tus manos, márcalo Recibido.</small></p>
      <button class="btn gold" data-recibi="${o.id}"><svg><use href="#i-check"/></svg>Ya lo recibí</button></div>`),
    ...stuck.map(o=>{const a=atascado(o);return`<div class="notif red"><div class="stage">${a.d}d</div><p><b>${esc(cli(o).nombre)}</b> · ${a.et}<br><small>Guía ${esc(a.g)} sin movimiento hace ${a.d} días. Avísale antes de que pregunte.</small></p>
      <a class="btn" href="${wa(o)}" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Escribirle</a></div>`}),
    ...avisos.map(o=>`<div class="notif"><div class="stage">${etapa(o)}</div><p><b>${esc(cli(o).nombre)}</b> · ${etNombre(o)}<br><small>${resumenPaq(o)||`Avisar desde tu WhatsApp (${fmtTel(EQUIPO[yo].tel)})`}</small></p>
      <a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar</a></div>`),
-   ...buy.map(o=>`<div class="notif buy"><div class="stage"><svg width="20" height="20"><use href="#i-cart"/></svg></div><p><b>${esc(cli(o).nombre)}</b> · por comprar${dias(o.creado)?` hace ${dias(o.creado)} d`:""}<br><small>${esc(o.nota||"Sin nota")}</small></p>
-     <button class="btn gold" data-compre="${o.id}"><svg><use href="#i-check"/></svg>Ya lo compré</button></div>`)];
-  $("#inbox").innerHTML=items.join("")||`<div class="empty">${D.P.length||D.C.length?"Todo al día. ":""}Aquí aparecen los avisos para tus clientes, los pedidos atascados, las compras pendientes y quién entra a la app.</div>`;
+   ];
+  $("#inbox").innerHTML=items.join("")||`<div class="empty">Nada por comprar. Aquí aparecen los encargos que faltan comprar y quién entra a la app.</div>`;
+  $("#inbox-seg").innerHTML=seg.join("")||`<div class="empty">Ningún pedido en proceso necesita aviso.</div>`;
+  $("#sb-n").textContent=seg.length?seg.length:"";$("#sb-n").hidden=!seg.length;
+  const sb=$("#segbox");if(!sb.dataset.ini){sb.dataset.ini="1";try{sb.open=localStorage.getItem("dc-seg-abierto")==="1"}catch(x){}
+    sb.addEventListener("toggle",()=>{try{localStorage.setItem("dc-seg-abierto",sb.open?"1":"0")}catch(x){}})}
   $("#board").innerHTML=ET.map((e,k)=>{const en=D.P.filter(o=>etapa(o)===k);
     return`<button class="col" data-etapa="${k}"><span class="nm">${e}</span><span class="cnt ${en.length?"":"zero"}" data-n="${en.length}">${en.length}</span>
       <span class="track-line"><i style="width:${(k+1)/10*100}%"></i></span>
@@ -1151,6 +1171,7 @@ function detalle(o){
        <select data-pkg="${o.id}|${i}" aria-label="Corregir etapa de la guía">${ET.slice(1,8).map((x,k)=>`<option value="${k+1}" ${k+1===pkgSt(p)?"selected":""}>${x}</option>`).join("")}</select>
        ${miniBar(pkgSt(p))}</div>`).join("")}</div>
      <div class="guia-row"><input id="g-${o.id}" class="mono" placeholder="Agregar otra guía" aria-label="Agregar guía"><button class="btn sm" data-addg="${o.id}"><svg><use href="#i-plus"/></svg>Agregar</button></div></div>`}
+  if(e>=1&&e<9)h+=`<div class="o-actions"><button class="btn sm" data-yaent="${o.id}"><svg><use href="#i-check"/></svg>Ya fue entregado</button><span class="note">Para pedidos viejos que ya entregaste.</span></div>`;
   if(e>=1&&e<=6)h+=`<div class="o-actions"><button class="btn gold" data-recibi="${o.id}"><svg><use href="#i-check"/></svg>Ya lo recibí</button><span class="note">Pásalo a “Recibido” cuando el paquete llegue a tus manos.</span></div>`;
   // entrega
   if(e>=7){const env=c.ent==="envio";
@@ -1163,7 +1184,13 @@ function detalle(o){
       <button class="btn gold" style="justify-self:start" data-entregar="${o.id}"><svg><use href="#i-check"/></svg>Marcar entregado</button>`;
     if(e===9)h+=`<div class="sum"><span class="paid">Entregado ${new Date(o.local[1]).toLocaleDateString("es-PA",{day:"numeric",month:"short"})}</span>${o.envio?` · ${esc(o.envio.t)} ${$$m(tarifa(o))}`:""}</div>`;
     h+=`</div>`}
-  if(o.items&&o.items.length)h+=`<div class="block"><p class="block-t">Lo que pidió ${o.tpo?`· pedido <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}`:""}</p><div class="items">${o.items.map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}</div></div>`;
+  // flete (envío a otra provincia): se puede poner o corregir en cualquier momento
+  if(e>=1&&c.ent==="envio"&&!(e===8&&!o.envio))h+=`<div class="block"><p class="block-t">Flete · ${esc(c.prov||"otra provincia")}</p><div class="ship">
+      <label for="tt-${o.id}">Transporte<select id="tt-${o.id}">${TRANSPORTE.map(t=>`<option ${o.envio?.t===t?"selected":""}>${t}</option>`).join("")}</select></label>
+      <label for="tff-${o.id}">Flete cobrado<input id="tff-${o.id}" inputmode="decimal" placeholder="0.00" value="${o.envio?tarifa(o)||"":""}"></label>
+      <button class="btn sm gold" data-flete="${o.id}">${o.envio?"Guardar":"Agregar flete"}</button></div><p class="note">El flete se suma a lo que paga el cliente y no cuenta como ganancia.</p></div>`;
+  if(EDIT.has(o.id))h+=editorPedido(o);
+  else if(o.items&&o.items.length)h+=`<div class="block"><p class="block-t">Lo que pidió ${o.tpo?`· pedido <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}`:""}</p><div class="items">${o.items.map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}</div></div>`;
   const ro=o.items&&o.items.length?'readonly title="Se calcula de los artículos"':"";
   // dinero (un encargo solo tiene un total estimado: no es deuda ni venta todavía)
   if(e===0)h+=`<div class="block"><p class="block-t">Total estimado</p><div class="sum"><span>Para el cliente <b>${$$m(o.precio)}</b></span><span class="note">No es deuda: se cobra cuando lo compres y lo registres.</span></div></div>`;
@@ -1182,8 +1209,17 @@ function detalle(o){
   }
   h+=`<div class="o-actions">${e>0&&e<9&&e!==7&&!(e===8&&!o.envio&&c.ent!=="envio")?`<a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar etapa</a>`:""}
      ${e>0?`<a class="btn" href="${CLIENTE_URL}#${o.id}" target="_blank" rel="noopener"><svg><use href="#i-eye"/></svg>Ver como cliente</a>`:""}
-     <button class="btn sm" data-ficha="${o.cli}">Ficha del cliente</button></div>`;
+     <button class="btn sm" data-ficha="${o.cli}">Ficha del cliente</button>
+     ${e>0&&!EDIT.has(o.id)?`<button class="btn sm" data-editp="${o.id}">✏️ Editar pedido</button>`:""}</div>`;
   return h}
+/* Editar un pedido ya guardado: artículos (nombre, costo, cobro), número de pedido de Temu, o borrarlo */
+const EDIT=new Set();
+function editorPedido(o){const its=o.items&&o.items.length?o.items:[{d:o.nota||"",costo:o.costo,precio:o.precio}];
+  return`<div class="block edit-box"><p class="block-t">Editando el pedido</p>
+    <label class="f">Número de pedido de Temu<input class="mono" data-ep="${o.id}|tpo" value="${esc(o.tpo||"")}" placeholder="PO-…" autocomplete="off"></label>
+    <div class="it-h"><span>Artículo</span><span>Costo</span><span>Cobras</span><span></span></div>
+    ${its.map((x,i)=>`<div class="it-row"><input data-ei="${o.id}|${i}|d" value="${esc(x.d)}" aria-label="Artículo"><input data-ei="${o.id}|${i}|costo" value="${num(x.costo)||""}" inputmode="decimal" placeholder="0.00" aria-label="Costo"><input data-ei="${o.id}|${i}|precio" value="${num(x.precio)||""}" inputmode="decimal" placeholder="0.00" aria-label="Cobras"><button type="button" class="x" data-eix="${o.id}|${i}" aria-label="Quitar artículo">×</button></div>`).join("")}
+    <div class="o-actions"><button class="btn sm" data-eiadd="${o.id}"><svg><use href="#i-plus"/></svg>Artículo</button><button class="btn sm gold" data-eilisto="${o.id}"><svg><use href="#i-check"/></svg>Listo</button><button class="btn sm red" data-eborrar="${o.id}">Borrar pedido</button></div></div>`}
 
 /* ---------- Pedidos de Temu: el número de pedido es la base ---------- */
 let modo="compra",abiertasC=new Set(),cliAbiertos=new Set();
@@ -1235,7 +1271,7 @@ function renderCompras(){
               <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${it.map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
                 <div class="item head"><span>Total de ${esc(cli(o).nombre.split(" ")[0])}</span><span class="c">${$$m(o.costo)}</span><span class="p">${$$m(o.precio)}</span></div>
                 ${o.envio?`<div class="item"><span>Envío ${esc(o.envio.t)}</span><span class="c"></span><span class="p">${$$m(tarifa(o))}</span></div>`:""}
-                <div class="o-actions" style="margin-top:6px"><button class="btn sm" data-verped="${o.id}">Abrir pedido</button><a class="btn sm wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar</a></div></div></details>`}).join("")}</div>
+                <div class="o-actions" style="margin-top:6px"><button class="btn sm" data-verped="${o.id}">Abrir pedido</button><button class="btn sm" data-verped="${o.id}" data-edit="1">✏️ Editar</button><a class="btn sm wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar</a></div></div></details>`}).join("")}</div>
 </div>
         <div class="grand">
           <div><span>Total de la compra en Temu</span><b>${$$m(cost)}</b></div>
@@ -1462,6 +1498,7 @@ function renderNB(entra){
    <div class="nb-step"><span class="nb-n">1</span><div><b>Número de pedido y guía de Temu</b><p class="note">El número de pedido es único y agrupa a todos los clientes de esta compra. La guía la puedes poner después si Temu aún no la da.</p></div></div>
    <div class="fgrid">
      <label class="f" for="nb-fecha">Fecha del pedido<input id="nb-fecha" type="date" data-nbtop="fecha" value="${esc(nb.fecha||hoyISO())}" max="${hoyISO()}"></label>
+     <label class="ya-ent"><input type="checkbox" id="nb-ent" ${nb.entregado?"checked":""}> <span>Pedido viejo: <b>ya fue entregado</b> a todos los clientes</span></label>
      <label class="f" for="nb-num">Número de pedido Temu<input id="nb-num" class="mono" data-nbtop="numero" value="${esc(nb.numero)}" placeholder="PO-211-…" autocomplete="off" enterkeyhint="next"></label>
      ${nb.guias.map((g,gi)=>`<label class="f">Número de guía ${nb.guias.length>1?gi+1:""}<span class="guia-row"><input class="mono" data-nbg="${gi}" value="${esc(g)}" list="dl-guias" placeholder="Opcional por ahora" autocomplete="off">${gi?`<button type="button" class="x" data-nbgdel="${gi}" aria-label="Quitar guía">×</button>`:""}</span></label>`).join("")}
    </div>
@@ -1490,7 +1527,9 @@ function renderNB(entra){
        <input data-nb="${ci}|tel" value="${esc(k.tel)}" placeholder="WhatsApp 6123-4567" inputmode="tel" aria-label="WhatsApp" autocomplete="off">
        <div class="seg sm"><button type="button" data-nbq="${ci}|diego" aria-pressed="${k.quien==="diego"}">Diego</button><button type="button" data-nbq="${ci}|cinthya" aria-pressed="${k.quien==="cinthya"}">Cinthya</button></div>
        <div class="seg sm"><button type="button" data-nbe="${ci}|local" aria-pressed="${k.ent==="local"}">Aguadulce</button><button type="button" data-nbe="${ci}|envio" aria-pressed="${k.ent==="envio"}">Otra prov.</button></div>
-       ${k.ent==="envio"?`<select data-nb="${ci}|prov" aria-label="Provincia">${PROVINCIAS.map(p=>`<option ${p===k.prov?"selected":""}>${p}</option>`).join("")}</select>`:""}
+       ${k.ent==="envio"?`<select data-nb="${ci}|prov" aria-label="Provincia">${PROVINCIAS.map(p=>`<option ${p===k.prov?"selected":""}>${p}</option>`).join("")}</select>
+         <select data-nb="${ci}|transp" aria-label="Transporte"><option value="">Transporte (si ya lo enviaste)</option>${TRANSPORTE.map(t=>`<option ${t===k.transp?"selected":""}>${t}</option>`).join("")}</select>
+         <label class="flete-in"><span>Flete $</span><input data-nb="${ci}|flete" value="${esc(k.flete||"")}" inputmode="decimal" placeholder="0.00" aria-label="Flete"></label>`:""}
      </div>
      <div class="cli-arts">${its.length?its.map(x=>`<span class="chip-a"><span>${esc(x.d.trim()||"Artículo")}</span><b>${$$m(num(x.precio))}</b></span>`).join(""):`<span class="note">Sin artículos todavía: elígelo arriba en “¿De quién?”.</span>`}</div>
      <div class="nb-cli-f"><span class="nb-sub" id="nbs-${ci}">${its.length} art. · <b>${$$m(s.precio)}</b></span></div>
@@ -1511,7 +1550,7 @@ function renderNB(entra){
 function nbGrand(){const t=nbTot(),cob=nb.clientes.reduce((a,k,ci)=>a+nbPagado(k,artsDe(ci)),0),arts=nb.items.filter(lleno).length,sin=nb.items.filter(x=>x.c===""&&lleno(x)).length;
   $("#nb-grand").innerHTML=`<div><span>Total de la compra en Temu</span><b>${$$m(t.c)}</b></div><div><span>Total a cobrar a clientes</span><b>${$$m(t.p)}</b></div><div><span>Ganancia del pedido</span><b class="ok">${$$m(t.p-t.c)}</b></div><div><span>Ya cobrado</span><b class="ok">${$$m(cob)}</b></div><div><span>Falta cobrar</span><b class="${t.p-cob>0?"due":"ok"}">${$$m(Math.max(0,t.p-cob))}</b></div><div><span>Clientes · artículos</span><b>${nb.clientes.length} · ${arts}</b></div>${sin&&nb.clientes.length>1?`<div><span>Artículos sin cliente</span><b class="due">${sin}</b></div>`:""}`;
   nb.clientes.forEach((k,ci)=>{const its=artsDe(ci),el=$("#nbs-"+ci);if(el)el.innerHTML=`${its.length} art. · <b>${$$m(sumItems(its).precio)}</b>`;
-    const pr=$("#nbp-"+ci),tot=sumItems(its).precio,pg=nbPagado(k,its);
+    const fl=k.ent==="envio"?num(k.flete):0,pr=$("#nbp-"+ci),tot=sumItems(its).precio+fl,pg=nbPagado(k,its)+(k.pago==="completo"?fl:0);
     if(pr)pr.innerHTML=k.pago==="completo"?`<span class="paid">Pagó completo ${$$m(tot)}</span>`:k.pago==="adelanto"?(pg?`Queda debiendo <b>${$$m(Math.max(0,tot-pg))}</b>`:"Escribe cuánto dio de adelanto"):(tot?`Debe <b>${$$m(tot)}</b>`:"")})}
 function nbGuardar(){
   const err=$("#nb-err"),fail=t=>{err.textContent=t;err.hidden=false;err.scrollIntoView({block:"center"})};
@@ -1544,9 +1583,12 @@ function nbGuardar(){
     else Object.assign(c,{tel:tel||c.tel,ent:k.ent,prov:k.ent==="envio"?k.prov:""});
     const items=artsDe(ci).map(x=>({d:x.d.trim(),costo:num(x.costo),precio:num(x.precio)}));
     let o=k.desde&&find(k.desde);
-    const abonado=nbPagado(k,items);
+    const flete=k.ent==="envio"?num(k.flete):0,envio=flete||k.transp?{t:k.transp||TRANSPORTE[0],tarifa:flete}:null;
+    const abonado=+(nbPagado(k,items)+(k.pago==="completo"?flete:0)).toFixed(2);
     if(o){Object.assign(o,{items,tpo:numero,quien:k.quien,paq:paqDe(gDe(artsDe(ci))),abonado,pagos:pagoIni(abonado,fechaPed,k.quien),creado:fechaPed})}
     else{o={id:newCode(),cli:c.id,quien:k.quien,items,costo:0,precio:0,abonado,pagos:pagoIni(abonado,fechaPed,k.quien),nota:"",tpo:numero,creado:fechaPed,local:[],envio:null,avisado:-1,paq:paqDe(gDe(artsDe(ci)))};D.P.unshift(o)}
+    if(envio)o.envio=envio;
+    if(nb.entregado){o.paq.forEach(p=>{while(p.h.length<7)p.h.push(fechaPed)});if(!o.paq.length)o.rec=fechaPed;o.local=[fechaPed,fechaPed];o.avisado=9}
     syncItems(o);creados.push(o)});
   save();nb=null;renderAll();
   $("#nb").hidden=true;const d=$("#done");d.hidden=false;const t=creados.reduce((a,o)=>a+num(o.costo),0);
@@ -1682,7 +1724,7 @@ function renderFicha(){const f=$("#ficha"),c=D.C.find(x=>x.id===fichaId);if(!c){
      <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${itemsDe(o).map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
        ${o.envio?`<div class="item"><span>Envío ${esc(o.envio.t)}</span><span class="c"></span><span class="p">${$$m(tarifa(o))}</span></div>`:""}
        <div class="item head"><span>${saldo(o)?`Debe ${$$m(saldo(o))}`:"Pagado"}</span><span class="c">${$$m(o.costo)}</span><span class="p">${$$m(total(o))}</span></div>
-       <div class="o-actions" style="margin-top:6px"><button class="btn sm" data-verped="${o.id}">Abrir pedido</button></div></div></details>`).join("")||`<p class="note">Todavía no tiene pedidos.</p>`}</div></div>`;
+       <div class="o-actions" style="margin-top:6px"><button class="btn sm" data-verped="${o.id}">Abrir pedido</button><button class="btn sm" data-verped="${o.id}" data-edit="1">✏️ Editar</button></div></div></details>`).join("")||`<p class="note">Todavía no tiene pedidos.</p>`}</div></div>`;
   $("#cerrar-ficha").onclick=()=>{fichaId=null;renderFicha()};
 }
 
@@ -1818,7 +1860,7 @@ document.addEventListener("click",e=>{
   else if(d.tguia){const key=d.tguia,inp=document.getElementById("tg-"+key),g=inp.value.trim().toUpperCase();if(!g)return toast("Escribe el número de guía");
     const c=compras().find(x=>x.key===key),now=new Date().toISOString(),ex=D.P.flatMap(x=>x.paq).find(q=>q.g===g);
     c.os.forEach(o=>{if(!o.paq.some(p=>p.g===g))o.paq.push({g,h:ex?[...ex.h]:[now]})});save();refresh();toast(`Guía agregada a ${c.os.length} clientes`)}
-  else if(d.verped){location.hash="pedidos";modo="cliente";filtro="todos";$("#scope").value="todos";$("#q").value=d.verped;abiertos=new Set([d.verped]);renderCompras();renderPedidos();scrollTo({top:0})}
+  else if(d.verped){if(d.edit){EDIT.add(d.verped);const o=find(d.verped);if(o&&!o.items?.length)o.items=[{d:o.nota||"Pedido",costo:num(o.costo),precio:num(o.precio)}]}location.hash="pedidos";modo="cliente";filtro="todos";$("#scope").value="todos";$("#q").value=d.verped;abiertos=new Set([d.verped]);renderCompras();renderPedidos();scrollTo({top:0})}
   else if(d.p){pick=d.p;renderRegistrar()}
   else if(d.ent){fEnt=d.ent;renderRegistrar()}
   else if(d.cmp){fCmp=d.cmp;renderRegistrar()}
@@ -1831,6 +1873,16 @@ document.addEventListener("click",e=>{
       clearTimeout(t._t);t._t=setTimeout(()=>{if(!t.isConnected)return;t.dataset.arma="";t.classList.remove("confirma");t.innerHTML=`<svg><use href="#i-check"/></svg>Ya lo compré`},4000);return}
     const a=artsEnc(o).filter(x=>x.d);o.comprado=new Date().toISOString();if(a.some(x=>x.costo))o.costo=+a.reduce((s,x)=>s+num(x.costo),0).toFixed(2);
     save();refresh();toast(`Listo: ${cli(o).nombre.split(" ")[0]} pasó a Realizado. Agrega el número de pedido y la guía cuando los tengas.`)}
+  else if(d.yaent){const o=find(d.yaent);if(!o)return;
+    if(t.dataset.arma!=="1"){t.dataset.arma="1";t.classList.add("confirma");t.textContent="Toca otra vez para confirmar";clearTimeout(t._t);t._t=setTimeout(()=>{if(t.isConnected){t.dataset.arma="";t.classList.remove("confirma");t.textContent="Ya fue entregado"}},4000);return}
+    const f=new Date().toISOString();o.paq.forEach(p=>{while(p.h.length<7)p.h.push(f)});if(!o.paq.length)o.rec=o.rec||f;o.local=[o.local[0]||f,f];o.avisado=9;save();refresh();toast("Marcado como entregado")}
+  else if(d.flete){const o=find(d.flete),v=num($(`#tff-${o.id}`).value);o.envio={t:$(`#tt-${o.id}`).value,tarifa:v};save();refresh();toast(v?`Flete ${$$m(v)} guardado`:"Transporte guardado")}
+  else if(d.editp){EDIT.add(d.editp);if(!find(d.editp).items?.length){const o=find(d.editp);o.items=[{d:o.nota||"Pedido",costo:num(o.costo),precio:num(o.precio)}]}refresh()}
+  else if(d.eilisto){EDIT.delete(d.eilisto);const o=find(d.eilisto);o.items=(o.items||[]).filter(x=>String(x.d).trim()||num(x.costo)||num(x.precio));syncItems(o);save();refresh();toast("Pedido actualizado")}
+  else if(d.eiadd){const o=find(d.eiadd);(o.items=o.items||[]).push({d:"",costo:0,precio:0});refresh();setTimeout(()=>document.querySelector(`[data-ei="${o.id}|${o.items.length-1}|d"]`)?.focus(),60)}
+  else if(d.eix){const[id,i]=d.eix.split("|"),o=find(id);o.items.splice(+i,1);syncItems(o);save();refresh()}
+  else if(d.eborrar){const o=find(d.eborrar);if(!confirm(`¿Borrar el pedido ${o.id} de ${cli(o).nombre}? No se puede deshacer.`))return;
+    D.P=D.P.filter(x=>x!==o);EDIT.delete(o.id);sb?.from("pedidos").delete().eq("id",o.id).then(({error})=>{if(!error)delete SNAP.p[o.id]});refresh();toast("Pedido borrado")}
   else if(d.settpo){const o=find(d.settpo),v=$(`#tp-${o.id}`).value.trim().toUpperCase();if(!v)return toast("Escribe el número de pedido");o.tpo=v;save();refresh();toast("Número de pedido guardado")}
   else if(d.addg){const o=find(d.addg),g=$(`#g-${o.id}`).value.trim().toUpperCase();if(!g)return;o.paq.push({g,h:[new Date().toISOString()]});save();refresh();toast("Guía agregada")}
   else if(d.despachar){const o=find(d.despachar),tf=num($(`#tf-${o.id}`).value);if(!tf){toast("Escribe la tarifa del envío");return}
@@ -1887,12 +1939,15 @@ document.addEventListener("keydown",e=>{const t=e.target;if(e.key!=="Enter"||!nb
 $("#q").addEventListener("input",renderPedidos);
 $("#qc").addEventListener("input",renderCompras);
 document.addEventListener("input",e=>{const t=e.target;
+  if(t.dataset.ei){const[id,i,f]=t.dataset.ei.split("|"),o=find(id);if(!o)return;const x=o.items[+i];x[f]=f==="d"?t.value:num(t.value);syncItems(o);clearTimeout(o._g);o._g=setTimeout(save,700);return}
+  if(t.dataset.ep){const[id,f]=t.dataset.ep.split("|"),o=find(id);if(!o)return;o[f]=t.value.trim().toUpperCase();clearTimeout(o._g);o._g=setTimeout(save,700);return}
   if(!nb)return;
   if(t.dataset.ni){const[i,f]=t.dataset.ni.split("|"),x=nb.items[+i];if(!x)return;x[f]=t.value;nbGrand();
     if(f==="precio"&&x.c!==""){const ch=document.querySelectorAll(`.nb-cli`)[x.c];if(ch){const its=artsDe(x.c),j=its.indexOf(x),b=ch.querySelectorAll(".chip-a b")[j];if(b)b.textContent=$$m(num(t.value))}}}
   else if(t.dataset.nb){const a=t.dataset.nb.split("|");const k=nb.clientes[+a[0]];if(!k)return;k[a[1]]=t.value;nbGrand()}
   else if(t.dataset.nbg!==undefined){const gi=+t.dataset.nbg;nb.guias[gi]=t.value;$$(`select[data-nig] option[data-gi="${gi}"]`).forEach(op=>op.textContent=gLabel(t.value,gi))}
-  else if(t.dataset.nbtop){nb[t.dataset.nbtop]=t.value}});
+  else if(t.dataset.nbtop){nb[t.dataset.nbtop]=t.value}
+  else if(t.id==="nb-ent"){nb.entregado=t.checked}});
 document.addEventListener("toggle",e=>{if(e.target.open&&e.target.matches?.("details")){const x=e.target;x.classList.add("just");contar(x);setTimeout(()=>x.classList.toggle("just",false),500)}if(e.target.matches?.("details.cli")){e.target.open?cliAbiertos.add(e.target.dataset.cli):cliAbiertos.delete(e.target.dataset.cli);return}if(e.target.matches?.("details.order[data-compra]")){e.target.open?abiertasC.add(e.target.dataset.compra):abiertasC.delete(e.target.dataset.compra);return}if(e.target.matches?.("details.order")){e.target.open?abiertos.add(e.target.dataset.id):abiertos.delete(e.target.dataset.id)}},true);
 
 // Si en otra pestaña de este navegador alguien se registra en la app del cliente, se ve aquí al momento.
@@ -1905,7 +1960,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=29;
+const APP="admin",APP_VERSION=30;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

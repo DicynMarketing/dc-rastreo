@@ -111,7 +111,7 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 
 ## Estado actual del panel (prototipo)
 
-- **Inicio**: KPIs del equipo, una tarjeta por persona, "Por hacer" de la persona elegida y un tablero de etapas. El tablero de ruta se desliza con impulso (sin `scroll-snap`). Tocar un KPI o una etapa abre Pedidos en la vista "Por cliente" ya filtrada.
+- **Inicio**: debajo del saludo, **"Seguimiento"** desplegable (`#segbox`, abierto/cerrado en `localStorage` `dc-seg-abierto`) con avisos de etapa, atascados y "PRS ya lo entregó". **"Por hacer"** queda solo para lo **por comprar** (siempre visible) y los registros de la app. Luego KPIs del equipo, una tarjeta por persona, "Por hacer" de la persona elegida y un tablero de etapas. El tablero de ruta se desliza con impulso (sin `scroll-snap`). Tocar un KPI o una etapa abre Pedidos en la vista "Por cliente" ya filtrada.
 - **Pedidos**:
   - Vista "Pedidos de Temu": uno por número de pedido, con sus guías y sus clientes desplegables (artículos con costo y cobro), el % de cada cliente y el total de la compra.
   - Vista "Por cliente": lista con filtros.
@@ -129,7 +129,7 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
    - Seguridad (RLS): el panel con inicio de sesión o PIN para Diego y Cinthya. La app del cliente solo puede leer un pedido por su código, y sin artículos ni precios de costo.
 3. ~~Rastreo automático~~ (hecho con PRS Delivery, ver "Seguimiento de guías"). Si Temu usa otra paquetería, agregar su consulta en `rastrear-guias`.
 4. ~~App del cliente leyendo datos reales~~ (hecho con Supabase; muestra pagos y saldo, aprobado por el dueño).
-5. **Editar artículos** de un pedido ya guardado. Hoy no se puede.
+5. ~~Editar artículos de un pedido ya guardado~~ (hecho: "✏️ Editar pedido" en el detalle y "✏️ Editar" en Pedidos de Temu).
 6. ~~Instalable en el teléfono~~ (manifiesto e íconos hechos). Falta: logo original grande para íconos más nítidos, y modo sin conexión (service worker) si se quiere.
 7. **Dominio propio** (opcional). Hoy el link de seguimiento se arma solo desde donde está publicado el panel (`LINK_BASE` = `../cliente/#` relativo al panel), así que en GitHub Pages ya funciona. Si se compra dominio, cambiar `LINK_BASE` en `panel/index.html`.
 
@@ -158,6 +158,12 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 - **Se quitó "Importar de Temu"** (no le funcionó al dueño): ya no hay pantalla de importar, "Por repartir", "Repartir" ni `#importar`, y el panel no lee `temu_compras`. Registrar queda solo manual: **"Pedido de Temu"** y **"Encargo por comprar"**.
 - En Supabase ya se borraron las compras importadas y la función `importar_temu`. Queda la tabla `temu_compras` vacía; se puede eliminar cuando nadie use versiones viejas del panel (v10 o menos la leen).
 - No volver a crear revisiones automáticas de correo ni tareas programadas sin que el dueño lo pida.
+
+## Flete, pedidos viejos y editar (decisión tomada)
+
+- **Flete**: en el registro, un cliente "Otra prov." tiene Transporte (`TRANSPORTE`) y "Flete $" (`k.transp`, `k.flete` → `o.envio={t,tarifa}`); si pagó completo, el flete cuenta como pagado. En el detalle, bloque "Flete" (`data-flete`) para agregarlo o corregirlo en cualquier etapa sin cambiarla (en etapa 8 sin envío sigue el botón de despachar).
+- **Pedido viejo ya entregado**: casilla `#nb-ent` en el registro (`nb.entregado`: guías a etapa 7 con la fecha del pedido, `local=[f,f]`, `avisado=9`) y botón "Ya fue entregado" (`data-yaent`, dos toques) en el detalle de cualquier pedido en etapa 1–8.
+- **Editar pedido**: `EDIT` (Set de ids en edición) y `editorPedido(o)`: número de Temu (`data-ep`), artículos (`data-ei` id|i|campo, `data-eiadd`, `data-eix`), "Listo" (`data-eilisto`, recalcula con `syncItems`) y "Borrar pedido" (`data-eborrar`, con confirmación; borra la fila en Supabase).
 
 ## Cambio de persona en el panel
 

@@ -1,7 +1,21 @@
 {
-  "admin": 29,
+  "admin": 30,
   "cliente": 13,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 30,
+      "cliente": 13,
+      "titulo": "Flete, pedidos viejos y editar pedidos",
+      "admin_items": [
+        "Al registrar un cliente de otra provincia ya puedes poner el transporte (Ferguson o Servientrega) y el monto del flete. Se suma a lo que debe el cliente.",
+        "En el detalle de cada pedido de un cliente de otra provincia puedes agregar o corregir el flete cuando quieras.",
+        "Pedidos viejos: al registrar, marca \"ya fue entregado\"; o en un pedido guardado toca \"Ya fue entregado\" (dos toques).",
+        "Ya puedes editar un pedido guardado: artículos, costo, lo que cobras y el número de pedido de Temu. También puedes borrarlo.",
+        "En Inicio, los avisos de pedidos en proceso están en \"Seguimiento\", que puedes abrir o minimizar. Lo que falta por comprar se ve siempre en \"Por hacer\"."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 29,
