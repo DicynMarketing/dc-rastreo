@@ -1,7 +1,19 @@
 {
-  "admin": 18,
+  "admin": 19,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 19,
+      "cliente": 7,
+      "titulo": "Lectura de capturas más exacta",
+      "admin_items": [
+        "Leer captura ya no confunde “Después de aplicadas las promociones” con un artículo: lee un artículo por cada producto de la captura.",
+        "El precio con promoción (el más bajo) va a “Costo Temu” y el precio normal (el más alto) a “Le cobras”. Puedes cambiarlo si cobras otro precio.",
+        "Ignora las fotos de los productos para que no se cuelen letras raras en los nombres."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 18,
