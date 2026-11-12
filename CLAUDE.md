@@ -62,8 +62,9 @@ Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. L
 ## Seguimiento de guías (decisión tomada)
 
 - **No** se entra a las cuentas de Temu para el seguimiento automático: Temu no tiene API pública y automatizarlo va contra sus términos.
-- Se rastrea por **número de guía** con un servicio de rastreo. La opción elegida es **17TRACK** (tiene API), aunque AfterShip es otra posible. Falta que el dueño cree la cuenta y entregue la clave de API.
-- Una tarea programada consulta cada pocas horas, convierte los eventos de la paquetería a las etapas 1 a 7 y guarda el historial con fechas. Si una guía es compartida entre varios clientes, se actualizan todos.
+- Se rastrea por **número de guía** con **17TRACK** (API v2.2).
+- **Edge Function `rastrear-guias`** (Supabase) + **pg_cron `rastrear-guias`** cada 4 horas (minuto 7). No gasta uso de Claude. Toma las guías con menos de 7 etapas de pedidos en etapa 1–6, las registra en 17TRACK una sola vez (`guias_rastreo.registrada`, gasta cupo), consulta `gettrackinfo`, avanza las etapas sin retroceder (InfoReceived→2, PickedUp→3, Departure→4, Arrival→5, aduana tras llegar→6, AvailableForPickup/OutForDelivery/Delivered→7) con las fechas de 17TRACK, actualiza todos los pedidos que comparten la guía y recalcula `vista`. Guarda el último movimiento en `guias_rastreo` y el resumen en `rastreo_estado`. Máximo una corrida cada 20 min (`?forzar=1` la salta).
+- La clave va en el secreto **`TRACK17_KEY`** de Edge Functions (el dueño la escribe en Supabase; nunca en el código ni en el chat). Sin el secreto, la función responde "Falta el secreto TRACK17_KEY".
 
 ## Diseño
 
@@ -106,7 +107,7 @@ Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. L
 2. ~~Base de datos compartida en Supabase~~ (hecho, ver "Base de datos"). Antes era:
    - Tablas sugeridas: `clientes`, `pedidos_temu` (número único), `pedidos` (uno por cliente dentro de un pedido de Temu, con código DC), `articulos`, `guias`, `eventos_guia`, `abonos`.
    - Seguridad (RLS): el panel con inicio de sesión o PIN para Diego y Cinthya. La app del cliente solo puede leer un pedido por su código, y sin artículos ni precios de costo.
-3. **Rastreo automático**: Edge Function más cron con la API de 17TRACK. La clave va como secreto y nunca en el HTML.
+3. ~~Rastreo automático~~ (hecho: `rastrear-guias`; falta que el dueño ponga `TRACK17_KEY`). Pendiente opcional: mostrar en el panel el último movimiento de cada guía (`guias_rastreo`).
 4. **App del cliente leyendo datos reales**: ya lee los pedidos del panel (mismo navegador), muestra varios paquetes y las etapas 7 a 9. Falta leerlos de Supabase. Mostrar el saldo pendiente solo si el dueño lo aprueba.
 5. **Editar artículos** de un pedido ya guardado. Hoy no se puede.
 6. ~~Instalable en el teléfono~~ (manifiesto e íconos hechos). Falta: logo original grande para íconos más nítidos, y modo sin conexión (service worker) si se quiere.
