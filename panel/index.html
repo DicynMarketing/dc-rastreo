@@ -388,6 +388,16 @@ body.hay-act .toast{bottom:calc(152px + env(safe-area-inset-bottom,0px))}
 .upd-nota{display:grid;gap:8px;background:var(--u-card);border:1px solid var(--u-line);border-radius:16px;padding:14px}
 .upd-nota b{font-size:15px}
 .upd-nota small{color:var(--u-mute);font-size:12px}
+.cfg-list{display:grid;gap:8px}
+.cfg-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;text-align:left;background:var(--u-card);border:1px solid var(--u-line);border-radius:16px;padding:14px;color:var(--u-ink);font:inherit;cursor:pointer}
+.cfg-ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(215,169,91,.14);color:var(--u-acc)}
+.cfg-ico svg{width:20px;height:20px}
+.cfg-tx{display:grid;gap:2px;min-width:0}.cfg-tx b{font-size:15px}.cfg-tx small{color:var(--u-mute);font-size:12px;overflow-wrap:anywhere}
+.cfg-chev{width:18px;height:18px;color:var(--u-mute)}
+.cfg-av{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--u-acc);color:#1a1408;font:800 22px var(--u-font)}
+.cfg-av.sm{width:38px;height:38px;font-size:16px;border-radius:12px}
+.cfg-perfil{grid-template-columns:auto minmax(0,1fr);align-items:center;gap:14px}
+.cfg-back{justify-self:start;border:0;background:none;color:var(--u-acc);font:700 14px var(--u-body);padding:4px 0;cursor:pointer}
 .upd-nota ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
 .upd-nota li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;font-size:14px;line-height:1.4}
 .upd-nota li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--u-acc);margin-top:6px}
@@ -415,6 +425,15 @@ body.hay-act .toast{bottom:calc(152px + env(safe-area-inset-bottom,0px))}
 .upd-msg{color:rgba(255,255,255,.75);margin:0;max-width:32ch}
 .novedades-link{background:none;border:0;padding:0;font:600 13px var(--u-body);color:var(--u-acc);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 /* Entrada del equipo y conexión */
+.cargando{position:fixed;inset:0;z-index:82;background:var(--bg);display:grid;place-items:center;padding:24px}
+.cargando[hidden]{display:none}
+.cg-box{display:grid;justify-items:center;gap:14px;text-align:center}
+.cg-box img{width:64px}
+.cg-box b{font:800 22px var(--f-display);color:var(--ink)}.cg-box b span{color:var(--gold)}
+.cg-box small{color:var(--muted);font-size:13px}
+.cg-bar{width:180px;height:4px;border-radius:4px;background:var(--panel-2);overflow:hidden;position:relative}
+.cg-bar i{position:absolute;inset:0;width:40%;border-radius:4px;background:var(--gold);animation:cg 1.1s ease-in-out infinite}
+@keyframes cg{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
 .login{position:fixed;inset:0;z-index:80;background:var(--bg);display:grid;place-items:center;padding:24px 18px;overflow:auto}
 .login-box{width:100%;max-width:380px;display:grid;gap:18px}
 .login-box img{width:56px}
@@ -477,6 +496,7 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
   <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 6h12v10H2zM14 10h4l3 3v3h-7M6 19a1.8 1.8 0 1 0 0-.1M17 19a1.8 1.8 0 1 0 0-.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
 </svg>
 
+<div class="cargando" id="cargando" role="status" aria-live="polite"><div class="cg-box"><img id="logo-cg" alt="DC Marketing"><b>Centro de <span>Envíos</span></b><span class="cg-bar"><i></i></span><small id="cg-txt">Abriendo el panel…</small></div></div>
 <div class="login" id="login" hidden>
   <div class="login-box">
     <img id="logo-l" alt="DC Marketing">
@@ -525,8 +545,6 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
         <div><div class="h2row"><h2>Tablero de ruta</h2><span class="note">Toca una etapa para ver sus pedidos</span></div>
           <div class="board-scroll"><div class="board" id="board"></div></div></div>
         <p class="note">Todo se guarda en la base de datos compartida: lo que registra uno le aparece al otro al instante. El punto verde junto al logo indica que estás en línea.</p>
-        <p class="note">Conectado como <b id="yo-mail"></b> · <button class="novedades-link" data-segabrir>Configuración</button> · <button class="novedades-link" data-logout>Cerrar sesión</button></p>
-        <p class="note">Versión <span id="ver-txt"></span> · <button class="novedades-link" data-novedades>Ver novedades</button></p>
       </section>
 
       <section data-view="pedidos" hidden>
@@ -807,18 +825,29 @@ function bloquear(despues){const c=pinCfg();if(!c){despues?.();return}
   intento()}   // primer intento automático, sin tocar nada
 async function olvidePin(){guardarPin(null);cerrarTeclado();try{await sb?.auth.signOut()}catch(e){}location.reload()}
 function crearPin(len){let primero="";
-  const paso1=()=>teclado({titulo:"Crea tu <span>PIN</span>",sub:`Elige ${len} números que recuerdes`,len,cancelar:true,alCancelar:abrirSeguridad,
+  const paso1=()=>teclado({titulo:"Crea tu <span>PIN</span>",sub:`Elige ${len} números que recuerdes`,len,cancelar:true,alCancelar:()=>abrirSeguridad("seguridad"),
     alTerminar:async p=>{primero=p;paso2();return true}});
-  const paso2=()=>teclado({titulo:"Repite tu <span>PIN</span>",sub:"Escríbelo otra vez para confirmar",len,cancelar:true,alCancelar:abrirSeguridad,
+  const paso2=()=>teclado({titulo:"Repite tu <span>PIN</span>",sub:"Escríbelo otra vez para confirmar",len,cancelar:true,alCancelar:()=>abrirSeguridad("seguridad"),
     alTerminar:async p=>{if(p!==primero){setTimeout(paso1,900);return"No coinciden. Créalo de nuevo."}
       const salt=hex(crypto.getRandomValues(new Uint8Array(16))),viejo=pinCfg();guardarPin({salt,hash:await hashPin(p,salt),len,bio:viejo?.bio||null});
-      cerrarTeclado();toast("PIN activado");abrirSeguridad();return true}});
+      cerrarTeclado();toast("PIN activado");abrirSeguridad("seguridad");return true}});
   paso1()}
-async function abrirSeguridad(){if(!sb)return;const c=pinCfg(),bioOk=await bioDisponible();const{data:{user}}=await sb.auth.getUser();
+/* Configuración: menú principal → Mi cuenta · Seguridad · Versión. Cada opción abre su propia vista. */
+let segVista="menu";
+async function abrirSeguridad(v){if(!sb)return;if(typeof v==="string")segVista=v;else segVista="menu";
+  const c=pinCfg(),bioOk=await bioDisponible();const{data:{user}}=await sb.auth.getUser();
   document.getElementById("upd")?.remove();const d=document.createElement("div");d.className="upd";d.id="upd";
-  const bioNombre=esIOS?"Face ID / Touch ID":"Huella o rostro";
-  d.innerHTML=`<div class="upd-bg" data-updx></div><div class="upd-sheet" role="dialog" aria-modal="true" aria-labelledby="seg-t"><div class="upd-grab"></div>
-    <p class="upd-k">Configuración</p><h2 id="seg-t">Seguridad y cuenta</h2>
+  const bioNombre=esIOS?"Face ID / Touch ID":"Huella o rostro",nom=QUIEN||EQUIPO[CUENTA||yo]?.nombre||"";
+  const fila=(k,t,sub,ico)=>`<button type="button" class="cfg-row" data-segver="${k}"><span class="cfg-ico">${ico}</span><span class="cfg-tx"><b>${t}</b><small>${sub}</small></span><svg class="cfg-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>`;
+  const atras=`<button type="button" class="cfg-back" data-segver="menu">‹ Configuración</button>`;
+  let body="";
+  if(segVista==="cuenta")body=`${atras}<h2 id="seg-t">Mi cuenta</h2>
+    <div class="upd-nota cfg-perfil"><span class="cfg-av">${esc((nom||"?")[0])}</span><span class="cfg-tx"><b>${esc(nom)}</b><small>${esc(user?.email||"")}</small><small>Equipo DC Marketing · ${EQUIPO[CUENTA||yo]?`WhatsApp ${fmtTel(EQUIPO[CUENTA||yo].tel)}`:""}</small></span></div>
+    <div class="upd-nota"><b>Contraseña</b><small>Con tu correo y esta contraseña entras al panel en cualquier teléfono.</small>
+      <label class="f" for="seg-pass" style="margin-top:4px">Nueva contraseña<span class="pass"><input id="seg-pass" type="password" autocomplete="new-password" placeholder="6 caracteres o más"><button type="button" class="ojo" data-ojo="seg-pass" aria-label="Mostrar contraseña">${ICO_OJO}</button></span></label>
+      <div class="upd-btns"><button class="upd-btn sec" data-segpass>Cambiar contraseña</button></div></div>
+    <div class="upd-btns"><button class="upd-btn sec" data-logout>Cerrar sesión</button></div>`;
+  else if(segVista==="seguridad")body=`${atras}<h2 id="seg-t">Seguridad</h2>
     <div class="upd-nota"><b>PIN de desbloqueo</b>
       <small>${c?`Activado · ${c.len} dígitos. Se pide al abrir el panel y al volver después de 1 minuto.`:"Sin PIN. Con un PIN, nadie que tome tu teléfono puede ver tus pedidos ni tus cobros."}</small>
       ${c?`<div class="upd-btns"><button class="upd-btn sec" data-segpin="${c.len}">Cambiar PIN</button><button class="upd-btn sec" data-segquitar>Quitar PIN</button></div>`
@@ -827,24 +856,31 @@ async function abrirSeguridad(){if(!sb)return;const c=pinCfg(),bioOk=await bioDi
     ${c?(bioOk?`<div class="upd-nota"><b>${bioNombre}</b><small>${c.bio?"Activado: desbloqueas sin escribir el PIN. El PIN sigue funcionando.":"Desbloquea el panel con tu rostro o tu huella en este dispositivo."}</small>
         <button class="upd-btn ${c.bio?"sec":""}" data-segbio>${c.bio?"Desactivar":"Activar "+bioNombre}</button></div>`
       :`<div class="upd-nota"><small>Este dispositivo o navegador no permite Face ID ni huella para páginas web. Se usa solo el PIN.</small></div>`):""}
-    <div class="upd-nota"><b>Tu cuenta</b><small>${esc(user?.email||"")}</small>
-      <label class="f" for="seg-pass" style="margin-top:4px">Nueva contraseña<span class="pass"><input id="seg-pass" type="password" autocomplete="new-password" placeholder="6 caracteres o más"><button type="button" class="ojo" data-ojo="seg-pass" aria-label="Mostrar contraseña">${ICO_OJO}</button></span></label>
-      <div class="upd-btns"><button class="upd-btn sec" data-segpass>Cambiar contraseña</button>${c?`<button class="upd-btn sec" data-seglock>Bloquear ahora</button>`:""}<button class="upd-btn sec" data-logout>Cerrar sesión</button></div></div>
-    <div class="upd-nota"><b>Versión del panel</b><small>Tienes la versión ${APP_VERSION}${ACT.hay?` · ya salió la ${ACT.v.admin}`:""}.</small>
-      <div class="upd-btns"><button class="upd-btn ${ACT.hay?"":"sec"}" data-segact>${ACT.hay?"Ver qué trae y actualizar":"Buscar actualización"}</button></div></div>
+    ${c?`<div class="upd-btns"><button class="upd-btn sec" data-seglock>Bloquear ahora</button></div>`:""}`;
+  else if(segVista==="version")body=`${atras}<h2 id="seg-t">Versión del panel</h2>
+    <div class="upd-nota"><b>Versión ${APP_VERSION}</b><small>${ACT.hay?`Ya salió la versión ${ACT.v.admin}.`:"Tocando “Buscar actualización” revisas si hay una nueva."}</small>
+      <div class="upd-btns"><button class="upd-btn ${ACT.hay?"":"sec"}" data-segact>${ACT.hay?"Ver qué trae y actualizar":"Buscar actualización"}</button><button class="upd-btn sec" data-novedades>Ver novedades</button></div></div>`;
+  else body=`<h2 id="seg-t">Configuración</h2><div class="cfg-list">
+    ${fila("cuenta","Mi cuenta",`${esc(nom)} · ${esc(user?.email||"")}`,`<span class="cfg-av sm">${esc((nom||"?")[0])}</span>`)}
+    ${fila("seguridad","Seguridad",c?`PIN de ${c.len} dígitos${c.bio?" · "+(esIOS?"Face ID":"huella"):""}`:"Sin PIN",'<svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>')}
+    ${fila("version","Versión del panel",`Versión ${APP_VERSION}${ACT.hay?` · hay una nueva (${ACT.v.admin})`:""}`,'<svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>')}
+    </div><div class="upd-btns"><button class="upd-btn sec" data-logout>Cerrar sesión</button></div>`;
+  d.innerHTML=`<div class="upd-bg" data-updx></div><div class="upd-sheet" role="dialog" aria-modal="true" aria-labelledby="seg-t"><div class="upd-grab"></div>
+    ${segVista==="menu"?`<p class="upd-k">DC Marketing</p>`:""}${body}
     <div class="upd-btns"><button class="upd-btn sec" data-updx>Listo</button></div></div>`;
   document.body.appendChild(d)}
 document.addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
   if(d.ojo){e.preventDefault();const i=document.getElementById(d.ojo);const ver=i.type==="password";i.type=ver?"text":"password";b.setAttribute("aria-pressed",ver);b.setAttribute("aria-label",ver?"Ocultar contraseña":"Mostrar contraseña");i.focus({preventScroll:true})}
   else if("segabrir" in d)abrirSeguridad();
+  else if(d.segver){abrirSeguridad(d.segver)}
   else if("segact" in d){document.getElementById("upd")?.remove();await revisarAct();abrirNovedades()}
   else if(d.seglen){$$("#seg-len button").forEach(x=>x.setAttribute("aria-pressed",x===b));$("#seg-crear").dataset.segpin=d.seglen}
   else if(d.segpin){document.getElementById("upd")?.remove();crearPin(+d.segpin)}
-  else if("segquitar" in d){if(confirm("¿Quitar el PIN de este dispositivo?")){guardarPin(null);toast("PIN quitado");abrirSeguridad()}}
+  else if("segquitar" in d){if(confirm("¿Quitar el PIN de este dispositivo?")){guardarPin(null);toast("PIN quitado");abrirSeguridad("seguridad")}}
   else if("seglock" in d){document.getElementById("upd")?.remove();bloquear()}
   else if("segbio" in d){const c=pinCfg();if(!c)return;
-    if(c.bio){c.bio=null;guardarPin(c);toast("Desactivado");return abrirSeguridad()}
-    try{c.bio=await activarBio();guardarPin(c);toast(esIOS?"Face ID activado":"Huella activada")}catch(x){toast("No se activó. Puedes intentar de nuevo.")}abrirSeguridad()}
+    if(c.bio){c.bio=null;guardarPin(c);toast("Desactivado");return abrirSeguridad("seguridad")}
+    try{c.bio=await activarBio();guardarPin(c);toast(esIOS?"Face ID activado":"Huella activada")}catch(x){toast("No se activó. Puedes intentar de nuevo.")}abrirSeguridad("seguridad")}
   else if("segpass" in d){const v=$("#seg-pass").value;if(v.length<6)return toast("La contraseña debe tener 6 caracteres o más");
     b.disabled=true;const{error}=await sb.auth.updateUser({password:v});b.disabled=false;
     if(error)toast(/different|same/i.test(error.message)?"Debe ser distinta a la actual":"No se pudo cambiar. Intenta de nuevo.");else{$("#seg-pass").value="";toast("Contraseña cambiada")}}});
@@ -854,28 +890,29 @@ document.addEventListener("visibilitychange",()=>{if(document.visibilityState===
 /* Al entrar, si hay versión nueva se muestra la hoja para actualizar a mano (si no hay otra hoja abierta) */
 async function avisarActualizacion(){try{await revisarAct()}catch(e){}if(ACT.hay&&!document.getElementById("upd")&&$("#lock")?.hidden!==false&&$("#login").hidden)abrirNovedades()}
 /* ---------- Entrar (solo correos del equipo) ---------- */
-let modoLogin="entrar",quienNuevo="";
-function mostrarLogin(msg){$("#login").hidden=false;$("#login-lead").textContent=modoLogin==="crear"?"Crea tu cuenta: elige quién eres, tu correo y una contraseña.":"Entra con tu correo y tu contraseña.";
+let modoLogin="entrar",quienNuevo="",QUIEN="";
+function cargando(on,txt){const c=$("#cargando");if(!c)return;c.hidden=!on;if(txt)$("#cg-txt").textContent=txt}
+function mostrarLogin(msg){cargando(false);$("#login").hidden=false;$("#login-lead").textContent=modoLogin==="crear"?"Crea tu cuenta: elige quién eres, tu correo y una contraseña.":"Entra con tu correo y tu contraseña.";
   $("#l-quien").hidden=modoLogin!=="crear";const er=$("#l-err");er.textContent=msg||"";er.hidden=!msg;$("#l-go").disabled=false;$("#l-go").textContent=modoLogin==="crear"?"Crear mi cuenta":"Entrar"}
 async function entrar(){
-  $("#login-lead").textContent="Cargando los pedidos…";
+  cargando(true,"Cargando tus pedidos…");$("#login-lead").textContent="Cargando los pedidos…";
   const{data:quien,error}=await sb.rpc("soy_equipo");
   if(error)return mostrarLogin("No se pudo conectar. Revisa tu internet e intenta de nuevo.");
   if(!quien){await sb.auth.signOut();return mostrarLogin("Esa cuenta todavía no tiene lugar en el equipo. Toca “¿Primera vez? Crea tu cuenta”, elige quién eres y usa este mismo correo y contraseña.")}
   try{await cargar()}catch(e){return mostrarLogin("No se pudieron cargar los datos. Intenta de nuevo.")}
   await migrarLocal();
-  const{data:{user}}=await sb.auth.getUser();$("#yo-mail").textContent=`${quien} (${user?.email||""})`;
+  QUIEN=quien;
   const k=norm(quien).split(" ")[0];if(EQUIPO[k]){yo=k;CUENTA=k}
-  $("#login").hidden=true;setYo(yo);go();escuchar();estadoSync(hayPendientes()?"guardando":"ok");if(hayPendientes())save();
-  try{if(!pinCfg()&&!localStorage.getItem(K_PINQ)){localStorage.setItem(K_PINQ,"1");setTimeout(abrirSeguridad,1300)}}catch(e){}
+  $("#login").hidden=true;setYo(yo);go();cargando(false);escuchar();estadoSync(hayPendientes()?"guardando":"ok");if(hayPendientes())save();
+  try{if(!pinCfg()&&!localStorage.getItem(K_PINQ)){localStorage.setItem(K_PINQ,"1");setTimeout(()=>abrirSeguridad("seguridad"),1300)}}catch(e){}
   setTimeout(avisarActualizacion,1600);
 }
 async function iniciar(){
-  $("#logo-l").src=LOGO;
+  $("#logo-l").src=LOGO;$("#logo-cg").src=LOGO;
   if(!sb)return mostrarLogin("No se pudo cargar la conexión. Revisa tu internet y recarga la página.");
   const{data:{session}}=await sb.auth.getSession();
   if(!session)return mostrarLogin();
-  bloquear(()=>{$("#login").hidden=false;entrar()});
+  bloquear(()=>entrar());
 }
 $("#l-modo").onclick=async()=>{modoLogin=modoLogin==="entrar"?"crear":"entrar";$("#l-modo").textContent=modoLogin==="crear"?"Ya tengo cuenta: entrar":"¿Primera vez? Crea tu cuenta";
   $("#l-pass").autocomplete=modoLogin==="crear"?"new-password":"current-password";mostrarLogin();
@@ -1541,7 +1578,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=12;
+const APP="admin",APP_VERSION=13;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -1591,7 +1628,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")cerrarUpd()});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")revisarAct()});
 setInterval(revisarAct,10*60*1000);
 revisarAct().then(avisoActualizado);
-$("#ver-txt").textContent=APP_VERSION;
+
 $("#logo-r").src=LOGO;$("#logo-m").src=LOGO;
 iniciar();
 addEventListener("resize",()=>{const a=$('#navlist [aria-current="page"]');if(a)$("#ind").style.transform=`translateY(${a.offsetTop}px)`});

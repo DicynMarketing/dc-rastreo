@@ -1,7 +1,19 @@
 {
-  "admin": 12,
+  "admin": 13,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 13,
+      "cliente": 7,
+      "titulo": "Pantalla de carga y Configuración ordenada",
+      "admin_items": [
+        "Al entrar con tu PIN o Face ID ya no se asoma la pantalla de iniciar sesión: sale una pantalla de carga mientras se abren tus pedidos.",
+        "Configuración (tocando el logo) ahora es un menú: Mi cuenta (tu nombre, correo y contraseña), Seguridad (PIN y Face ID / huella) y Versión del panel. Cerrar sesión también está ahí.",
+        "Se quitó del final de Inicio el texto de “Conectado como”, cerrar sesión y versión."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 12,
