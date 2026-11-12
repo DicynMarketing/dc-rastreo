@@ -1,7 +1,17 @@
 {
-  "admin": 31,
+  "admin": 32,
   "cliente": 13,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 32,
+      "cliente": 13,
+      "titulo": "Cambiar la fecha de un pedido",
+      "admin_items": [
+        "En \"✏️ Editar pedido\" ahora puedes cambiar la fecha del pedido. Se cambia en todos los clientes de ese mismo pedido de Temu."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 31,

@@ -1217,6 +1217,7 @@ function detalle(o){
 const EDIT=new Set();
 function editorPedido(o){const its=o.items&&o.items.length?o.items:[{d:o.nota||"",costo:o.costo,precio:o.precio}];
   return`<div class="block edit-box"><p class="block-t">Editando el pedido</p>
+    <label class="f">Fecha del pedido<input type="date" data-ep="${o.id}|fecha" value="${new Date(o.creado).toLocaleDateString("en-CA")}" max="${hoyISO()}"></label>
     <label class="f">Número de pedido de Temu<input class="mono" data-ep="${o.id}|tpo" value="${esc(o.tpo||"")}" placeholder="PO-…" autocomplete="off"></label>
     <div class="it-h"><span>Artículo</span><span>Costo</span><span>Cobras</span><span></span></div>
     ${its.map((x,i)=>`<div class="it-row"><input data-ei="${o.id}|${i}|d" value="${esc(x.d)}" aria-label="Artículo"><input data-ei="${o.id}|${i}|costo" value="${num(x.costo)||""}" inputmode="decimal" placeholder="0.00" aria-label="Costo"><input data-ei="${o.id}|${i}|precio" value="${num(x.precio)||""}" inputmode="decimal" placeholder="0.00" aria-label="Cobras"><button type="button" class="x" data-eix="${o.id}|${i}" aria-label="Quitar artículo">×</button></div>`).join("")}
@@ -1941,7 +1942,11 @@ $("#q").addEventListener("input",renderPedidos);
 $("#qc").addEventListener("input",renderCompras);
 document.addEventListener("input",e=>{const t=e.target;
   if(t.dataset.ei){const[id,i,f]=t.dataset.ei.split("|"),o=find(id);if(!o)return;const x=o.items[+i];x[f]=f==="d"?t.value:num(t.value);syncItems(o);clearTimeout(o._g);o._g=setTimeout(save,700);return}
-  if(t.dataset.ep){const[id,f]=t.dataset.ep.split("|"),o=find(id);if(!o)return;o[f]=t.value.trim().toUpperCase();clearTimeout(o._g);o._g=setTimeout(save,700);return}
+  if(t.dataset.ep){const[id,f]=t.dataset.ep.split("|"),o=find(id);if(!o)return;
+    if(f==="fecha"){if(!t.value)return;const nueva=new Date(t.value+"T12:00:00").toISOString();
+      // la fecha es del pedido de Temu: se cambia en todos los clientes de ese mismo pedido
+      (o.tpo?D.P.filter(x=>x.tpo===o.tpo):[o]).forEach(x=>{const vieja=x.creado;x.creado=nueva;x.paq.forEach(q=>{if(q.h[0]===vieja)q.h[0]=nueva});if(x.pagos?.length===1&&x.pagos[0].f===vieja)x.pagos[0].f=nueva});
+      clearTimeout(o._g);o._g=setTimeout(()=>{save();toast("Fecha cambiada")},700);return}o[f]=t.value.trim().toUpperCase();clearTimeout(o._g);o._g=setTimeout(save,700);return}
   if(!nb)return;
   if(t.dataset.ni){const[i,f]=t.dataset.ni.split("|"),x=nb.items[+i];if(!x)return;x[f]=t.value;nbGrand();
     if(f==="precio"&&x.c!==""){const ch=document.querySelectorAll(`.nb-cli`)[x.c];if(ch){const its=artsDe(x.c),j=its.indexOf(x),b=ch.querySelectorAll(".chip-a b")[j];if(b)b.textContent=$$m(num(t.value))}}}
@@ -1961,7 +1966,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=31;
+const APP="admin",APP_VERSION=32;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
