@@ -62,7 +62,7 @@ async function consultar(g: string) {
 
 function etapaPedido(o: Any) {
   const paq = o?.paq || [];
-  if (!paq.length) return o?.rec ? 7 + (o.local || []).length : o?.tpo ? 1 : 0;
+  if (!paq.length) return o?.rec ? 7 + (o.local || []).length : o?.tpo || o?.comprado ? 1 : 0;
   const m = Math.min(...paq.map((p: Any) => (p.h || []).length));
   return m < 7 ? m : 7 + (o.local || []).length;
 }
@@ -74,8 +74,13 @@ function vista(o: Any, c: Any) {
   const paq = o.paq || [];
   const lenta = paq.length ? paq.reduce((a: Any, p: Any) => (p.h.length < a.h.length ? p : a)) : null;
   const h = (lenta ? lenta.h.slice(0, 7) : o.rec ? [o.creado, null, null, null, null, null, o.rec] : [o.creado]).concat(e >= 7 ? (o.local || []).slice(0, 2) : []);
+  // Pago (lo que paga el cliente; nunca costos)
+  const num = (x: Any) => +x || 0;
+  const T = num(o.precio) + (o.envio ? num(o.envio.tarifa) : 0);
+  const pagos = Array.isArray(o.pagos) ? o.pagos : num(o.abonado) > 0 ? [{ m: num(o.abonado), f: o.creado }] : [];
+  const pago = T ? { t: +T.toFixed(2), p: +num(o.abonado).toFixed(2), ab: pagos.map((x: Any) => ({ m: +num(x.m).toFixed(2), f: x.f })) } : null;
   return { code: o.id, nombre: (c?.nombre || "").split(" ")[0], quien: o.quien, h, i: Math.min(e, 9) - 1, ent: c?.ent || "local", prov: c?.prov || "",
-    envio: o.envio ? { t: o.envio.t } : null, paq: paq.map((p: Any) => p.h.length) };
+    envio: o.envio ? { t: o.envio.t } : null, paq: paq.map((p: Any) => p.h.length), pago };
 }
 const igual = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 

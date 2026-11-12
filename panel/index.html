@@ -782,7 +782,8 @@ const SNAP={c:{},p:{},r:{}};let subiendo=false;
 function vistaCli(o){const e=etapa(o);if(e<1)return null;const c=cli(o);
   const lenta=o.paq.length?o.paq.reduce((a,p)=>p.h.length<a.h.length?p:a):null;
   const h=(lenta?lenta.h.slice(0,7):o.rec?[o.creado,null,null,null,null,null,o.rec]:[o.creado]).concat(e>=7?o.local.slice(0,2):[]);
-  return{code:o.id,nombre:(c.nombre||"").split(" ")[0],quien:o.quien,h,i:Math.min(e,9)-1,ent:c.ent||"local",prov:c.prov||"",envio:o.envio?{t:o.envio.t}:null,paq:o.paq.map(p=>p.h.length)}}
+  const T=total(o),pago=T?{t:+T.toFixed(2),p:+num(o.abonado).toFixed(2),ab:pagosDe(o).map(x=>({m:+num(x.m).toFixed(2),f:x.f}))}:null;
+  return{code:o.id,nombre:(c.nombre||"").split(" ")[0],quien:o.quien,h,i:Math.min(e,9)-1,ent:c.ent||"local",prov:c.prov||"",envio:o.envio?{t:o.envio.t}:null,paq:o.paq.map(p=>p.h.length),pago}}
 function estadoSync(st){$$(".sync").forEach(el=>{el.dataset.s=st;el.title={ok:"En línea y guardado",guardando:"Guardando…",error:"Sin conexión: se guardará al volver"}[st]||""})}
 const hayPendientes=()=>D.C.some(c=>est(c)!==SNAP.c[c.id])||D.P.some(o=>est([o,vistaCli(o)])!==SNAP.p[o.id])||REGS.some(r=>est(r)!==SNAP.r[r.id]);
 async function subir(){
@@ -1903,7 +1904,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=27;
+const APP="admin",APP_VERSION=28;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

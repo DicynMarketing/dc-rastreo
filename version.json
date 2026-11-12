@@ -1,7 +1,22 @@
 {
-  "admin": 27,
-  "cliente": 7,
+  "admin": 28,
+  "cliente": 8,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 28,
+      "cliente": 8,
+      "titulo": "Mis pagos y Guardados en la app",
+      "admin_items": [
+        "La app del cliente ahora muestra cuánto lleva pagado cada pedido (total, abonos con su fecha y lo que falta). Nunca muestra artículos ni costos."
+      ],
+      "cliente_items": [
+        "Nueva pestaña “Mis pagos”: el total de tus pedidos, cuánto has pagado y cuánto te falta, con cada abono y su fecha.",
+        "Cada pedido muestra si está con pago completo, abonado o pendiente.",
+        "Los pedidos que ya recibiste quedan en “Guardados”.",
+        "Más animación al entrar: tu nombre, las tarjetas y los totales."
+      ]
+    },
     {
       "fecha": "2026-11-12",
       "admin": 27,
