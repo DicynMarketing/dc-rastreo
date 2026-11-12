@@ -165,7 +165,7 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 
 - **Flete**: en el registro, un cliente "Otra prov." tiene Transporte (`TRANSPORTE`) y "Flete $" (`k.transp`, `k.flete` → `o.envio={t,tarifa}`); si pagó completo, el flete cuenta como pagado. En el detalle, bloque "Flete" (`data-flete`) para agregarlo o corregirlo en cualquier etapa sin cambiarla (en etapa 8 sin envío sigue el botón de despachar).
 - **Pedido viejo ya entregado**: casilla `#nb-ent` en el registro (`nb.entregado`: guías a etapa 7 con la fecha del pedido, `local=[f,f]`, `avisado=9`) y botón "Ya fue entregado" (`data-yaent`, dos toques) en el detalle de cualquier pedido en etapa 1–8.
-- **Editar pedido**: `EDIT` (Set de ids en edición) y `editorPedido(o)`: número de Temu (`data-ep`), artículos (`data-ei` id|i|campo, `data-eiadd`, `data-eix`), "Listo" (`data-eilisto`, recalcula con `syncItems`) y "Borrar pedido" (`data-eborrar`, con confirmación; borra la fila en Supabase).
+- **Editar pedido**: `EDIT` (Set de ids en edición) y `editorPedido(o)`: fecha del pedido (`data-ep` id|fecha, cambia `creado`, el primer paso de las guías y el pago único en todos los clientes del mismo `tpo`), número de Temu (`data-ep`), artículos (`data-ei` id|i|campo, `data-eiadd`, `data-eix`), "Listo" (`data-eilisto`, recalcula con `syncItems`) y "Borrar pedido" (`data-eborrar`, con confirmación; borra la fila en Supabase).
 
 ## Cambio de persona en el panel
 
