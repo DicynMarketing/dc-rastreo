@@ -296,6 +296,14 @@ details.cli summary::-webkit-details-marker{display:none}
 .nb-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .nb-bar .btn{justify-content:center}
 .arts{display:grid;gap:8px}
+.ec-list{display:grid;gap:6px;max-height:46vh;overflow:auto}
+.upd label.f{display:grid;gap:6px;font-size:13px;font-weight:700;color:var(--u-mute)}
+.upd label.f input,.upd label.f select{width:100%;box-sizing:border-box;font-size:16px}
+.ec-it{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:10px;align-items:center;background:var(--u-card);border:1px solid var(--u-line);border-radius:14px;padding:10px;cursor:pointer}
+.ec-it[hidden]{display:none}
+.ec-it input{width:22px;height:22px;accent-color:var(--u-acc)}
+.ec-it:has(input:checked){border-color:var(--u-acc)}
+.ec-av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(215,169,91,.16);color:var(--u-acc);font:800 14px var(--u-font)}
 .lect-bar{display:grid;gap:8px;background:rgba(215,169,91,.1);border:1px solid rgba(215,169,91,.4);border-radius:14px;padding:10px 12px;font-size:13px}
 .lect-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.lect-btns .btn{justify-content:center}
 .arts-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -652,7 +660,8 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
       </section>
 
       <section data-view="clientes" hidden>
-        <div><h1>Clientes</h1><p class="lead">Todos los clientes del equipo: quién compra más, quién debe y quién lo atiende.</p></div>
+        <div><h1>Clientes</h1><p class="lead">Registra aquí a tus clientes con su WhatsApp. Al hacer un pedido solo los eliges de la lista.</p></div>
+        <button type="button" class="btn gold" data-rcabrir style="justify-self:start"><svg><use href="#i-plus"/></svg>Registrar cliente</button>
         <div class="seg" id="seg-cli"><button data-cf="todos" aria-pressed="true">Todo el equipo</button><button data-cf="diego" aria-pressed="false">Diego</button><button data-cf="cinthya" aria-pressed="false">Cinthya</button></div>
         <div class="kpis" id="c-kpis"></div>
         <div class="block" id="app-regs"></div>
@@ -1271,7 +1280,7 @@ async function leerCapturas(files){
       po=po||r.po;gs.push(...r.guias);totalTemu=Math.max(totalTemu,r.total||0)}catch(e){}}
   let n=0;
   Object.entries(cuenta).forEach(([k,v])=>{const x=datos[k],ya=nb.items.filter(y=>(y.d.toLowerCase()+"|"+num(y.costo))===k).length;
-    for(let j=ya;j<v;j++){nb.items.push({d:x.d,costo:x.costo.toFixed(2),precio:x.precio?x.precio.toFixed(2):"",c:nb.clientes.length===1?0:"",g:"",l:lect});n++}});
+    for(let j=ya;j<v;j++){nb.items.push({d:x.d,costo:x.costo.toFixed(2),precio:x.precio?x.precio.toFixed(2):"",c:"",g:"",l:lect});n++}});
   nb.lect=n?{id:lect,n,caps:files.length}:nb.lect;
   if(po&&!nb.numero.trim())nb.numero=po;
   [...new Set(gs)].forEach(g=>{if(nb.guias.includes(g))return;const v=nb.guias.findIndex(x=>!x.trim());if(v>=0)nb.guias[v]=g;else nb.guias.push(g)});
@@ -1291,6 +1300,44 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-nbleer],[d
   else if("lectdes" in d){const n=deshacerLectura();renderNB();toast(`Quité los ${n} artículos de esa lectura`)}
   else if("lectotra" in d){deshacerLectura();renderNB();ocrFile.click()}
   else if("artsborrar" in d){if(!confirm(`¿Borrar los ${nb.items.filter(lleno).length} artículos de la lista?`))return;nb.items=[nbArt()];nb.lect=null;renderNB();toast("Lista de artículos vacía")}});
+
+/* ---------- Clientes del pedido: se eligen de la lista de clientes registrados ---------- */
+function hojaSimple(k,titulo,html){document.getElementById("upd")?.remove();const d=document.createElement("div");d.className="upd";d.id="upd";
+  d.innerHTML=`<div class="upd-bg" data-updx></div><div class="upd-sheet" role="dialog" aria-modal="true" aria-labelledby="hs-t"><div class="upd-grab"></div><p class="upd-k">${k}</p><h2 id="hs-t">${titulo}</h2>${html}</div>`;
+  document.body.appendChild(d);return d}
+function elegirClientes(){const ya=new Set(nb.clientes.map(k=>k.nombre.trim().toLowerCase()));
+  const L=D.C.filter(c=>!ya.has(c.nombre.toLowerCase())).sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  const h=hojaSimple("Agregar al pedido","¿Quiénes pidieron?",`
+    ${L.length?`<label class="search ec-q"><svg><use href="#i-search"/></svg><input id="ec-q" placeholder="Buscar cliente" aria-label="Buscar cliente" autocomplete="off"></label>
+    <div class="ec-list">${L.map(c=>`<label class="ec-it" data-ecn="${esc(c.nombre.toLowerCase())}"><input type="checkbox" data-ecsel="${c.id}"><span class="ec-av">${esc(c.nombre[0]||"?")}</span>
+      <span class="cfg-tx"><b>${esc(c.nombre)}</b><small>${c.tel?fmtTel(c.tel):"Sin WhatsApp"} · ${c.ent==="envio"?esc(c.prov):"Aguadulce"} · ${EQUIPO[atiende(c)].nombre}</small></span></label>`).join("")}</div>
+    <div class="upd-btns"><button class="upd-btn" data-ecok>Agregar al pedido</button></div>`
+    :`<p class="ocr-tip">${D.C.length?"Todos tus clientes ya están en este pedido.":"Todavía no tienes clientes registrados. Regístralos en la sección Clientes, o agrega uno nuevo aquí."}</p>`}
+    <div class="upd-btns"><button class="upd-btn sec" data-ecnuevo>Cliente nuevo (no está en la lista)</button><button class="upd-btn sec" data-updx>Cerrar</button></div>`);
+  h.querySelector("#ec-q")?.addEventListener("input",e=>{const q=norm(e.target.value);h.querySelectorAll(".ec-it").forEach(x=>x.hidden=q&&!norm(x.dataset.ecn).includes(q))})}
+
+/* ---------- Registrar cliente (antes de los pedidos) ---------- */
+let rcEnt="local";
+function abrirRegCliente(){rcEnt="local";hojaSimple("Clientes","Registrar cliente",`
+  <label class="f" for="rc-nom">Nombre y apellido<input id="rc-nom" placeholder="María González" autocomplete="off"></label>
+  <label class="f" for="rc-tel">WhatsApp<input id="rc-tel" placeholder="6123-4567" inputmode="tel" autocomplete="off"></label>
+  <span class="f-lab">Lo atiende</span><div class="seg" id="rc-q">${Object.keys(EQUIPO).map(k=>`<button type="button" data-rcq="${k}" aria-pressed="${k===yo}">${EQUIPO[k].nombre}</button>`).join("")}</div>
+  <span class="f-lab">Entrega</span><div class="seg" id="rc-e"><button type="button" data-rce="local" aria-pressed="true">En Aguadulce</button><button type="button" data-rce="envio" aria-pressed="false">Otra provincia</button></div>
+  <label class="f" for="rc-prov" id="rc-provw" hidden>Provincia<select id="rc-prov">${PROVINCIAS.map(p=>`<option>${p}</option>`).join("")}</select></label>
+  <p class="err" id="rc-err" hidden></p>
+  <div class="upd-btns"><button class="upd-btn" data-rcok>Guardar y registrar otro</button><button class="upd-btn sec" data-updx>Listo</button></div>`);
+  setTimeout(()=>$("#rc-nom")?.focus(),250)}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-rcq],[data-rce]");if(!b)return;
+  if(b.dataset.rcq)$$("#rc-q button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  else{rcEnt=b.dataset.rce;$$("#rc-e button").forEach(x=>x.setAttribute("aria-pressed",x===b));$("#rc-provw").hidden=rcEnt!=="envio"}});
+function guardarRegCliente(){const nombre=tc($("#rc-nom").value.trim()),tel=$("#rc-tel").value.replace(/\D/g,""),er=$("#rc-err");
+  const fail=t=>{er.textContent=t;er.hidden=false};
+  if(!nombre)return fail("Escribe el nombre del cliente.");
+  if(tel.length<8)return fail("Escribe el WhatsApp (8 números).");
+  if(D.C.some(c=>c.nombre.toLowerCase()===nombre.toLowerCase()))return fail(`${nombre} ya está registrado.`);
+  const q=$("#rc-q [aria-pressed=true]")?.dataset.rcq||yo;
+  D.C.push({id:"c"+Date.now()+Math.random().toString(36).slice(2,6),nombre,tel,ent:rcEnt,prov:rcEnt==="envio"?$("#rc-prov").value:"",atiende:q});
+  save();refresh();toast(`${nombre} registrado`);abrirRegCliente()}
 
 /* ---------- Registrar pedido de Temu (varios clientes, varios artículos) ---------- */
 let nb=null,regModo="temu";
@@ -1338,7 +1385,7 @@ function renderNB(entra){
        <label class="art-de">¿De quién?<select data-nic="${ii}">${nb.clientes.length?`<option value="" ${x.c===""?"selected":""}>Elegir…</option>${nb.clientes.map((k,ci)=>`<option value="${ci}" ${x.c===ci?"selected":""}>${esc(k.nombre.trim()||"Cliente "+(ci+1))}</option>`).join("")}`:`<option value="">Agrega un cliente</option>`}</select></label>
      </div></div>`).join("")}</div>
    <button type="button" class="btn sm" data-nbadd style="justify-self:start"><svg><use href="#i-plus"/></svg>Artículo a mano</button>
-   <div class="nb-step"><span class="nb-n">3</span><div><b>Clientes de este pedido</b><p class="note">Agrega cada persona que pidió en esta compra. Sus artículos se juntan solos según lo que elijas en “¿De quién?”.</p></div></div>
+   <div class="nb-step"><span class="nb-n">3</span><div><b>Clientes de este pedido</b><p class="note">Toca “Agregar cliente” y elige de tu lista quiénes pidieron en esta compra. Después, en cada artículo, eliges “¿De quién?”.</p></div></div>
    ${nb.clientes.length?"":`<div class="empty">Todavía no hay clientes. Toca “Agregar cliente”.</div>`}
    ${nb.clientes.map((k,ci)=>{const its=artsDe(ci),s=sumItems(its);return`<div class="nb-cli" style="--i:${ci}">
      <div class="nb-cli-h"><span class="nb-idx">${ci+1}</span>
@@ -1492,7 +1539,7 @@ function renderClientes(){
        <span class="o-sub" style="display:flex"><span>Atiende ${EQUIPO[atiende(s.c)].nombre}</span><span>${s.c.ent==="envio"?esc(s.c.prov):"Aguadulce"}</span><span>${s.ultimo?`último hace ${dias(s.ultimo)} d`:""}</span></span>
        <span class="bar"><i style="width:${(rankBy==="pedidos"?s.n:s.gasto)/max*100}%"></i></span></span>
      <span class="num"><b data-n="${rankBy==="pedidos"?s.n:s.gasto}" ${rankBy==="pedidos"?"":'data-m="1"'}>${rankBy==="pedidos"?s.n:$$m(s.gasto)}</b><small>${rankBy==="pedidos"?$$m(s.gasto):s.n+" pedidos"}</small></span></button>`).join("");
-  if(!S.length)$("#rank").innerHTML=`<div class="empty">Aún no hay clientes. Se agregan al registrar un pedido o al vincular a alguien que entró a la app.</div>`;
+  if(!S.length)$("#rank").innerHTML=`<div class="empty">Aún no hay clientes. Toca “Registrar cliente” para agregarlos con su WhatsApp.</div>`;
   renderFicha();
 }
 /* Personas que entraron a la app del cliente con su nombre. Se vinculan con un cliente de la lista (el nombre puede ser distinto). */
@@ -1646,8 +1693,14 @@ document.addEventListener("click",e=>{
   else if("nbadd" in d){nb.items.push(nbArt());renderNB();document.querySelector(`[data-ni="${nb.items.length-1}|d"]`)?.focus()}
   else if(d.nbix!==undefined){nb.items.splice(+d.nbix,1);if(!nb.items.length)nb.items.push(nbArt());renderNB()}
   else if(d.nbdel!==undefined){const ci=+d.nbdel;nb.clientes.splice(ci,1);nb.items.forEach(x=>{if(x.c===ci)x.c="";else if(x.c!==""&&x.c>ci)x.c--});renderNB()}
-  else if("nbaddcli" in d){nb.clientes.push(nbCli());const ci=nb.clientes.length-1;if(ci===0)nb.items.forEach(x=>{if(x.c==="")x.c=0});renderNB();
+  else if("nbaddcli" in d){elegirClientes()}
+  else if("ecnuevo" in d){document.getElementById("upd")?.remove();nb.clientes.push(nbCli());const ci=nb.clientes.length-1;renderNB();
     const el=document.querySelector(`[data-nb="${ci}|nombre"]`);if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.focus({preventScroll:true})}}
+  else if("ecok" in d){const ids=$$("[data-ecsel]:checked").map(x=>x.dataset.ecsel);if(!ids.length)return toast("Marca al menos un cliente");
+    ids.forEach(id=>{const c=D.C.find(x=>x.id===id);if(c)nb.clientes.push({nombre:c.nombre,tel:fmtTel(c.tel),quien:atiende(c),ent:c.ent||"local",prov:c.prov||"Chiriquí",adel:"",pago:"nada"})});
+    document.getElementById("upd")?.remove();renderNB(true);toast(`${ids.length} cliente${ids.length>1?"s":""} en el pedido. Ahora elige “¿De quién?” en cada artículo.`)}
+  else if("rcabrir" in d){abrirRegCliente()}
+  else if("rcok" in d){guardarRegCliente()}
   else if(d.nbcart){const o=find(d.nbcart),c=cli(o);const blank=nb.clientes.length===1&&!nb.clientes[0].nombre;
     const k={nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",pago:num(o.abonado)?"adelanto":"nada",desde:o.id};
     if(blank)nb.clientes[0]=k;else nb.clientes.push(k);nb.items=nb.items.filter(lleno);nb.items.push({d:o.nota||"",costo:"",precio:"",c:blank?0:nb.clientes.length-1});renderNB()}
@@ -1738,7 +1791,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=20;
+const APP="admin",APP_VERSION=21;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

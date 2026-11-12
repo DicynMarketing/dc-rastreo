@@ -1,7 +1,19 @@
 {
-  "admin": 20,
+  "admin": 21,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 21,
+      "cliente": 7,
+      "titulo": "Registra tus clientes primero",
+      "admin_items": [
+        "En Clientes hay un botón “Registrar cliente”: nombre, WhatsApp, quién lo atiende y dónde se entrega. Guardas uno y te queda listo para el siguiente.",
+        "Al registrar un pedido, “Agregar cliente” abre tu lista de clientes con buscador: marcas los que pidieron y listo. Si alguien no está, “Cliente nuevo”.",
+        "Ya no se asignan artículos solos a un cliente: tú eliges “¿De quién?” en cada artículo."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 20,
