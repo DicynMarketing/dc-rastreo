@@ -1,7 +1,19 @@
 {
-  "admin": 26,
+  "admin": 27,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 27,
+      "cliente": 7,
+      "titulo": "“Ya lo compré” con confirmación",
+      "admin_items": [
+        "“Ya lo compré” ya no te lleva a Registrar: lo tocas, se pone rojo con “Toca otra vez para confirmar”, y al tocarlo de nuevo el encargo pasa a Realizado ahí mismo. Si no confirmas en 4 segundos, vuelve a como estaba.",
+        "Dentro del pedido puedes agregar después el número de pedido de Temu y la guía. Si prefieres registrarlo completo con capturas, sigue el botón “Registrarlo en un pedido de Temu”.",
+        "El Tablero de ruta en Inicio se desliza con impulso: con un solo movimiento rápido llega al final, y despacio también se puede mover."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 26,
