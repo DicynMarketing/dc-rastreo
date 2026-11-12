@@ -255,11 +255,11 @@ const ESTADOS=[
  ["En tránsito internacional","Volando hacia Panamá"],
  ["Llegó a Panamá","Ya está en el país"],
  ["En aduana","Revisión de rutina"],
- ["Listo en DC Marketing","Ya lo tenemos en Aguadulce"],
- ["En camino a ti","Coordinamos la entrega contigo"],
+ ["Recibido por DC Marketing","Ya lo tenemos en nuestras manos"],
+ ["Preparando tu entrega","DC Marketing está preparando tu paquete para la entrega final"],
  ["Entregado","Tu paquete llegó"]
 ];
-const CORTO=["Comprado","Preparando","Salió","En vuelo","En Panamá","En aduana","En DC","En camino","Entregado"];
+const CORTO=["Comprado","Preparando","Salió","En vuelo","En Panamá","En aduana","Recibido por DC","Preparando entrega","Entregado"];
 function ago(d,h){const t=new Date();t.setDate(t.getDate()-d);t.setHours(h??10,15,0,0);return t.toISOString()}
 function misPedidos(){const m=MIS||{};const lista=(m.pedidos||[]).filter(Boolean).sort((a,b)=>(a.i===8)-(b.i===8)||new Date(b.h[b.i])-new Date(a.h[a.i]));
   return{lista,encargos:m.encargos||0,quien:m.quien||null,cargando:!MIS,error:!!m.error}}
@@ -410,7 +410,7 @@ function animarRuta(i){
   const t0=performance.now(),dur=1400;
   (function f(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);set(fin*e);if(k<1)requestAnimationFrame(f)})(t0);
 }
-function pista(v,k){if(k===7)return v.ent==="envio"?`Va por ${v.envio?.t||"transporte"}${v.prov?` hacia ${v.prov}`:""}`:"Coordinamos la entrega contigo";return ESTADOS[k][1]}
+function pista(v,k){if(k===7&&v.envio)return`Va por ${v.envio.t}${v.prov?` hacia ${v.prov}`:""}`;return ESTADOS[k][1]}
 async function seguimiento(code){
   vistaActual="seguimiento";
   let v=(MIS?.pedidos||[]).find(x=>x&&x.code===code),fallo=false;
@@ -419,7 +419,7 @@ async function seguimiento(code){
     if(decodeURIComponent(location.hash.slice(1)).toUpperCase()!==code)return}
   if(!v)return pantallaCodigo(fallo?"No pudimos conectarnos. Revisa tu internet e intenta de nuevo.":`No encontramos el código ${code.replace(/[^A-Z0-9-]/g,"")}. Revisa el mensaje o escríbenos.`);
   const i=v.i,quien=EQUIPO[v.quien]||EQUIPO.diego,entregado=i===8,r=miRegistro();
-  const titular=entregado?`¡Tu paquete <em>llegó</em>!`:i===7?`Tu paquete va <em>camino a ti</em>`:i===6?`Tu paquete ya está <em>con nosotros</em>`:i>=4?`Tu paquete ya está <em>en Panamá</em>`:i===3?`Tu paquete va <em>en vuelo</em>`:`Tu pedido está <em>en marcha</em>`;
+  const titular=entregado?`¡Tu paquete <em>llegó</em>!`:i===7?(v.envio?`Tu paquete va <em>camino a ti</em>`:`Estamos <em>preparando</em> tu entrega`):i===6?`Recibido por <em>DC Marketing</em>`:i>=4?`Tu paquete ya está <em>en Panamá</em>`:i===3?`Tu paquete va <em>en vuelo</em>`:`Tu pedido está <em>en marcha</em>`;
   let varios="";if(v.paq.length>1&&i<6){const mx=Math.max(...v.paq),n=v.paq.filter(x=>x===mx).length;varios=`<div class="last">${n} de ${v.paq.length} paquetes: ${ESTADOS[mx-1][0].toLowerCase()}</div>`}
   const wa=`https://wa.me/507${quien.tel}?text=${encodeURIComponent(`Hola ${quien.nombre}, consulto por mi pedido ${code}.`)}`;
   app.innerHTML=`
@@ -483,7 +483,7 @@ setInterval(()=>{if(document.visibilityState==="visible"&&vistaActual==="inicio"
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="cliente",APP_VERSION=6;
+const APP="cliente",APP_VERSION=7;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

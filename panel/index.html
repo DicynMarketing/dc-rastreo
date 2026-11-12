@@ -270,6 +270,22 @@ details.cli summary::-webkit-details-marker{display:none}
 .nb-idx{width:26px;height:26px;border-radius:8px;background:var(--panel-2);display:grid;place-items:center;font:800 11px var(--f-display);flex:none}
 .nb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr));gap:8px}
 .seg.sm button{padding:7px 6px;font-size:12px}
+.pagos{display:grid;gap:8px}
+.pago{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.pago-r{display:grid;justify-items:end;gap:4px}
+.pago .m,.pagos-mini b{font-variant-numeric:tabular-nums;font-weight:800}
+.pago-cli{background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.pago-cli summary{list-style:none;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:12px 14px;cursor:pointer}
+.pago-cli summary::-webkit-details-marker{display:none}
+.pago-cli[open] .chev{transform:rotate(180deg)}
+.pago-cli .chev{width:18px;height:18px;color:var(--muted);transition:transform .2s}
+.pc-body{display:grid;gap:12px;padding:0 14px 14px}
+.pc-ped{display:grid;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.pc-h{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;justify-content:space-between;min-width:0}
+.pagos-mini{display:grid;gap:4px;font-size:13px}
+.pagos-mini div{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;background:var(--bg);border-radius:10px;padding:6px 6px 6px 12px}
+.pagos-mini .x{width:30px;height:30px}
+#seg-pg button{padding:9px 4px}
 .it-h,.it-row{display:grid;grid-template-columns:minmax(0,1fr) 78px 78px 30px;gap:6px;align-items:center}
 .it-h{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .it-row input{padding:9px 8px;width:100%;box-sizing:border-box}
@@ -485,7 +501,7 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
       <a href="#pedidos" data-nav="pedidos"><svg><use href="#i-box"/></svg>Pedidos</a>
       <a href="#registrar" data-nav="registrar"><svg><use href="#i-plus"/></svg>Registrar pedido</a>
       <a href="#clientes" data-nav="clientes"><svg><use href="#i-users"/></svg>Clientes</a>
-      <a href="#numeros" data-nav="numeros"><svg><use href="#i-chart"/></svg>Ganancias</a>
+      <a href="#numeros" data-nav="numeros"><svg><use href="#i-chart"/></svg>Pagos y ganancias</a>
     </div>
     <button class="novedades-link" data-segabrir style="margin-top:auto;justify-self:start;padding:0 12px">Configuración</button>
     <button class="novedades-link" data-novedades style="justify-self:start;padding:6px 12px 0">Novedades</button>
@@ -582,10 +598,19 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
       </section>
 
       <section data-view="numeros" hidden>
-        <div><h1>Ganancias del equipo · <span id="mes"></span></h1><p class="lead">Ganancia = lo que cobras menos lo que pagaste en Temu. El envío nacional no cuenta, lo paga el cliente.</p></div>
-        <div class="kpis" id="n-kpis"></div>
-        <div class="block"><h2>Por persona este mes</h2><div class="split" id="split"></div></div>
-        <div class="block"><h2>Ganancia últimos 6 meses</h2><div class="chart" id="chart"></div></div>
+        <div><h1>Pagos</h1><p class="lead">Cada pago o abono queda guardado con su fecha. Cuando un cliente termina de pagar, sale de Deudas y queda como pago completo.</p></div>
+        <div class="seg" id="seg-pg"><button data-pg="pagos" aria-pressed="true">Pagos</button><button data-pg="clientes" aria-pressed="false">Por cliente</button><button data-pg="deudas" aria-pressed="false">Deudas</button><button data-pg="ganancia" aria-pressed="false">Ganancia</button></div>
+        <div id="pg-box" style="display:grid;gap:14px">
+          <div class="kpis" id="pg-kpis"></div>
+          <label class="search"><svg><use href="#i-search"/></svg><input id="qp" placeholder="Buscar cliente o número de pedido" aria-label="Buscar pagos"></label>
+          <div id="pg-list"></div>
+        </div>
+        <div id="gan-box" style="display:grid;gap:26px" hidden>
+          <div><h2>Ganancias del equipo · <span id="mes"></span></h2><p class="lead">Ganancia = lo que cobras menos lo que pagaste en Temu. El envío nacional no cuenta, lo paga el cliente.</p></div>
+          <div class="kpis" id="n-kpis"></div>
+          <div class="block"><h2>Por persona este mes</h2><div class="split" id="split"></div></div>
+          <div class="block"><h2>Ganancia últimos 6 meses</h2><div class="chart" id="chart"></div></div>
+        </div>
       </section>
     </div>
   </main>
@@ -595,7 +620,7 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
     <a href="#pedidos" data-nav="pedidos"><svg><use href="#i-box"/></svg>Pedidos</a>
     <a href="#registrar" data-nav="registrar" class="plus" aria-label="Registrar pedido"><svg><use href="#i-plus"/></svg>Nuevo</a>
     <a href="#clientes" data-nav="clientes"><svg><use href="#i-users"/></svg>Clientes</a>
-    <a href="#numeros" data-nav="numeros"><svg><use href="#i-chart"/></svg>Ganancia</a>
+    <a href="#numeros" data-nav="numeros"><svg><use href="#i-chart"/></svg>Pagos</a>
   </nav>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -613,7 +638,7 @@ const EQUIPO={diego:{nombre:"Diego",tel:"68673410"},cinthya:{nombre:"Cinthya",te
 const PROVINCIAS=["Bocas del Toro","Chiriquí","Coclé","Colón","Darién","Herrera","Los Santos","Panamá","Panamá Oeste","Veraguas","Comarca Ngäbe-Buglé","Comarca Guna Yala","Comarca Emberá-Wounaan"];
 const TRANSPORTE=["Ferguson","Servientrega"];
 /* Etapas: 0 por comprar · 1-7 rastreo Temu (por guía) · 8-9 entrega final (manual) */
-const ET=["Por comprar","Comprado","Preparando","Salió del almacén","En vuelo","Llegó a Panamá","En aduana","Recibido por DC","Por entregar","Entregado"];
+const ET=["Por comprar","Realizado","Temu lo prepara","Salió del almacén","En vuelo","Llegó a Panamá","En aduana","Recibido","Preparando despacho","Entregado"];
 const DIAS_ATASCADO=5;
 const KEY="dc-panel-v5",KEYW="dc-panel-who";
 /* Registros de la app del cliente: los escribe cliente/ cuando alguien entra con su nombre; aquí se vinculan a un cliente.
@@ -665,7 +690,7 @@ const SNAP={c:{},p:{},r:{}};let subiendo=false;
 /* Lo que puede ver el cliente de un pedido: etapas y fechas, nunca artículos ni precios */
 function vistaCli(o){const e=etapa(o);if(e<1)return null;const c=cli(o);
   const lenta=o.paq.length?o.paq.reduce((a,p)=>p.h.length<a.h.length?p:a):null;
-  const h=(lenta?lenta.h.slice(0,7):[o.creado]).concat(e>=7?o.local.slice(0,2):[]);
+  const h=(lenta?lenta.h.slice(0,7):o.rec?[o.creado,null,null,null,null,null,o.rec]:[o.creado]).concat(e>=7?o.local.slice(0,2):[]);
   return{code:o.id,nombre:(c.nombre||"").split(" ")[0],quien:o.quien,h,i:Math.min(e,9)-1,ent:c.ent||"local",prov:c.prov||"",envio:o.envio?{t:o.envio.t}:null,paq:o.paq.map(p=>p.h.length)}}
 function estadoSync(st){$$(".sync").forEach(el=>{el.dataset.s=st;el.title={ok:"En línea y guardado",guardando:"Guardando…",error:"Sin conexión: se guardará al volver"}[st]||""})}
 const hayPendientes=()=>D.C.some(c=>est(c)!==SNAP.c[c.id])||D.P.some(o=>est([o,vistaCli(o)])!==SNAP.p[o.id])||REGS.some(r=>est(r)!==SNAP.r[r.id]);
@@ -876,7 +901,7 @@ $("#login-f").addEventListener("submit",async e=>{e.preventDefault();
 
 /* ---------- Lógica de pedido ---------- */
 const pkgSt=p=>p.h.length; // 1..7
-function etapa(o){if(!o.paq.length)return o.tpo?1:0;const m=Math.min(...o.paq.map(pkgSt));return m<7?m:7+o.local.length}
+function etapa(o){if(!o.paq.length)return o.rec?7+o.local.length:o.tpo?1:0;const m=Math.min(...o.paq.map(pkgSt));return m<7?m:7+o.local.length}
 function enDCcuenta(o){return o.paq.filter(p=>pkgSt(p)>=7).length}
 function ultimo(o){const t=[o.creado,...o.paq.flatMap(p=>p.h),...o.local].filter(Boolean).map(x=>+new Date(x));return new Date(Math.max(...t)).toISOString()}
 function atascado(o){const e=etapa(o);if(e<1||e>=7)return null;
@@ -885,9 +910,16 @@ function atascado(o){const e=etapa(o);if(e<1||e>=7)return null;
 const entrega=o=>cli(o).ent;
 const tarifa=o=>o.envio?num(o.envio.tarifa):0;
 const total=o=>num(o.precio)+tarifa(o);
-const saldo=o=>Math.max(0,total(o)-num(o.abonado));
+const saldo=o=>Math.max(0,+(total(o)-num(o.abonado)).toFixed(2));
+/* Pagos y abonos con fecha. Los pedidos viejos solo tenían "abonado": se ven como un pago en la fecha del pedido. */
+const pagosDe=o=>Array.isArray(o.pagos)?o.pagos:num(o.abonado)>0?[{m:num(o.abonado),f:o.creado}]:[];
+function ponerPagos(o,L){o.pagos=L;o.abonado=+L.reduce((a,x)=>a+num(x.m),0).toFixed(2)}
+const addPago=(o,m,f)=>ponerPagos(o,[...pagosDe(o),{m:+num(m).toFixed(2),f:f||new Date().toISOString(),por:yo}]);
+const pagoIni=(m,f,q)=>num(m)>0?[{m:+num(m).toFixed(2),f,por:q}]:[];
+const hoyISO=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+const fechaC=f=>f?new Date(f).toLocaleDateString("es-PA",{day:"numeric",month:"short",year:"2-digit"}):"";
 const ganancia=o=>num(o.precio)-num(o.costo);
-const etNombre=(o,e=etapa(o))=>e===8?(entrega(o)==="envio"?`Enviado por ${o.envio?.t||"transporte"}`:"Coordinando entrega"):e===7&&o.paq.length>1?"Todo en DC":ET[e];
+const etNombre=(o,e=etapa(o))=>e===8?(o.envio?`Enviado por ${o.envio.t}`:"Preparando despacho"):e===7&&o.paq.length>1?"Todo recibido":ET[e];
 function resumenPaq(o){const n=o.paq.length;if(n<2)return"";const e=Math.min(...o.paq.map(pkgSt));if(e>=7)return"";
   const max=Math.max(...o.paq.map(pkgSt));return`${o.paq.filter(p=>pkgSt(p)===max).length} de ${n} paquetes ${ET[max].toLowerCase()}`}
 
@@ -898,8 +930,9 @@ function msg(o,tipo){const c=cli(o),n=c.nombre.split(" ")[0],e=etapa(o),yoN=EQUI
   if(e===1)return`Hola ${n}, ya compramos tu pedido. Tu código es *${o.id}*.${link}${firma}`;
   if(e===7)return entrega(o)==="local"?`Hola ${n}, tu pedido ${o.id} ya llegó a Aguadulce. ¿Cuándo te queda bien para entregártelo?${saldo(o)?` Saldo: *${$$m(saldo(o))}*.`:""}${firma}`
                                      :`Hola ${n}, tu pedido ${o.id} ya llegó. Te lo enviamos a ${c.prov}; en cuanto lo despachemos te paso la tarifa del envío.${firma}`;
+  if(e===8&&entrega(o)==="envio"&&!o.envio)return`Hola ${n}, estamos preparando tu pedido ${o.id} para enviártelo a ${c.prov}. En cuanto lo despachemos te paso la tarifa del envío.${firma}`;
   if(e===8&&entrega(o)==="envio")return`Hola ${n}, tu pedido ${o.id} salió por *${o.envio.t}* hacia ${c.prov}. Envío: ${$$m(tarifa(o))}. Saldo total: *${$$m(saldo(o))}*.${firma}`;
-  if(e===8)return`Hola ${n}, quedamos en entregarte el pedido ${o.id}.${saldo(o)?` Saldo: *${$$m(saldo(o))}*.`:""}${firma}`;
+  if(e===8)return`Hola ${n}, estamos preparando tu pedido ${o.id} para entregártelo. ¿Cuándo te queda bien?${saldo(o)?` Saldo: *${$$m(saldo(o))}*.`:""}${firma}`;
   if(e===9)return`Hola ${n}, gracias por recibir tu pedido ${o.id}. ¡Gracias por confiar en DC Marketing!`;
   const r=resumenPaq(o);return`Hola ${n}, tu pedido ${o.id} avanzó: *${r||ET[e]}*.${link}${firma}`}
 function waTel(tel,text){let n=String(tel||"").replace(/\D/g,"");if(n.length===8)n="507"+n;return`https://wa.me/${n}?text=${encodeURIComponent(text)}`}
@@ -988,21 +1021,23 @@ function detalle(o){
   let h="";
   if(e===0){h+=`<div class="block"><p class="block-t">Por comprar</p><div class="sum">${esc(o.nota||"Sin nota")}</div>
      <button class="btn gold" style="justify-self:start" data-open="${o.id}"><svg><use href="#i-check"/></svg>Ya lo compré: meterlo en un pedido de Temu</button></div>`}
-  else if(!o.paq.length){h+=`<div class="block"><p class="block-t">Pedido Temu <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}</p><div class="sum">Comprado. Falta la guía: agrégala desde el pedido de Temu.</div></div>`}
+  else if(!o.paq.length){h+=`<div class="block"><p class="block-t">Pedido Temu <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}</p><div class="sum">${o.rec?`Recibido sin guía · ${new Date(o.rec).toLocaleDateString("es-PA",{day:"numeric",month:"short"})}`:"Realizado. Falta la guía: agrégala desde el pedido de Temu."}</div>
+     ${o.rec&&e===7?`<button class="btn sm" style="justify-self:start" data-norec="${o.id}">Deshacer “Recibido”</button>`:""}</div>`}
   else{h+=`<div class="block"><p class="block-t">Guías de Temu ${o.paq.length>1?`· ${enDCcuenta(o)} de ${o.paq.length} en DC`:""}</p><div class="pkgs">${o.paq.map((p,i)=>`
      <div class="pkg"><div style="min-width:0"><span class="mono">${esc(p.g)}</span>${cp(p.g,"guía")}<div class="o-sub">${ET[pkgSt(p)]} · ${dias(p.h[p.h.length-1])===0?"hoy":`hace ${dias(p.h[p.h.length-1])} d`}</div>
        ${comparten(p.g,o.id).length?`<div class="shared">Misma compra con ${comparten(p.g,o.id).map(x=>`<b>${esc(cli(x).nombre.split(" ")[0])}</b> (${EQUIPO[x.quien].nombre})`).join(", ")}</div>`:""}</div>
        <select data-pkg="${o.id}|${i}" aria-label="Corregir etapa de la guía">${ET.slice(1,8).map((x,k)=>`<option value="${k+1}" ${k+1===pkgSt(p)?"selected":""}>${x}</option>`).join("")}</select>
        ${miniBar(pkgSt(p))}</div>`).join("")}</div>
      <div class="guia-row"><input id="g-${o.id}" class="mono" placeholder="Agregar otra guía" aria-label="Agregar guía"><button class="btn sm" data-addg="${o.id}"><svg><use href="#i-plus"/></svg>Agregar</button></div></div>`}
+  if(e>=1&&e<=6)h+=`<div class="o-actions"><button class="btn gold" data-recibi="${o.id}"><svg><use href="#i-check"/></svg>Ya lo recibí</button><span class="note">Pásalo a “Recibido” cuando el paquete llegue a tus manos.</span></div>`;
   // entrega
   if(e>=7){const env=c.ent==="envio";
     h+=`<div class="block"><p class="block-t">Entrega · ${env?`envío a ${esc(c.prov)}`:"en Aguadulce"}</p>`;
-    if(env&&e===7)h+=`<div class="ship"><label for="t-${o.id}">Transporte<select id="t-${o.id}">${TRANSPORTE.map(t=>`<option>${t}</option>`).join("")}</select></label>
+    if(e===7)h+=`<div class="o-actions"><button class="btn gold" data-prep="${o.id}"><svg><use href="#i-box"/></svg>Preparando despacho</button>${env?"":`<a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Coordinar entrega</a>`}</div>`;
+    if(env&&e===8&&!o.envio)h+=`<div class="ship"><label for="t-${o.id}">Transporte<select id="t-${o.id}">${TRANSPORTE.map(t=>`<option>${t}</option>`).join("")}</select></label>
       <label for="tf-${o.id}">Tarifa cobrada<input id="tf-${o.id}" inputmode="decimal" placeholder="0.00"></label>
       <button class="btn gold" data-despachar="${o.id}"><svg><use href="#i-truck"/></svg>Despachar</button></div>`;
-    if(!env&&e===7)h+=`<div class="o-actions"><a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Coordinar entrega</a><button class="btn" data-coord="${o.id}">Ya quedamos</button></div>`;
-    if(e===8)h+=`<div class="sum">${env?`Enviado por <b>${esc(o.envio.t)}</b> · tarifa <b>${$$m(tarifa(o))}</b>`:"Entrega coordinada con el cliente"}</div>
+    if(e===8)h+=`<div class="sum">${o.envio?`Enviado por <b>${esc(o.envio.t)}</b> · tarifa <b>${$$m(tarifa(o))}</b>`:"Preparando despacho: el cliente lo ve como “preparando tu entrega”."}</div>
       <button class="btn gold" style="justify-self:start" data-entregar="${o.id}"><svg><use href="#i-check"/></svg>Marcar entregado</button>`;
     if(e===9)h+=`<div class="sum"><span class="paid">Entregado ${new Date(o.local[1]).toLocaleDateString("es-PA",{day:"numeric",month:"short"})}</span>${o.envio?` · ${esc(o.envio.t)} ${$$m(tarifa(o))}`:""}</div>`;
     h+=`</div>`}
@@ -1012,12 +1047,14 @@ function detalle(o){
   h+=`<div class="block"><p class="block-t">Cobro</p><div class="money">
      <label>Costo Temu<input ${ro} data-money="${o.id}|costo" inputmode="decimal" value="${num(o.costo)||""}" placeholder="0.00"></label>
      <label>Le cobras<input ${ro} data-money="${o.id}|precio" inputmode="decimal" value="${num(o.precio)||""}" placeholder="0.00"></label>
-     <label>Abonado<input data-money="${o.id}|abonado" inputmode="decimal" value="${num(o.abonado)||""}" placeholder="0.00"></label>
+     <label>Pagado<input readonly tabindex="-1" value="${$$m(o.abonado)}"></label>
      ${o.envio?`<label>Envío<input data-money="${o.id}|tarifa" inputmode="decimal" value="${tarifa(o)||""}"></label>`:""}</div>
      <div class="sum"><span>Total <b>${$$m(total(o))}</b></span><span>Ganancia <b>${$$m(ganancia(o))}</b></span>
        <span class="${saldo(o)?"due":"paid"}">${saldo(o)?`Saldo <b>${$$m(saldo(o))}</b>`:"Pagado completo"}</span></div>
+     ${pagosDe(o).length?`<div class="pagos-mini">${pagosDe(o).map((x,i)=>`<div><span>${fechaC(x.f)}</span><b>${$$m(x.m)}</b><button type="button" class="x" data-delpago="${o.id}|${i}" aria-label="Borrar este pago">×</button></div>`).join("")}</div>`:""}
+     ${saldo(o)?`<div class="guia-row"><input id="pg-${o.id}" inputmode="decimal" placeholder="Monto del pago o abono" aria-label="Monto del pago"><button class="btn sm gold" data-pagar="${o.id}|pg">Registrar pago</button></div>`:""}
      ${saldo(o)?`<div class="o-actions"><button class="btn sm" data-pagado="${o.id}"><svg><use href="#i-check"/></svg>Marcar pagado</button><a class="btn sm" href="${wa(o,"cobro")}" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Recordar saldo</a></div>`:""}</div>`;
-  h+=`<div class="o-actions">${e>0&&e<9&&e!==7?`<a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar etapa</a>`:""}
+  h+=`<div class="o-actions">${e>0&&e<9&&e!==7&&!(e===8&&!o.envio&&c.ent!=="envio")?`<a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar etapa</a>`:""}
      ${e>0?`<a class="btn" href="${CLIENTE_URL}#${o.id}" target="_blank" rel="noopener"><svg><use href="#i-eye"/></svg>Ver como cliente</a>`:""}
      <button class="btn sm" data-ficha="${o.cli}">Ficha del cliente</button></div>`;
   return h}
@@ -1086,7 +1123,7 @@ function renderCompras(){
 /* ---------- Registrar pedido de Temu (varios clientes, varios artículos) ---------- */
 let nb=null,regModo="temu";
 function nbNuevo(desdeCarrito){
-  nb={numero:"",guias:[""],clientes:[]};
+  nb={numero:"",fecha:hoyISO(),guias:[""],clientes:[]};
   (desdeCarrito||[]).forEach(id=>{const o=find(id),c=cli(o);nb.clientes.push({nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",pago:num(o.abonado)?"adelanto":"nada",desde:o.id,items:[{d:o.nota||"",costo:"",precio:""}]})});
   if(!nb.clientes.length)nb.clientes.push(nbCli());
 }
@@ -1105,6 +1142,7 @@ function renderNB(){
   $("#nb").innerHTML=`
    <div class="nb-step"><span class="nb-n">1</span><div><b>Número de pedido y guía de Temu</b><p class="note">El número de pedido es único y agrupa a todos los clientes de esta compra. La guía la puedes poner después si Temu aún no la da.</p></div></div>
    <div class="fgrid">
+     <label class="f" for="nb-fecha">Fecha del pedido<input id="nb-fecha" type="date" data-nbtop="fecha" value="${esc(nb.fecha||hoyISO())}" max="${hoyISO()}"></label>
      <label class="f" for="nb-num">Número de pedido Temu<input id="nb-num" class="mono" data-nbtop="numero" value="${esc(nb.numero)}" placeholder="PO-211-…" autocomplete="off" enterkeyhint="next"></label>
      ${nb.guias.map((g,gi)=>`<label class="f">Número de guía ${nb.guias.length>1?gi+1:""}<span class="guia-row"><input class="mono" data-nbg="${gi}" value="${esc(g)}" list="dl-guias" placeholder="Opcional por ahora" autocomplete="off">${gi?`<button type="button" class="x" data-nbgdel="${gi}" aria-label="Quitar guía">×</button>`:""}</span></label>`).join("")}
    </div>
@@ -1163,6 +1201,7 @@ function nbGuardar(){
   if(!numero)return fail("Falta el número de pedido de Temu.");
   if(D.P.some(o=>o.tpo===numero))return fail(`El número ${numero} ya está registrado. Cada pedido de Temu es único.`);
   err.hidden=true;const now=new Date().toISOString(),creados=[];
+  const fechaPed=nb.fecha&&nb.fecha!==hoyISO()?new Date(nb.fecha+"T12:00:00").toISOString():now;
   const paqDe=()=>guias.map(g=>{const ex=D.P.flatMap(x=>x.paq).find(q=>q.g===g);return{g,h:ex?[...ex.h]:[now]}});
   nb.clientes.forEach(k=>{
     const nombre=tc(k.nombre),tel=k.tel.replace(/\D/g,"");
@@ -1172,8 +1211,8 @@ function nbGuardar(){
     const items=k.items.map(x=>({d:x.d.trim(),costo:num(x.costo),precio:num(x.precio)}));
     let o=k.desde&&find(k.desde);
     const abonado=nbPagado({...k,items});
-    if(o){Object.assign(o,{items,tpo:numero,quien:k.quien,paq:paqDe(),abonado,creado:now})}
-    else{o={id:newCode(),cli:c.id,quien:k.quien,items,costo:0,precio:0,abonado,nota:"",tpo:numero,creado:now,local:[],envio:null,avisado:-1,paq:paqDe()};D.P.unshift(o)}
+    if(o){Object.assign(o,{items,tpo:numero,quien:k.quien,paq:paqDe(),abonado,pagos:pagoIni(abonado,fechaPed,k.quien),creado:fechaPed})}
+    else{o={id:newCode(),cli:c.id,quien:k.quien,items,costo:0,precio:0,abonado,pagos:pagoIni(abonado,fechaPed,k.quien),nota:"",tpo:numero,creado:fechaPed,local:[],envio:null,avisado:-1,paq:paqDe()};D.P.unshift(o)}
     syncItems(o);creados.push(o)});
   save();nb=null;renderAll();
   $("#nb").hidden=true;const d=$("#done");d.hidden=false;const t=creados.reduce((a,o)=>a+num(o.costo),0);
@@ -1227,7 +1266,7 @@ $("#form").addEventListener("submit",e=>{
   if(!c){c={id:"c"+Date.now(),nombre,tel,ent:fEnt,prov:fEnt==="envio"?$("#f-prov").value:"",atiende:pick};D.C.push(c)}
   else Object.assign(c,{tel,ent:fEnt,prov:fEnt==="envio"?$("#f-prov").value:""});
   const now=new Date().toISOString();
-  const o={id:pendingCode,cli:c.id,quien:pick,costo:num($("#f-costo").value),precio:num($("#f-precio").value),abonado:num($("#f-adel").value),
+  const o={id:pendingCode,cli:c.id,quien:pick,costo:num($("#f-costo").value),precio:num($("#f-precio").value),abonado:num($("#f-adel").value),pagos:pagoIni($("#f-adel").value,now,pick),
     nota:$("#f-nota").value.trim(),creado:now,local:[],envio:null,avisado:-1,paq:fCmp==="si"?guias.map(g=>{const ex=D.P.flatMap(x=>x.paq).find(q=>q.g===g);return{g,h:ex?[...ex.h]:[now]}}):[]};
   D.P.unshift(o);save();e.target.reset();pendingCode=newCode();renderAll();
   $("#form").hidden=true;const d=$("#done");d.hidden=false;
@@ -1304,6 +1343,48 @@ function renderFicha(){const f=$("#ficha"),c=D.C.find(x=>x.id===fichaId);if(!c){
   $("#cerrar-ficha").onclick=()=>{fichaId=null;renderFicha()};
 }
 
+/* ---------- Pagos: lista por fecha, por cliente y deudas ---------- */
+let pgModo="pagos";
+const pedTxt=o=>o.tpo?`Pedido ${esc(o.tpo)}`:o.id;
+/* Cada pago con su tipo: abono, completó el pago, o pago completo de una vez */
+function todosPagos(){const L=[];D.P.forEach(o=>{const T=total(o);let acum=0;
+  [...pagosDe(o)].sort((a,b)=>new Date(a.f)-new Date(b.f)).forEach((x,k,arr)=>{acum+=num(x.m);
+    const tipo=T>0&&acum>=T-0.001?(k===0?"Pago completo":"Completó el pago"):"Abono";L.push({o,x,tipo,ultimo:k===arr.length-1})})});
+  return L.sort((a,b)=>new Date(b.x.f)-new Date(a.x.f))}
+function renderPagos(){
+  $$("#seg-pg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.pg===pgModo));
+  $("#pg-box").hidden=pgModo==="ganancia";$("#gan-box").hidden=pgModo!=="ganancia";
+  if(pgModo==="ganancia")return renderNumeros();
+  const q=$("#qp").value.trim().toLowerCase(),coincide=o=>!q||(cli(o).nombre+" "+(o.tpo||"")+" "+o.id).toLowerCase().includes(q);
+  const P=todosPagos(),m0=new Date(),delMes=P.filter(p=>{const d=new Date(p.x.f);return d.getMonth()===m0.getMonth()&&d.getFullYear()===m0.getFullYear()});
+  const deben=[...new Set(D.P.filter(o=>saldo(o)>0).map(o=>o.cli))],porCobrar=D.P.reduce((a,o)=>a+saldo(o),0);
+  $("#pg-kpis").innerHTML=`<div class="kpi"><span class="k">Cobrado este mes</span><span class="v ok" data-n="${delMes.reduce((a,p)=>a+num(p.x.m),0)}" data-m="1">${$$m(delMes.reduce((a,p)=>a+num(p.x.m),0))}</span><small>${delMes.length} pagos</small></div>
+    <div class="kpi"><span class="k">Por cobrar</span><span class="v ${porCobrar?"gold":"ok"}">${$$m(porCobrar)}</span><small>${deben.length===1?"1 cliente debe":deben.length+" clientes deben"}</small></div>`;
+  let h="";
+  if(pgModo==="pagos"){const L=P.filter(p=>coincide(p.o));let mes="";
+    h=L.length?`<div class="pagos">${L.map(p=>{const d=new Date(p.x.f),mm=d.toLocaleDateString("es-PA",{month:"long",year:"numeric"});
+      const cab=mm!==mes?(mes=mm,`<p class="block-t" style="margin-top:6px">${mm}</p>`):"";
+      return cab+`<div class="pago"><div style="min-width:0"><b>${esc(cli(p.o).nombre)}</b><div class="o-sub"><span>${fechaC(p.x.f)}</span><span class="mono">${pedTxt(p.o)}</span></div></div>
+        <div class="pago-r"><b class="m">${$$m(p.x.m)}</b><span class="pill ${p.tipo==="Abono"?"gold":"ok"}">${p.tipo}</span></div></div>`}).join("")}</div>`
+      :`<div class="empty">${q?"Ningún pago coincide.":"Todavía no hay pagos registrados. Se registran al guardar un pedido con adelanto o pago completo, o con “Registrar pago” dentro del pedido."}</div>`}
+  else{const soloDeuda=pgModo==="deudas";
+    const C=D.C.map(c=>{const os=D.P.filter(o=>o.cli===c.id&&(num(o.precio)||pagosDe(o).length)&&coincide(o)&&(!soloDeuda||saldo(o)>0));
+      return{c,os,debe:os.reduce((a,o)=>a+saldo(o),0),pagado:os.reduce((a,o)=>a+num(o.abonado),0)}}).filter(x=>x.os.length)
+      .sort((a,b)=>soloDeuda?b.debe-a.debe:a.c.nombre.localeCompare(b.c.nombre));
+    h=C.length?`<div class="pagos">${C.map(({c,os,debe,pagado})=>`<details class="pago-cli"><summary><div style="min-width:0"><b>${esc(c.nombre)}</b><div class="o-sub"><span>${os.length} pedido${os.length>1?"s":""}</span><span>Pagó ${$$m(pagado)}</span></div></div>
+        <span class="pill ${debe?"gold":"ok"}">${debe?`Debe ${$$m(debe)}`:"Al día"}</span><svg class="chev"><use href="#i-chev"/></svg></summary>
+      <div class="pc-body">${os.sort((a,b)=>new Date(b.creado)-new Date(a.creado)).map(o=>{const ps=pagosDe(o),sal=saldo(o);
+        return`<div class="pc-ped"><div class="pc-h"><span class="mono">${pedTxt(o)}${o.tpo?cp(o.tpo,"número de pedido"):""}</span><span class="note">${fechaC(o.creado)} · total ${$$m(total(o))}</span></div>
+          ${!sal&&ps.length?`<div class="sum"><span class="paid"><b>Pago completo</b> · ${$$m(o.abonado)}</span><span>${ps.length>1?`en ${ps.length} pagos, último ${fechaC(ps[ps.length-1].f)}`:fechaC(ps[0].f)}</span></div>`
+          :`${ps.map(x=>`<div class="sum"><span>Abonado <b>${$$m(x.m)}</b></span><span>${fechaC(x.f)}</span></div>`).join("")||`<div class="sum"><span class="due">Sin pagos todavía</span></div>`}
+            <div class="sum"><span class="due">Debe <b>${$$m(sal)}</b></span></div>
+            <div class="guia-row"><input id="pgd-${o.id}" inputmode="decimal" placeholder="Monto que pagó" aria-label="Monto del pago"><button class="btn sm gold" data-pagar="${o.id}|pgd">Registrar pago</button></div>`}</div>`}).join("")}
+        ${debe&&c.tel?`<div class="o-actions"><a class="btn sm wa" href="${waTel(c.tel,`Hola ${c.nombre.split(" ")[0]}, te recuerdo que tienes un saldo pendiente de *${$$m(debe)}* con DC Marketing.\n— ${EQUIPO[atiende(c)].nombre}, DC Marketing`)}" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Recordar saldo</a></div>`:""}</div></details>`).join("")}</div>`
+      :`<div class="empty">${soloDeuda?(q?"Nadie coincide.":"Nadie debe. ¡Todo cobrado!"):(q?"Ningún cliente coincide.":"Todavía no hay pagos.")}</div>`}
+  $("#pg-list").innerHTML=h}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-pg]");if(b){pgModo=b.dataset.pg;renderPagos();animar(seccion())}});
+$("#qp").addEventListener("input",renderPagos);
+
 /* ---------- Ganancias ---------- */
 function mesDe(o){const d=new Date(o.local[1]||o.creado);return d.getFullYear()*12+d.getMonth()}
 function renderNumeros(){
@@ -1325,7 +1406,7 @@ function renderNumeros(){
   $("#chart").innerHTML=meses.map(x=>`<div class="c ${x.k===0?"now":""}"><span class="val">${x.g?"$"+Math.round(x.g):""}</span><span class="bw"><span class="b" style="height:${x.g/gm*100}%"></span></span><span>${x.l}</span></div>`).join("");
 }
 
-function renderAll(){autoVincular();renderInicio();renderPedidos();renderCompras();if(location.hash==="#registrar"&&$("#done").hidden)renderNB();renderRegistrar();renderClientes();renderNumeros()}
+function renderAll(){autoVincular();renderInicio();renderPedidos();renderCompras();if(location.hash==="#registrar"&&$("#done").hidden)renderNB();renderRegistrar();renderClientes();renderPagos()}
 function refresh(){const act=document.activeElement;if(act&&act!==document.body&&$("main").contains(act))act.blur();abiertos=new Set($$("details.order[open][data-id]").map(d=>d.dataset.id));cliAbiertos=new Set($$("details.cli[open]").map(d=>d.dataset.cli));abiertasC=new Set($$("details.order[open][data-compra]").map(d=>d.dataset.compra));renderAll()}
 
 /* ---------- Navegación ---------- */
@@ -1395,7 +1476,7 @@ document.addEventListener("click",e=>{
   else if(d.open){startBuilder([d.open])}
   else if(d.addg){const o=find(d.addg),g=$(`#g-${o.id}`).value.trim().toUpperCase();if(!g)return;o.paq.push({g,h:[new Date().toISOString()]});save();refresh();toast("Guía agregada")}
   else if(d.despachar){const o=find(d.despachar),tf=num($(`#tf-${o.id}`).value);if(!tf){toast("Escribe la tarifa del envío");return}
-    o.envio={t:$(`#t-${o.id}`).value,tarifa:tf};o.local=[new Date().toISOString()];save();refresh();toast(`Despachado por ${o.envio.t}. Avísale al cliente`)}
+    o.envio={t:$(`#t-${o.id}`).value,tarifa:tf};if(!o.local.length)o.local=[new Date().toISOString()];save();refresh();toast(`Despachado por ${o.envio.t}. Avísale al cliente`)}
   else if(d.coord){const o=find(d.coord);o.local=[new Date().toISOString()];o.avisado=8;save();refresh();toast("Entrega coordinada")}
   else if(d.entregar){const o=find(d.entregar);if(o.local.length<1)o.local.push(new Date().toISOString());o.local[1]=new Date().toISOString();save();refresh();toast(saldo(o)?`Entregado. Aún debe ${$$m(saldo(o))}`:"Entregado y pagado")}
   else if(d.vincir){location.hash="clientes";renderClientes();setTimeout(()=>{const el=$("#reg-"+d.vincir);if(el){el.scrollIntoView({behavior:"smooth",block:"center"});$("#vs-"+d.vincir).focus({preventScroll:true})}},60)}
@@ -1406,7 +1487,19 @@ document.addEventListener("click",e=>{
   else if(d.desv){const R=regs(),r=R.find(x=>x.id===d.desv);if(!r||!confirm(`¿Desvincular a ${regNombre(r)}? Dejará de ver estos pedidos.`))return;
     r.cliente=null;r.invita=null;saveRegs(R);refresh();toast("Desvinculado")}
   else if(d.copiar){copiar(d.copiar,t)}
-  else if(d.pagado){const o=find(d.pagado);o.abonado=total(o);save();refresh();toast("Marcado como pagado")}
+  else if(d.pagado){const o=find(d.pagado),r=saldo(o);if(r>0)addPago(o,r);save();refresh();toast(`Pago de ${$$m(r)} registrado: pago completo`)}
+  else if(d.pagar){const[id,pre]=d.pagar.split("|"),o=find(id),inp=document.getElementById(pre+"-"+id),m=num(inp?.value);
+    if(!(m>0))return toast("Escribe el monto que pagó"),inp?.focus();const r=saldo(o);
+    if(m>r+0.001&&!confirm(`El saldo es ${$$m(r)} y escribiste ${$$m(m)}. ¿Registrar de todos modos?`))return;
+    addPago(o,m);save();refresh();toast(saldo(o)?`Abono de ${$$m(m)} registrado. Debe ${$$m(saldo(o))}`:`Pago completo de ${cli(o).nombre.split(" ")[0]}`)}
+  else if(d.delpago){const[id,i]=d.delpago.split("|"),o=find(id),L=[...pagosDe(o)],x=L[+i];if(!x||!confirm(`¿Borrar el pago de ${$$m(x.m)} del ${fechaC(x.f)}?`))return;
+    L.splice(+i,1);ponerPagos(o,L);save();refresh();toast("Pago borrado")}
+  else if(d.recibi){const o=find(d.recibi),now=new Date().toISOString();let n=0;
+    if(o.paq.length){const gs=new Set(o.paq.map(p=>p.g));D.P.forEach(x=>{let t=false;x.paq.forEach(q=>{if(gs.has(q.g)){while(q.h.length<7)q.h.push(now);t=true}});if(t)n++})}
+    else D.P.filter(x=>x===o||(o.tpo&&x.tpo===o.tpo&&!x.paq.length&&etapa(x)>=1&&etapa(x)<7)).forEach(x=>{x.rec=now;n++});
+    save();refresh();toast(n>1?`Recibido: se actualizaron ${n} clientes de esta compra`:"Recibido. El cliente ya lo ve")}
+  else if(d.norec){const o=find(d.norec);delete o.rec;o.local=[];save();refresh();toast("Vuelve a “Realizado”")}
+  else if(d.prep){const o=find(d.prep);o.local=[new Date().toISOString()];save();refresh();toast("Preparando despacho. El cliente ya lo ve")}
 });
 document.addEventListener("change",e=>{
   const t=e.target;
@@ -1448,7 +1541,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=11;
+const APP="admin",APP_VERSION=12;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

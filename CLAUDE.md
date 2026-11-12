@@ -51,7 +51,9 @@ Cada app es un solo archivo HTML con su CSS y JS dentro. El logo también va emb
 ### Etapas (índice usado en el código)
 `0 Por comprar · 1 Comprado · 2 Preparando · 3 Salió del almacén · 4 En vuelo · 5 Llegó a Panamá · 6 En aduana · 7 Recibido por DC · 8 Por entregar (coordinando / enviado por transporte) · 9 Entregado`
 
-Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. La etapa de un pedido es la etapa mínima entre sus guías.
+Nombres en el panel (`ET`): 1 **Realizado** (control interno), 7 **Recibido**, 8 **Preparando despacho** (o "Enviado por …" si ya se despachó a provincia), 9 **Entregado**. En la app del cliente: 7 "Recibido por DC Marketing", 8 "Preparando tu entrega".
+
+Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marcan a mano** (botones "Ya lo recibí", "Preparando despacho", "Marcar entregado"); el rastreo automático no debe pasar de 6. Un pedido sin guía se puede marcar recibido (`o.rec`). La etapa de un pedido es la etapa mínima entre sus guías.
 
 ## WhatsApp (decisión tomada)
 
@@ -65,6 +67,17 @@ Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. L
 - Se rastrea por **número de guía** con **17TRACK** (API v2.2).
 - **Edge Function `rastrear-guias`** (Supabase) + **pg_cron `rastrear-guias`** cada 4 horas (minuto 7). No gasta uso de Claude. Toma las guías con menos de 7 etapas de pedidos en etapa 1–6, las registra en 17TRACK una sola vez (`guias_rastreo.registrada`, gasta cupo), consulta `gettrackinfo`, avanza las etapas sin retroceder (InfoReceived→2, PickedUp→3, Departure→4, Arrival→5, aduana tras llegar→6, AvailableForPickup/OutForDelivery/Delivered→7) con las fechas de 17TRACK, actualiza todos los pedidos que comparten la guía y recalcula `vista`. Guarda el último movimiento en `guias_rastreo` y el resumen en `rastreo_estado`. Máximo una corrida cada 20 min (`?forzar=1` la salta).
 - La clave va en el secreto **`TRACK17_KEY`** de Edge Functions (el dueño la escribe en Supabase; nunca en el código ni en el chat). Sin el secreto, la función responde "Falta el secreto TRACK17_KEY".
+
+## Pagos (decisión tomada)
+
+- Cada pedido guarda `pagos=[{m,f,por}]` (monto, fecha, quién) y `abonado` = la suma (se mantiene igual con `ponerPagos()`). Pedidos viejos sin `pagos` se leen con `pagosDe()` como un pago en la fecha del pedido.
+- Sección **Pagos** (`#numeros`): pestañas Pagos (todos por fecha, tipo Abono / Completó el pago / Pago completo), Por cliente (cada pedido con sus abonos; si ya no debe, se une en "Pago completo"), Deudas (solo quien debe, con Registrar pago y Recordar saldo) y Ganancia.
+- Registrar pedido de Temu tiene "Fecha del pedido" para pasar pedidos de meses anteriores.
+
+## Rastreo con PRS Delivery (en curso)
+
+- Temu entrega en Panamá con **PRS Delivery** (prsdelivery.com). Su página consulta `POST https://sealcargotrack.cloud/api/v2/prod/tracking` con `{"tracking":"GUIA"}`, sin clave ni captcha. Respuesta: `{isSuccess, trackingNumber, movements:[{code,timestamp,location,status,description}]}` (o formato `is_guia`).
+- Plan: cambiar `rastrear-guias` para usar PRS en vez de 17TRACK (17TRACK pide correo de empresa; TrackingMore cobra la API), cada hora, sin pasar de etapa 6. Falta una guía real para ver los códigos de movimiento.
 
 ## Diseño
 
