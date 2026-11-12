@@ -1,7 +1,19 @@
 {
   "admin": 28,
-  "cliente": 12,
+  "cliente": 13,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 28,
+      "cliente": 13,
+      "titulo": "Ruta completa y pagos más claros",
+      "admin_items": [],
+      "cliente_items": [
+        "La ruta ahora muestra las 9 etapas reales del envío con su ícono: comprado, empacando, salió, en vuelo, Panamá, aduana, en Dicyn Marketing, despacho y entregado. En el seguimiento puedes tocar cada punto para ver su fecha.",
+        "Mis pagos muestra lo que llevas pagado de cada pedido y su porcentaje: verde si está completo, amarillo si abonaste y suave si aún no pagas. Al entregarse y quedar pagado, pasa a Guardados.",
+        "En Guardados puedes desplegar cada pedido y ver su proceso y su pago."
+      ]
+    },
     {
       "fecha": "2026-11-12",
       "admin": 28,
