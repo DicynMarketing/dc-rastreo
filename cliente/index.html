@@ -115,6 +115,43 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 /* Mis pedidos */
 .olist{display:grid;gap:10px}
+.ppill{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.08);color:var(--card-mute)}
+.ppill.ok{background:rgba(23,144,94,.18);color:#4FD39A}.ppill.ab{background:rgba(215,169,91,.18);color:var(--signal)}.ppill.pend{background:rgba(255,255,255,.08);color:var(--card-mute)}
+.ctabs{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:#E6DDCC;border-radius:16px;padding:4px}
+.ctab-ind{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/3);border-radius:12px;background:var(--card);transform:translateX(calc(var(--x)*100%));transition:transform .35s cubic-bezier(.3,1.3,.5,1)}
+.ctabs button{position:relative;z-index:1;border:0;background:none;font:700 13px var(--f-body);color:var(--muted);padding:11px 4px;border-radius:12px;cursor:pointer;transition:color .25s}
+.ctabs button[aria-selected="true"]{color:var(--card-ink)}
+.ctabs button i{font-style:normal;font-size:11px;background:var(--signal);color:#1A1205;border-radius:999px;padding:1px 7px;margin-left:3px}
+.ctab-body{display:grid;gap:12px}
+.resumen{background:var(--card);color:var(--card-ink);border-radius:20px;padding:18px;display:grid;gap:14px}
+.res-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.res-top span{color:var(--card-mute);font-size:13px}
+.res-top b{font:800 26px var(--f-display);font-variant-numeric:tabular-nums}
+.res-bar{height:10px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+.res-bar i{display:block;height:100%;width:var(--w);border-radius:99px;background:linear-gradient(90deg,var(--signal),#4FD39A)}
+.res-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.res-row span{display:grid;gap:2px}.res-row small{color:var(--card-mute);font-size:12px}
+.res-row b{font:800 18px var(--f-display);font-variant-numeric:tabular-nums}
+.ok{color:#4FD39A}.due{color:var(--signal)}
+.pcard{background:var(--card);color:var(--card-ink);border-radius:18px;padding:14px;display:grid;gap:8px}
+.pc-h{display:flex;justify-content:space-between;align-items:center;gap:8px}.pc-h .ppill{margin:0}
+.pc-r{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--card-mute)}.pc-r b{color:var(--card-ink)}.pc-r .due b{color:var(--signal)}
+.pc-ab{display:grid;grid-template-columns:auto 1fr auto;gap:10px;font-size:12px;color:var(--card-mute);border-top:1px solid rgba(255,255,255,.08);padding-top:6px}.pc-ab b{color:var(--card-ink)}
+.hola{display:flex;align-items:center;gap:6px}.hola .nom{color:var(--signal);font-weight:700}.mano{display:inline-block;transform-origin:70% 80%}
+@media (prefers-reduced-motion:no-preference){
+ .rise .hola .nom{display:inline-block;animation:nomin .7s .15s cubic-bezier(.2,1.3,.4,1) both}
+ .rise .mano{animation:saluda 1.4s .6s ease-in-out both}
+ .rise .olist>*,.rise .resumen,.rise .ctabs,.rise .contact,.ctab-body.entra>*,.ctab-body.entra .olist>*{animation:rise .5s cubic-bezier(.2,.8,.2,1) both}
+ .rise .olist>:nth-child(1),.ctab-body.entra .olist>:nth-child(1){animation-delay:.18s}.rise .olist>:nth-child(2),.ctab-body.entra .olist>:nth-child(2){animation-delay:.26s}
+ .rise .olist>:nth-child(3),.ctab-body.entra .olist>:nth-child(3){animation-delay:.34s}.rise .olist>:nth-child(n+4),.ctab-body.entra .olist>:nth-child(n+4){animation-delay:.42s}
+ .rise .ctabs{animation-delay:.1s}.rise .contact{animation-delay:.45s}
+ .res-bar i{animation:llena 1.1s .25s cubic-bezier(.2,.8,.2,1) both}
+ .ocard .bar9 i.on{animation:pinta .4s cubic-bezier(.2,.8,.2,1) both}
+ .ocard .bar9 i:nth-child(2){animation-delay:.05s}.ocard .bar9 i:nth-child(3){animation-delay:.1s}.ocard .bar9 i:nth-child(4){animation-delay:.15s}.ocard .bar9 i:nth-child(5){animation-delay:.2s}
+ .ocard .bar9 i:nth-child(6){animation-delay:.25s}.ocard .bar9 i:nth-child(7){animation-delay:.3s}.ocard .bar9 i:nth-child(8){animation-delay:.35s}.ocard .bar9 i:nth-child(9){animation-delay:.4s}
+ @keyframes nomin{from{opacity:0;transform:translateY(8px) scale(.9)}}
+ @keyframes saluda{0%,100%{transform:rotate(0)}15%,45%{transform:rotate(18deg)}30%,60%{transform:rotate(-10deg)}75%{transform:rotate(8deg)}}
+ @keyframes llena{from{width:0}}
+ @keyframes pinta{from{transform:scaleX(0);opacity:.3}}
+}
 .ocard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--card);color:var(--card-ink);border:1px solid var(--card);border-radius:18px;padding:14px;text-decoration:none;transition:border-color .2s,transform .15s}
 .ocard:active{transform:scale(.99)}
 .ocard:hover{border-color:var(--signal)}
@@ -353,10 +390,29 @@ function tipHTML(){
   if(ios)return`<div class="tip"><span><b>Tenla como app</b><small>En Safari toca Compartir y luego “Agregar a inicio”.</small></span><button class="tx" data-tipx aria-label="Cerrar">×</button></div>`;
   return"";
 }
+/* Pago de un pedido: total, pagado y abonos. Solo lo que paga el cliente (nunca costos). */
+const $m=n=>"$"+(+n||0).toFixed(2);
+const falta=v=>v.pago?Math.max(0,+(v.pago.t-v.pago.p).toFixed(2)):0;
+function estPago(v){const P=v.pago;if(!P||!P.t)return null;const f=falta(v);
+  return f<=0?{c:"ok",t:"Pago completo"}:P.p>0?{c:"ab",t:`Abonado ${$m(P.p)} · falta ${$m(f)}`}:{c:"pend",t:`Pendiente ${$m(f)}`}}
+const pillPago=v=>{const e=estPago(v);return e?`<span class="ppill ${e.c}">${e.t}</span>`:""};
 function ocard(v){const ok=v.i===8;
   return`<a class="ocard ${ok?"ok":""}" href="#${v.code}"><span class="oico">${ok?IC.check:IC.box}</span>
     <span style="min-width:0"><span class="ost">${ESTADOS[v.i][0]}</span><span class="omet"><span class="mono">${v.code}</span>${cp(v.code)}<span>${hace(v.h[v.i])}</span></span>
-    <span class="bar9">${ESTADOS.map((_,k)=>`<i class="${k<=v.i?"on":""}"></i>`).join("")}</span></span>${IC.chev}</a>`}
+    <span class="bar9">${ESTADOS.map((_,k)=>`<i class="${k<=v.i?"on":""}"></i>`).join("")}</span>${pillPago(v)}</span>${IC.chev}</a>`}
+let tabCli=(()=>{try{return localStorage.getItem("dc-cli-tab")||"camino"}catch(e){return"camino"}})();
+function bloquePagos(lista){const con=lista.filter(v=>v.pago&&v.pago.t);
+  if(!con.length)return`<div class="empty-c">${IC.box}<b>Aún no hay pagos</b><p>Cuando registremos el precio de tus pedidos verás aquí cuánto llevas pagado.</p></div>`;
+  const T=con.reduce((a,v)=>a+v.pago.t,0),P=con.reduce((a,v)=>a+Math.min(v.pago.p,v.pago.t),0),F=Math.max(0,T-P),pct=T?Math.round(P/T*100):0;
+  return`<div class="resumen"><div class="res-top"><span>Total de tus pedidos</span><b data-cn="${T}">${$m(T)}</b></div>
+      <div class="res-bar"><i style="--w:${pct}%"></i></div>
+      <div class="res-row"><span><small>Pagado</small><b class="ok" data-cn="${P}">${$m(P)}</b></span><span><small>${F?"Te falta":"Estás al día"}</small><b class="${F?"due":"ok"}" data-cn="${F}">${$m(F)}</b></span></div></div>
+    <div class="olist">${con.map(v=>{const e=estPago(v),ab=(v.pago.ab||[]).filter(x=>x&&+x.m);return`<div class="pcard">
+      <div class="pc-h"><span class="mono">${v.code}</span><span class="ppill ${e.c}">${e.c==="ok"?"Pago completo":e.c==="ab"?"Abonado":"Pendiente"}</span></div>
+      <div class="pc-r"><span>Total <b>${$m(v.pago.t)}</b></span><span>Pagado <b>${$m(v.pago.p)}</b></span>${falta(v)?`<span class="due">Falta <b>${$m(falta(v))}</b></span>`:""}</div>
+      ${e.c==="ok"&&ab.length<2?"":ab.map(x=>`<div class="pc-ab"><span>${x.f?dia(x.f):""}</span><span>Abono</span><b>${$m(x.m)}</b></div>`).join("")}</div>`}).join("")}</div>`}
+function contarCli(root){if(reduce())return;root.querySelectorAll("[data-cn]").forEach(el=>{const n=+el.dataset.cn,t0=performance.now();if(!n)return;
+  (function f(t){const k=Math.min(1,(t-t0)/900),e=1-Math.pow(1-k,3);el.textContent=$m(n*e);if(k<1)requestAnimationFrame(f)})(t0)})}
 function inicio(anim){
   vistaActual="inicio";
   const r=miRegistro();if(!r)return bienvenida();
@@ -364,17 +420,21 @@ function inicio(anim){
   const {lista,encargos,quien,cargando,error}=misPedidos(),act=lista.filter(v=>v.i<8),hechos=lista.filter(v=>v.i===8);
   const h1=cargando?`Buscando tus <em>pedidos</em>…`:lista.length?(act.length?`Tienes <em>${act.length} ${act.length===1?"pedido":"pedidos"}</em> en camino`:`Todos tus pedidos <em>llegaron</em>`):`Aún no tienes <em>pedidos</em>`;
   const contactos=(quien?[quien]:Object.keys(EQUIPO));
-  app.innerHTML=`<div class="${anim?"rise":""}" style="display:flex;flex-direction:column;flex:1">
+  app.innerHTML=`<div class="${anim!==false?"rise":""}" style="display:flex;flex-direction:column;flex:1">
   <header class="hero pad grid-bg" style="padding-bottom:26px">
     <div class="brand"><div class="mark"><img src="${LOGO}" alt="">DC MARKETING</div></div>
-    <div class="greet"><p>Hola, ${esc(r.nombre)}</p><h1>${h1}</h1>
+    <div class="greet"><p class="hola">Hola, <span class="nom">${esc(r.nombre)}</span> <span class="mano" aria-hidden="true">👋</span></p><h1>${h1}</h1>
       ${act[0]?`<div class="last"><span class="pulse"></span>Último movimiento: ${CORTO[act[0].i]} · ${hace(act[0].h[act[0].i])}</div>`:""}</div>
   </header>
   <main class="sheet pad">
     ${tipHTML()}
     ${encargos?`<div class="encargo">${IC.cart}<span>Tienes ${encargos===1?"un encargo anotado":`${encargos} encargos anotados`}. Te avisamos en cuanto lo compremos.</span></div>`:""}
-    ${act.length?`<section><h2 class="sec-t">En camino</h2><div class="olist">${act.map(ocard).join("")}</div></section>`:""}
-    ${hechos.length?`<section><h2 class="sec-t">Entregados</h2><div class="olist">${hechos.map(ocard).join("")}</div></section>`:""}
+    ${lista.length?`<div class="ctabs" role="tablist"><span class="ctab-ind" style="--x:${["camino","pagos","guardados"].indexOf(tabCli)}"></span>
+      <button role="tab" data-ctab="camino" aria-selected="${tabCli==="camino"}">En camino${act.length?` <i>${act.length}</i>`:""}</button>
+      <button role="tab" data-ctab="pagos" aria-selected="${tabCli==="pagos"}">Mis pagos</button>
+      <button role="tab" data-ctab="guardados" aria-selected="${tabCli==="guardados"}">Guardados${hechos.length?` <i>${hechos.length}</i>`:""}</button></div>
+    <section class="ctab-body" id="ctab-body">${tabCli==="pagos"?bloquePagos(lista):tabCli==="guardados"?(hechos.length?`<p class="note">Pedidos que ya recibiste. Quedan guardados aquí.</p><div class="olist">${hechos.map(ocard).join("")}</div>`:`<div class="empty-c">${IC.check}<b>Nada guardado todavía</b><p>Cuando recibas un pedido se guarda aquí.</p></div>`)
+      :(act.length?`<div class="olist">${act.map(ocard).join("")}</div>`:`<div class="empty-c">${IC.check}<b>Todo entregado</b><p>No tienes pedidos en camino. Mira tus pedidos recibidos en “Guardados”.</p></div>`)}</section>`:""}
     ${error?`<div class="encargo">${IC.box}<span>Sin conexión. Mostramos lo último que vimos; se actualiza solo cuando vuelva el internet.</span></div>`:""}
     ${cargando?`<div class="empty-c"><span class="pulse" style="width:12px;height:12px"></span><p>Cargando…</p></div>`:""}
     ${!lista.length&&!cargando?`<div class="empty-c">${IC.box}<b>Aún no tienes pedidos</b><p>Cuando hagamos tu pedido en Temu aparece aquí con su seguimiento, paso a paso.</p></div>`:""}
@@ -385,7 +445,10 @@ function inicio(anim){
     <div class="foot"><button class="linkbtn" data-salir>¿No eres ${esc(r.nombre)}? Cambiar nombre</button><a class="linkbtn" href="#codigo">Buscar por código</a></div>
     <p class="note" style="text-align:center">Versión ${APP_VERSION} · <button class="linkbtn" data-novedades>Novedades</button></p>
   </main></div>`;
+  contarCli(app);
 }
+document.addEventListener("click",e=>{const b=e.target.closest("[data-ctab]");if(!b)return;tabCli=b.dataset.ctab;try{localStorage.setItem("dc-cli-tab",tabCli)}catch(x){}
+  inicio(false);const c=$("#ctab-body");if(c&&!reduce()){c.classList.add("entra")}});
 
 /* ---------- Seguimiento de un pedido ---------- */
 function rutaSVG(i){
@@ -435,6 +498,7 @@ async function seguimiento(code){
         <span class="n">${k<i?"✓":k+1}</span><div><div class="t">${e[0]}</div>${k===i?`<div class="h">${esc(pista(v,k))}</div>`:""}</div>
         <span class="when">${v.h[k]?dia(v.h[k]):""}</span></li>`).join("")}</ol>
     </section>
+    ${v.pago&&v.pago.t?`<section><h2 class="sec-t">Tu pago</h2>${bloquePagos([v]).replace(/<div class="resumen">[\s\S]*?<\/div><\/div>\s*/,"")}</section>`:""}
     <section><h2 class="sec-t">Tu contacto</h2>
       <div class="contact"><div class="av">${quien.nombre[0]}</div><b>${quien.nombre} · DC Marketing</b><span class="num">${fmtTel(quien.tel)}${cp(quien.tel,"teléfono")}</span>
         <div class="row"><a class="btn wa" href="${wa}" target="_blank" rel="noopener">Escribir por WhatsApp</a></div></div>
@@ -483,7 +547,7 @@ setInterval(()=>{if(document.visibilityState==="visible"&&vistaActual==="inicio"
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="cliente",APP_VERSION=7;
+const APP="cliente",APP_VERSION=8;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

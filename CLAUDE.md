@@ -96,7 +96,7 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 ## App del cliente: entrar con nombre y vincular (decisión tomada)
 
 - El cliente **no crea cuenta**: al abrir la app escribe **Nombre** y **Apellido** y toca **Iniciar** (con animación del paquete recorriendo la ruta). Queda recordado en ese teléfono.
-- Después ve **Mis pedidos**: "Aún no tienes pedidos", sus pedidos en camino y entregados, encargos anotados y su contacto. Tocando uno ve el seguimiento. Nunca ve artículos ni precios.
+- Después ve **Mis pedidos** con pestañas **En camino · Mis pagos · Guardados** (`tabCli`, `localStorage` `dc-cli-tab`): pedidos en camino, **Mis pagos** (total, pagado, falta, barra y cada pedido con sus abonos y fecha: Pago completo / Abonado / Pendiente) y **Guardados** (los entregados). Cada tarjeta lleva su estado de pago y el seguimiento tiene "Tu pago". Nunca ve artículos ni costos: la `vista` trae `pago={t,p,ab:[{m,f}]}` (lo que paga el cliente; el dueño aprobó mostrarlo), armada igual en `vistaCli()` y en `rastrear-guias`. Al entrar anima el nombre (con saludo 👋), pestañas, tarjetas, barras y totales que cuentan.
 - Cada registro llega al panel (Inicio → "Por hacer" y Clientes → "En la app de clientes"). Diego o Cinthya lo **vinculan** con el cliente de su lista, que puede tener otro nombre escrito. El panel sugiere los parecidos. También se puede crear un cliente nuevo con ese nombre.
 - **Link personal**: en la ficha del cliente, "Enviar link de la app" manda por WhatsApp `cliente/?i=CÓDIGO&n=Nombre&q=quien`. Al abrirlo el nombre ya viene escrito y el registro queda **vinculado solo**. En la ficha se ve con qué nombre entró y se puede desvincular.
 - **Al vincular** (a mano o con el link personal), el cliente **toma el nombre con el que se registró en la app** (`nombreDeApp()`), salvo que ese nombre ya lo tenga otro cliente.
@@ -123,7 +123,7 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
    - Tablas sugeridas: `clientes`, `pedidos_temu` (número único), `pedidos` (uno por cliente dentro de un pedido de Temu, con código DC), `articulos`, `guias`, `eventos_guia`, `abonos`.
    - Seguridad (RLS): el panel con inicio de sesión o PIN para Diego y Cinthya. La app del cliente solo puede leer un pedido por su código, y sin artículos ni precios de costo.
 3. ~~Rastreo automático~~ (hecho con PRS Delivery, ver "Seguimiento de guías"). Si Temu usa otra paquetería, agregar su consulta en `rastrear-guias`.
-4. **App del cliente leyendo datos reales**: ya lee los pedidos del panel (mismo navegador), muestra varios paquetes y las etapas 7 a 9. Falta leerlos de Supabase. Mostrar el saldo pendiente solo si el dueño lo aprueba.
+4. ~~App del cliente leyendo datos reales~~ (hecho con Supabase; muestra pagos y saldo, aprobado por el dueño).
 5. **Editar artículos** de un pedido ya guardado. Hoy no se puede.
 6. ~~Instalable en el teléfono~~ (manifiesto e íconos hechos). Falta: logo original grande para íconos más nítidos, y modo sin conexión (service worker) si se quiere.
 7. **Dominio propio** (opcional). Hoy el link de seguimiento se arma solo desde donde está publicado el panel (`LINK_BASE` = `../cliente/#` relativo al panel), así que en GitHub Pages ya funciona. Si se compra dominio, cambiar `LINK_BASE` en `panel/index.html`.
