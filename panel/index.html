@@ -1237,16 +1237,20 @@ function parseTemu(txt){
   const plano=txt.replace(/\s+/g,"");
   const mpo=plano.match(/PO[-–—]?(\d{3})[-–—]?(\d{10,20})/i),po=mpo?`PO-${mpo[1]}-${mpo[2]}`:"";
   const guias=[...new Set((plano.match(/PRSPTY\d{8,14}/gi)||[]).map(g=>g.toUpperCase()))];
+  const cand=[];
   for(let i=0;i<L.length;i++){const t=esTitulo(L[i]);if(!t)continue;
-    const ps=[t.p];let q=1;
+    const ps=[t.p];let q=1,conQ=false;
     for(let j=i+1;j<Math.min(L.length,i+5);j++){const l=L[j];
       if(/promoci/i.test(l)){const m=l.match(PRECIO_FIN);if(m)ps.push(aNum(m[1]));continue}
       if(esTitulo(l))break;
       const mp=l.match(SOLO_PRECIO);if(mp){ps.push(aNum(mp[1]));continue}
-      const mq=l.match(QTY);if(mq){q=+mq[1];break}}
+      const mq=l.match(QTY);if(mq){q=+mq[1];conQ=true;break}}
     const costo=Math.min(...ps),venta=Math.max(...ps);
-    out.push({d:t.d.slice(0,90),costo,precio:venta>costo?venta:0,q:Math.min(q,20)})}
-  return{items:out,po,guias}}
+    cand.push({d:t.d.slice(0,90),costo,precio:venta>costo?venta:0,q:Math.min(q,20),conQ})}
+  // Si la captura muestra cantidades (×1), solo cuentan los que tienen la suya; si no muestra ninguna, cuentan todos.
+  const conQ=cand.filter(x=>x.conQ);out.push(...(conQ.length?conQ:cand));
+  const mt=txt.match(/(\d{1,3})\s*art[ií]culos?/i),total=mt?+mt[1]:0;
+  return{items:out,po,guias,total}}
 /* Las fotos de los productos (a la izquierda) confunden al lector: los artículos se leen sin ese tercio. */
 async function sinFotos(file){try{const bm=await createImageBitmap(file),x=Math.round(bm.width*.28),c=document.createElement("canvas");
   c.width=bm.width-x;c.height=bm.height;c.getContext("2d").drawImage(bm,x,0,c.width,c.height,0,0,c.width,c.height);return c}catch(e){return file}}
@@ -1257,14 +1261,14 @@ async function leerCapturas(files){
   catch(e){const m=document.getElementById("ocr-msg");if(m)m.textContent="No se pudo cargar el lector. Revisa tu internet e intenta de nuevo.";return}
   nb.items=nb.items.filter(x=>x.d.trim()||String(x.costo).trim()||String(x.precio).trim());
   // Cada captura por separado. Si el mismo artículo sale en dos capturas (porque se repiten al deslizar), cuenta una vez.
-  const lect=Date.now(),cuenta={},datos={};let po="",gs=[];
+  const lect=Date.now(),cuenta={},datos={};let po="",gs=[],totalTemu=0;
   for(let i=0;i<files.length;i++){const msg=document.getElementById("ocr-msg");if(msg)msg.textContent=`Leyendo captura ${i+1} de ${files.length}…`;
     try{const{data:{text}}=await ocrWorker.recognize(await sinFotos(files[i]));const r=parseTemu(text),aqui={};
       if(!r.items.length||(/PO[-\s]?\d{3}|PRS|PTY|pedido/i.test(text)&&!r.po&&!r.guias.length)){const{data:{text:todo}}=await ocrWorker.recognize(files[i]);const r2=parseTemu(todo);
         if(!r.items.length)r.items=r2.items;r.po=r.po||r2.po;r.guias=[...r.guias,...r2.guias]}
       r.items.forEach(x=>{const k=x.d.toLowerCase()+"|"+x.costo;aqui[k]=(aqui[k]||0)+x.q;datos[k]=x});
       Object.entries(aqui).forEach(([k,v])=>cuenta[k]=Math.max(cuenta[k]||0,v));
-      po=po||r.po;gs.push(...r.guias)}catch(e){}}
+      po=po||r.po;gs.push(...r.guias);totalTemu=Math.max(totalTemu,r.total||0)}catch(e){}}
   let n=0;
   Object.entries(cuenta).forEach(([k,v])=>{const x=datos[k],ya=nb.items.filter(y=>(y.d.toLowerCase()+"|"+num(y.costo))===k).length;
     for(let j=ya;j<v;j++){nb.items.push({d:x.d,costo:x.costo.toFixed(2),precio:x.precio?x.precio.toFixed(2):"",c:nb.clientes.length===1?0:"",g:"",l:lect});n++}});
@@ -1273,6 +1277,8 @@ async function leerCapturas(files){
   [...new Set(gs)].forEach(g=>{if(nb.guias.includes(g))return;const v=nb.guias.findIndex(x=>!x.trim());if(v>=0)nb.guias[v]=g;else nb.guias.push(g)});
   if(!nb.items.length)nb.items.push(nbArt());
   hoja.remove();renderNB(true);
+  const leidos=Object.values(cuenta).reduce((a,v)=>a+v,0);
+  if(totalTemu&&leidos!==totalTemu){setTimeout(()=>alert(`Temu dice ${totalTemu} artículos y leí ${leidos}. Revisa la lista: quita los que sobren con la × o agrega los que falten con “Artículo a mano”.`),400);return}
   toast(n?`Leí ${n} artículo${n>1?"s":""}${po?" y el número de pedido":""}. Revisa la lista: puedes quitar uno por uno o deshacer la lectura.`:"No encontré artículos con precio. Prueba con capturas donde se vean el nombre y el precio.")}
 function hojaLeer(html){document.getElementById("upd")?.remove();const d=document.createElement("div");d.className="upd";d.id="upd";
   d.innerHTML=`<div class="upd-bg"></div><div class="upd-sheet" role="dialog" aria-modal="true" aria-labelledby="ocr-t"><div class="upd-grab"></div><p class="upd-k">Leer captura de Temu</p><h2 id="ocr-t">Leyendo tus capturas</h2>${html}</div>`;
@@ -1732,7 +1738,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=19;
+const APP="admin",APP_VERSION=20;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
