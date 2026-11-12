@@ -124,7 +124,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{ou
 .search{flex:1 1 200px;min-width:0;position:relative}
 .search input{width:100%;box-sizing:border-box;padding:11px 12px 11px 38px}
 .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
-input,select{font:500 16px var(--f-body);color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:12px;padding:11px 12px;min-width:0}
+input,select,textarea{font:500 16px var(--f-body);color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:12px;padding:11px 12px;min-width:0}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .chip{flex:none;border:1px solid var(--line);background:none;color:var(--muted);font:600 12px var(--f-body);padding:6px 11px;border-radius:999px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -297,6 +297,13 @@ details.cli summary::-webkit-details-marker{display:none}
 .nb-bar .btn{justify-content:center}
 .arts{display:grid;gap:8px}
 .ec-list{display:grid;gap:6px;max-height:46vh;overflow:auto}
+.sug-wrap{position:relative;display:grid;gap:6px}
+.sug{position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:20;display:grid;gap:4px;background:var(--panel);border:1px solid var(--gold);border-radius:14px;padding:6px;box-shadow:0 14px 30px rgba(0,0,0,.45)}
+.sug[hidden]{display:none}
+.sug button{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;text-align:left;background:none;border:0;border-radius:10px;padding:8px;color:var(--ink);font:inherit;cursor:pointer}
+.sug button:hover,.sug button:focus{background:var(--panel-2)}
+.sug .cfg-tx small{color:var(--muted)}
+#f-nota{width:100%;box-sizing:border-box;font:500 16px var(--f-body);line-height:1.5;resize:vertical;min-height:110px}
 .upd label.f{display:grid;gap:6px;font-size:13px;font-weight:700;color:var(--u-mute)}
 .upd label.f input,.upd label.f select{width:100%;box-sizing:border-box;font-size:16px}
 .ec-it{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:10px;align-items:center;background:var(--u-card);border:1px solid var(--u-line);border-radius:14px;padding:10px;cursor:pointer}
@@ -628,7 +635,7 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
               <button type="button" data-p="cinthya" aria-pressed="false"><span class="av">C</span><span>Cinthya<small>6262-7310</small></span></button>
             </div></div>
           <div class="fgrid">
-            <label class="f" for="f-nombre">Cliente<input id="f-nombre" list="dl-clientes" placeholder="María González" autocomplete="off"></label>
+            <div class="f sug-wrap"><label for="f-nombre">Cliente</label><input id="f-nombre" placeholder="Escribe parte del nombre" autocomplete="off"><div class="sug" id="f-sug" hidden></div></div>
             <label class="f" for="f-tel">WhatsApp del cliente<input id="f-tel" placeholder="6123-4567" inputmode="tel" autocomplete="off"></label>
             <datalist id="dl-clientes"></datalist><datalist id="dl-guias"></datalist>
           </div>
@@ -641,15 +648,18 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
             <div class="seg" id="seg-compra" hidden><button type="button" data-cmp="si" aria-pressed="true">Sí, tengo la guía</button><button type="button" data-cmp="no" aria-pressed="false">Por comprar</button></div>
             <div class="guias" id="guias"></div>
             <button type="button" class="btn sm" id="add-guia" style="justify-self:start"><svg><use href="#i-plus"/></svg>Otra guía (Temu lo dividió)</button>
-            <label class="f" for="f-nota" id="nota-wrap" hidden>Qué hay que comprar (solo lo ves tú)<input id="f-nota" placeholder="Ej. 2 fundas iPhone 13, talla M negra" autocomplete="off"></label>
+            <div class="f" id="nota-wrap" hidden><label for="f-nota">Qué hay que comprar (solo lo ves tú) · un artículo por línea</label>
+              <textarea id="f-nota" rows="4" placeholder="Ej. Funda iPhone 13 negra&#10;Collar con colgante" autocomplete="off"></textarea>
+              <button type="button" class="btn sm gold" data-encleer style="justify-self:start"><svg><use href="#i-cam"/></svg>Leer captura</button></div>
           </div>
           <div class="block"><span class="f-lab">Dinero</span>
             <div class="money">
-              <label for="f-costo">Costo en Temu<input id="f-costo" inputmode="decimal" placeholder="0.00"></label>
-              <label for="f-precio">Le cobras<input id="f-precio" inputmode="decimal" placeholder="0.00"></label>
-              <label for="f-adel">Adelanto recibido<input id="f-adel" inputmode="decimal" placeholder="0.00"></label>
-              <label>Ganancia<input id="f-gan" readonly tabindex="-1" value="$0.00"></label>
+              <label for="f-costo" hidden>Costo en Temu<input id="f-costo" inputmode="decimal" placeholder="0.00"></label>
+              <label for="f-precio" style="grid-column:1/-1">Total estimado para el cliente<input id="f-precio" inputmode="decimal" placeholder="0.00"></label>
+              <label for="f-adel" hidden>Adelanto recibido<input id="f-adel" inputmode="decimal" placeholder="0.00"></label>
+              <label hidden>Ganancia<input id="f-gan" readonly tabindex="-1" value="$0.00"></label>
             </div>
+            <p class="note">Es un estimado: los precios reales los pones cuando lo compras y lo pasas a un pedido de Temu.</p>
             <p class="note" id="envio-note" hidden>La tarifa de Ferguson o Servientrega la pones al despachar, y se suma al saldo del cliente.</p>
           </div>
           <div class="preview"><div><div class="note">Código que verá el cliente</div><div class="code" id="newcode">DC-0000</div></div>
@@ -1293,12 +1303,29 @@ function hojaLeer(html){document.getElementById("upd")?.remove();const d=documen
   d.innerHTML=`<div class="upd-bg"></div><div class="upd-sheet" role="dialog" aria-modal="true" aria-labelledby="ocr-t"><div class="upd-grab"></div><p class="upd-k">Leer captura de Temu</p><h2 id="ocr-t">Leyendo tus capturas</h2>${html}</div>`;
   document.body.appendChild(d);return d}
 const ocrFile=document.createElement("input");ocrFile.type="file";ocrFile.accept="image/*";ocrFile.multiple=true;ocrFile.hidden=true;document.body.appendChild(ocrFile);
-ocrFile.addEventListener("change",()=>{const f=[...ocrFile.files];ocrFile.value="";leerCapturas(f)});
+let ocrDestino="nb";
+ocrFile.addEventListener("change",()=>{const f=[...ocrFile.files];ocrFile.value="";ocrDestino==="enc"?leerEncargo(f):leerCapturas(f)});
+async function leerEncargo(files){if(!files.length)return;
+  const hoja=hojaLeer(`<p class="ocr-st"><span class="cg-bar"><i></i></span><span id="ocr-msg">Preparando el lector…</span></p>`);
+  try{await cargarOCR();if(!ocrWorker)ocrWorker=await Tesseract.createWorker("spa")}
+  catch(e){const m=document.getElementById("ocr-msg");if(m)m.textContent="No se pudo cargar el lector. Revisa tu internet e intenta de nuevo.";return}
+  const cuenta={},nom={};
+  for(let i=0;i<files.length;i++){const msg=document.getElementById("ocr-msg");if(msg)msg.textContent=`Leyendo captura ${i+1} de ${files.length}…`;
+    try{let{data:{text}}=await ocrWorker.recognize(await sinFotos(files[i]));let r=parseTemu(text);
+      if(!r.items.length){({data:{text}}=await ocrWorker.recognize(files[i]));r=parseTemu(text)}
+      const aqui={};r.items.forEach(x=>{const k=x.d.toLowerCase();aqui[k]=(aqui[k]||0)+x.q;nom[k]=x.d});
+      Object.entries(aqui).forEach(([k,v])=>cuenta[k]=Math.max(cuenta[k]||0,v))}catch(e){}}
+  hoja.remove();
+  const lineas=Object.entries(cuenta).flatMap(([k,v])=>Array(v).fill(nom[k]));
+  if(!lineas.length)return toast("No encontré artículos. Prueba con capturas donde se vean el nombre y el precio.");
+  const ta=$("#f-nota"),ya=ta.value.trim();ta.value=(ya?ya+"\n":"")+lineas.join("\n");
+  toast(`Agregué ${lineas.length} artículo${lineas.length>1?"s":""} a la lista. Puedes borrar o corregir líneas.`)}
 const deshacerLectura=()=>{if(!nb?.lect)return 0;const n=nb.items.filter(x=>x.l===nb.lect.id).length;nb.items=nb.items.filter(x=>x.l!==nb.lect.id);nb.lect=null;if(!nb.items.length)nb.items.push(nbArt());return n};
-document.addEventListener("click",e=>{const b=e.target.closest("[data-nbleer],[data-lectdes],[data-lectotra],[data-artsborrar]");if(!b||!nb)return;const d=b.dataset;
-  if("nbleer" in d)ocrFile.click();
+document.addEventListener("click",e=>{if(e.target.closest("[data-encleer]")){ocrDestino="enc";ocrFile.click();return}
+  const b=e.target.closest("[data-nbleer],[data-lectdes],[data-lectotra],[data-artsborrar]");if(!b||!nb)return;const d=b.dataset;
+  if("nbleer" in d){ocrDestino="nb";ocrFile.click()}
   else if("lectdes" in d){const n=deshacerLectura();renderNB();toast(`Quité los ${n} artículos de esa lectura`)}
-  else if("lectotra" in d){deshacerLectura();renderNB();ocrFile.click()}
+  else if("lectotra" in d){deshacerLectura();renderNB();ocrDestino="nb";ocrFile.click()}
   else if("artsborrar" in d){if(!confirm(`¿Borrar los ${nb.items.filter(lleno).length} artículos de la lista?`))return;nb.items=[nbArt()];nb.lect=null;renderNB();toast("Lista de artículos vacía")}});
 
 /* ---------- Clientes del pedido: se eligen de la lista de clientes registrados ---------- */
@@ -1344,7 +1371,8 @@ let nb=null,regModo="temu";
 function nbNuevo(desdeCarrito){
   nb={numero:"",fecha:hoyISO(),guias:[""],clientes:[],items:[]};
   (desdeCarrito||[]).forEach(id=>{const o=find(id),c=cli(o);nb.clientes.push({nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",pago:num(o.abonado)?"adelanto":"nada",desde:o.id});
-    nb.items.push({d:o.nota||"",costo:"",precio:"",c:nb.clientes.length-1})});
+    const lin=String(o.nota||"").split(/\n/).map(x=>x.trim()).filter(Boolean);
+    (lin.length?lin:[""]).forEach(d=>nb.items.push({d,costo:"",precio:"",c:nb.clientes.length-1,g:""}))});
   if(!nb.items.length)nb.items.push(nbArt());
 }
 const nbArt=()=>({d:"",costo:"",precio:"",c:"",g:""});
@@ -1486,6 +1514,15 @@ function renderRegistrar(){
 }
 function calcGan(){$("#f-gan").value=$$m(num($("#f-precio").value)-num($("#f-costo").value))}
 $("#f-prov").innerHTML=PROVINCIAS.map(p=>`<option>${p}</option>`).join("");
+/* Sugerencias de clientes registrados al escribir parte del nombre */
+function sugerir(){const q=norm($("#f-nombre").value),box=$("#f-sug");if(!q){box.hidden=true;return}
+  const L=D.C.filter(c=>norm(c.nombre).split(" ").some(w=>w.startsWith(q))||norm(c.nombre).includes(q)).slice(0,6);
+  if(!L.length||(L.length===1&&norm(L[0].nombre)===q)){box.hidden=true;return}
+  box.innerHTML=L.map(c=>`<button type="button" data-sugc="${c.id}"><span class="ec-av">${esc(c.nombre[0])}</span><span class="cfg-tx"><b>${esc(c.nombre)}</b><small>${c.tel?fmtTel(c.tel):"Sin WhatsApp"} · ${c.ent==="envio"?esc(c.prov):"Aguadulce"}</small></span></button>`).join("");box.hidden=false}
+function usarCliente(c){$("#f-nombre").value=c.nombre;$("#f-tel").value=fmtTel(c.tel);fEnt=c.ent||"local";pick=atiende(c);if(c.prov)$("#f-prov").value=c.prov;$("#f-sug").hidden=true;renderRegistrar();toast("Cliente registrado: datos cargados")}
+$("#f-nombre").addEventListener("input",sugerir);
+$("#f-nombre").addEventListener("blur",()=>setTimeout(()=>{const b=$("#f-sug");if(b)b.hidden=true},200));
+document.addEventListener("pointerdown",e=>{const b=e.target.closest("[data-sugc]");if(!b)return;e.preventDefault();const c=D.C.find(x=>x.id===b.dataset.sugc);if(c)usarCliente(c)});
 $("#f-nombre").addEventListener("change",()=>{const c=D.C.find(c=>c.nombre.toLowerCase()===$("#f-nombre").value.trim().toLowerCase());
   if(c){$("#f-tel").value=fmtTel(c.tel);fEnt=c.ent;pick=atiende(c);if(c.prov)$("#f-prov").value=c.prov;renderRegistrar();toast("Cliente conocido: datos cargados")}});
 ["#f-precio","#f-costo"].forEach(s=>$(s).addEventListener("input",calcGan));
@@ -1703,7 +1740,8 @@ document.addEventListener("click",e=>{
   else if("rcok" in d){guardarRegCliente()}
   else if(d.nbcart){const o=find(d.nbcart),c=cli(o);const blank=nb.clientes.length===1&&!nb.clientes[0].nombre;
     const k={nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",pago:num(o.abonado)?"adelanto":"nada",desde:o.id};
-    if(blank)nb.clientes[0]=k;else nb.clientes.push(k);nb.items=nb.items.filter(lleno);nb.items.push({d:o.nota||"",costo:"",precio:"",c:blank?0:nb.clientes.length-1});renderNB()}
+    if(blank)nb.clientes[0]=k;else nb.clientes.push(k);nb.items=nb.items.filter(lleno);
+    const lin=String(o.nota||"").split(/\n/).map(x=>x.trim()).filter(Boolean);(lin.length?lin:[""]).forEach(t=>nb.items.push({d:t,costo:"",precio:"",c:blank?0:nb.clientes.length-1,g:""}));renderNB()}
   else if(t.id==="nb-addg"){nb.guias.push("");renderNB();document.querySelector(`[data-nbg="${nb.guias.length-1}"]`)?.focus()}
   else if(d.nbgdel){const gi=+d.nbgdel;nb.guias.splice(gi,1);nb.items.forEach(x=>{if(x.g===gi)x.g="";else if(x.g!==""&&x.g>gi)x.g--});renderNB()}
   else if("logout" in d){if(confirm("¿Cerrar sesión en este teléfono?"))sb?.auth.signOut().finally(()=>location.reload())}
@@ -1791,7 +1829,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=21;
+const APP="admin",APP_VERSION=22;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
