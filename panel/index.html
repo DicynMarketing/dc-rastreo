@@ -47,7 +47,7 @@ nav.rail{display:none}
 .navlist a[aria-current="page"]{color:var(--ink)}
 .navlist a svg{width:20px;height:20px;flex:none}
 .navlist a[aria-current="page"] svg{color:var(--gold)}
-.badge{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--gold);color:var(--gold-ink);font-size:11px;font-weight:800;display:grid;place-items:center}
+.badge{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#E5484D;color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;box-sizing:border-box}
 .badge[hidden]{display:none}
 
 nav.dock{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:20;display:flex;gap:4px;padding:6px;border-radius:22px;background:rgba(8,9,12,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);box-shadow:0 18px 40px rgba(0,0,0,.45)}
@@ -57,7 +57,8 @@ nav.dock{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + e
 .dock a[aria-current="page"]{color:var(--gold-ink);background:var(--gold)}
 .dock a[aria-current="page"] svg{transform:translateY(-1px) scale(1.08)}
 .dock a.plus{width:56px}
-.dock .badge{position:absolute;top:2px;right:14px;margin:0;border:2px solid var(--panel)}
+.dock .badge{position:absolute;top:1px;left:calc(50% + 5px);right:auto;margin:0;min-width:18px;height:18px;padding:0 4px;font-size:10px;line-height:1;border:2px solid #0B0D12;box-shadow:0 2px 8px rgba(229,72,77,.45);z-index:2}
+@media (prefers-reduced-motion:no-preference){.dock .badge:not([hidden]){animation:badgeIn .45s cubic-bezier(.2,1.6,.4,1) both}@keyframes badgeIn{from{transform:scale(0)}}}
 
 /* Contenido */
 main{min-width:0;padding-block:20px 120px;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
@@ -179,7 +180,7 @@ section[data-view]{display:grid;grid-template-columns:minmax(0,1fr);gap:26px}
 :root{--red:#F07A6A;--red-soft:rgba(240,122,106,.12)}
 .dock a{width:62px}
 .dock a.plus{width:54px}
-.dock .badge{right:8px}
+
 .kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 @media (min-width:700px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .kpi{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:4px;text-align:left;color:inherit;font:inherit}
@@ -1904,7 +1905,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=28;
+const APP="admin",APP_VERSION=29;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

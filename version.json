@@ -1,7 +1,17 @@
 {
-  "admin": 28,
+  "admin": 29,
   "cliente": 13,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 29,
+      "cliente": 13,
+      "titulo": "Aviso de Inicio más limpio",
+      "admin_items": [
+        "El número de cosas por hacer en Inicio ahora es un circulito rojo en la esquina del ícono, sin tapar el botón."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 28,
