@@ -1,7 +1,20 @@
 {
-  "admin": 17,
+  "admin": 18,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 18,
+      "cliente": 7,
+      "titulo": "Corregir lo leído de las capturas",
+      "admin_items": [
+        "Después de leer capturas sale “Deshacer lectura” (quita todo lo de esa lectura) y “Volver a leer”. También hay “Borrar todos” y la × para quitar uno por uno.",
+        "Si el artículo trae dos precios, el más alto se pone en “Le cobras” y el más bajo en “Costo Temu”.",
+        "Si dice ×2 (o más), se agregan como artículos separados, uno por unidad.",
+        "Si el mismo artículo sale en dos capturas, se cuenta una sola vez."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 17,

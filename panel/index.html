@@ -296,6 +296,10 @@ details.cli summary::-webkit-details-marker{display:none}
 .nb-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .nb-bar .btn{justify-content:center}
 .arts{display:grid;gap:8px}
+.lect-bar{display:grid;gap:8px;background:rgba(215,169,91,.1);border:1px solid rgba(215,169,91,.4);border-radius:14px;padding:10px 12px;font-size:13px}
+.lect-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.lect-btns .btn{justify-content:center}
+.arts-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.linkbtn.red{color:var(--red);font-weight:700;background:none;border:0;cursor:pointer;font-size:13px;padding:6px 0}
 .art{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:10px;display:grid;gap:8px;transition:border-color .2s}
 .art.sin{border-color:rgba(215,169,91,.55)}
 .art-top{display:grid;grid-template-columns:auto minmax(0,1fr) 30px;gap:8px;align-items:center}
@@ -1217,19 +1221,24 @@ const PRECIO=/^(.*?)[\s:]*(?:US)?[$S§]\s?(\d{1,4}[.,]\d{2})\s*$/;
 const PRECIO2=/^(.*?)(?:\.{2,}|…)\s*(?:US)?[$S§]?\s?(\d{1,4}[.,]\d{2})\s*$/;  // a veces el lector no ve el "$"
 const limpiar=d=>d.replace(/(\.{2,}|…)\s*$/,"").replace(/^(\S{1,2}\s+){1,3}(?=\S{3,})/,"").trim();  // quita letras sueltas de las fotos
 const QTY=/(?:^|\s)[x×X]\s?(\d{1,3})\s*$/;
+const PRECIOS=/(?:US)?[$S§]\s?(\d{1,4}[.,]\d{2})/g;
 function parseTemu(txt){
   const L=txt.split(/\n/).map(x=>x.replace(/[|]/g," ").replace(/\s+/g," ").trim()).filter(Boolean),out=[];
   const plano=txt.replace(/\s+/g,"");
   const mpo=plano.match(/PO[-–—]?(\d{3})[-–—]?(\d{10,20})/i),po=mpo?`PO-${mpo[1]}-${mpo[2]}`:"";
   const guias=[...new Set((plano.match(/PRSPTY\d{8,14}/gi)||[]).map(g=>g.toUpperCase()))];
+  const precios=l=>[...l.matchAll(PRECIOS)].map(m=>+m[1].replace(",","."));
   for(let i=0;i<L.length;i++){const m=L[i].match(PRECIO)||L[i].match(PRECIO2);if(!m)continue;
-    let d=limpiar(m[1]);
-    if(d.length<3){const pr=L[i-1]||"";if(PRECIO.test(pr)||NO_ART.test(pr))continue;d=limpiar(pr)}
-    if(d.length<3||NO_ART.test(d))continue;
+    let d=limpiar(m[1].replace(PRECIOS,""));
+    if(d.length<3){const pr=L[i-1]||"";if(PRECIO.test(pr)||PRECIO2.test(pr)||NO_ART.test(pr))continue;d=limpiar(pr)}
+    if(d.length<3||NO_ART.test(d)||!/[a-záéíóúñ]{3}/i.test(d))continue;
+    // todos los precios de la línea y, si la siguiente solo trae otro precio (el tachado), también ese
+    let ps=precios(L[i]);if(!ps.length)ps=[+m[2].replace(",",".")];
+    const sig=L[i+1]||"";if(/^[^a-záéíóúñ]*[$S§]\s?\d/i.test(sig)&&!QTY.test(sig))ps.push(...precios(sig));
     let q=1;
-    for(let j=i+1;j<Math.min(L.length,i+3);j++){const l=L[j];if(PRECIO.test(l))break;const mq=l.match(QTY);if(mq){q=+mq[1];break}}
-    const p=+m[2].replace(",",".");
-    out.push({d:`${q>1?q+"× ":""}${d}`.slice(0,90),costo:+(p*q).toFixed(2),usado:false,si:true})}
+    for(let j=i+1;j<Math.min(L.length,i+3);j++){const l=L[j];if(j>i+1&&PRECIO.test(l))break;const mq=l.match(QTY);if(mq){q=+mq[1];break}}
+    const costo=Math.min(...ps),venta=ps.length>1?Math.max(...ps):0;
+    out.push({d:d.slice(0,90),costo,precio:venta>costo?venta:0,q:Math.min(q,20)})}
   return{items:out,po,guias}}
 async function leerCapturas(files){
   if(!files.length||!nb)return;
@@ -1237,22 +1246,33 @@ async function leerCapturas(files){
   try{await cargarOCR();if(!ocrWorker)ocrWorker=await Tesseract.createWorker("spa")}
   catch(e){const m=document.getElementById("ocr-msg");if(m)m.textContent="No se pudo cargar el lector. Revisa tu internet e intenta de nuevo.";return}
   nb.items=nb.items.filter(x=>x.d.trim()||String(x.costo).trim()||String(x.precio).trim());
-  let n=0,po="",gs=[];
+  // Cada captura por separado. Si el mismo artículo sale en dos capturas (porque se repiten al deslizar), cuenta una vez.
+  const lect=Date.now(),cuenta={},datos={};let po="",gs=[];
   for(let i=0;i<files.length;i++){const msg=document.getElementById("ocr-msg");if(msg)msg.textContent=`Leyendo captura ${i+1} de ${files.length}…`;
-    try{const{data:{text}}=await ocrWorker.recognize(files[i]);const r=parseTemu(text);
-      r.items.forEach(x=>{if(nb.items.some(y=>y.d===x.d&&num(y.costo)===x.costo))return;nb.items.push({d:x.d,costo:x.costo.toFixed(2),precio:"",c:nb.clientes.length===1?0:""});n++});
+    try{const{data:{text}}=await ocrWorker.recognize(files[i]);const r=parseTemu(text),aqui={};
+      r.items.forEach(x=>{const k=x.d.toLowerCase()+"|"+x.costo;aqui[k]=(aqui[k]||0)+x.q;datos[k]=x});
+      Object.entries(aqui).forEach(([k,v])=>cuenta[k]=Math.max(cuenta[k]||0,v));
       po=po||r.po;gs.push(...r.guias)}catch(e){}}
+  let n=0;
+  Object.entries(cuenta).forEach(([k,v])=>{const x=datos[k],ya=nb.items.filter(y=>(y.d.toLowerCase()+"|"+num(y.costo))===k).length;
+    for(let j=ya;j<v;j++){nb.items.push({d:x.d,costo:x.costo.toFixed(2),precio:x.precio?x.precio.toFixed(2):"",c:nb.clientes.length===1?0:"",g:"",l:lect});n++}});
+  nb.lect=n?{id:lect,n,caps:files.length}:nb.lect;
   if(po&&!nb.numero.trim())nb.numero=po;
   [...new Set(gs)].forEach(g=>{if(nb.guias.includes(g))return;const v=nb.guias.findIndex(x=>!x.trim());if(v>=0)nb.guias[v]=g;else nb.guias.push(g)});
   if(!nb.items.length)nb.items.push(nbArt());
   hoja.remove();renderNB(true);
-  toast(n?`Leí ${n} artículo${n>1?"s":""}${po?" y el número de pedido":""}. Ahora pon lo que cobras y de quién es cada uno.`:"No encontré artículos con precio. Prueba con capturas donde se vean el nombre y el precio.")}
+  toast(n?`Leí ${n} artículo${n>1?"s":""}${po?" y el número de pedido":""}. Revisa la lista: puedes quitar uno por uno o deshacer la lectura.`:"No encontré artículos con precio. Prueba con capturas donde se vean el nombre y el precio.")}
 function hojaLeer(html){document.getElementById("upd")?.remove();const d=document.createElement("div");d.className="upd";d.id="upd";
   d.innerHTML=`<div class="upd-bg"></div><div class="upd-sheet" role="dialog" aria-modal="true" aria-labelledby="ocr-t"><div class="upd-grab"></div><p class="upd-k">Leer captura de Temu</p><h2 id="ocr-t">Leyendo tus capturas</h2>${html}</div>`;
   document.body.appendChild(d);return d}
 const ocrFile=document.createElement("input");ocrFile.type="file";ocrFile.accept="image/*";ocrFile.multiple=true;ocrFile.hidden=true;document.body.appendChild(ocrFile);
 ocrFile.addEventListener("change",()=>{const f=[...ocrFile.files];ocrFile.value="";leerCapturas(f)});
-document.addEventListener("click",e=>{if(e.target.closest("[data-nbleer]"))ocrFile.click()});
+const deshacerLectura=()=>{if(!nb?.lect)return 0;const n=nb.items.filter(x=>x.l===nb.lect.id).length;nb.items=nb.items.filter(x=>x.l!==nb.lect.id);nb.lect=null;if(!nb.items.length)nb.items.push(nbArt());return n};
+document.addEventListener("click",e=>{const b=e.target.closest("[data-nbleer],[data-lectdes],[data-lectotra],[data-artsborrar]");if(!b||!nb)return;const d=b.dataset;
+  if("nbleer" in d)ocrFile.click();
+  else if("lectdes" in d){const n=deshacerLectura();renderNB();toast(`Quité los ${n} artículos de esa lectura`)}
+  else if("lectotra" in d){deshacerLectura();renderNB();ocrFile.click()}
+  else if("artsborrar" in d){if(!confirm(`¿Borrar los ${nb.items.filter(lleno).length} artículos de la lista?`))return;nb.items=[nbArt()];nb.lect=null;renderNB();toast("Lista de artículos vacía")}});
 
 /* ---------- Registrar pedido de Temu (varios clientes, varios artículos) ---------- */
 let nb=null,regModo="temu";
@@ -1288,6 +1308,9 @@ function renderNB(entra){
    <button type="button" class="btn sm" id="nb-addg" style="justify-self:start"><svg><use href="#i-plus"/></svg>Otra guía (Temu lo dividió)</button>
    <div class="nb-step"><span class="nb-n">2</span><div><b>Artículos del pedido</b><p class="note">Toca <b>“Leer captura”</b> y elige todas las capturas del pedido: cada artículo sale con su costo. Después agrega los clientes y elige de quién es cada artículo.</p></div></div>
    <div class="nb-bar"><button type="button" class="btn gold" data-nbleer><svg><use href="#i-cam"/></svg>Leer captura</button><button type="button" class="btn" data-nbaddcli><svg><use href="#i-users"/></svg>Agregar cliente</button></div>
+   ${nb.lect&&nb.items.some(x=>x.l===nb.lect.id)?`<div class="lect-bar"><span>Leídos <b>${nb.items.filter(x=>x.l===nb.lect.id).length}</b> artículos de ${nb.lect.caps} captura${nb.lect.caps>1?"s":""}. ¿Algo salió mal?</span>
+     <div class="lect-btns"><button type="button" class="btn sm" data-lectdes>Deshacer lectura</button><button type="button" class="btn sm" data-lectotra>Volver a leer</button></div></div>`:""}
+   ${nb.items.filter(lleno).length>1?`<div class="arts-h"><span class="note">${nb.items.filter(lleno).length} artículos · toca × para quitar uno</span><button type="button" class="linkbtn red" data-artsborrar>Borrar todos</button></div>`:""}
    <div class="arts">${nb.items.map((x,ii)=>`<div class="art ${x.c===""&&lleno(x)?"sin":""}" style="--i:${ii}">
      <div class="art-top"><span class="art-n">${ii+1}</span><input data-ni="${ii}|d" value="${esc(x.d)}" placeholder="${ii?"Artículo "+(ii+1):"Ej. Funda iPhone 13"}" aria-label="Artículo ${ii+1}" enterkeyhint="next" autocomplete="off"><button type="button" class="x" data-nbix="${ii}" aria-label="Quitar artículo">×</button></div>
      <div class="art-bot ${nb.guias.length>1?"con-g":""}">
@@ -1697,7 +1720,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=17;
+const APP="admin",APP_VERSION=18;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
