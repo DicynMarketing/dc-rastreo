@@ -1,7 +1,18 @@
 {
-  "admin": 19,
+  "admin": 20,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 20,
+      "cliente": 7,
+      "titulo": "Leer captura: un artículo por cada ×1",
+      "admin_items": [
+        "El lector ahora cuenta un artículo solo cuando encuentra su nombre, su precio y su cantidad (×1, ×2…), como en la captura de Temu. Así no aparecen artículos de más.",
+        "Si la captura dice cuántos artículos son (por ejemplo “11 artículos”) y no cuadra con lo leído, te avisa para que lo revises."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 19,
