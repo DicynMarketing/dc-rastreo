@@ -107,7 +107,7 @@ h2{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.1
 a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
 /* Tablero de ruta */
-.board-scroll{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:4px 4px 10px;scroll-snap-type:x mandatory}
+.board-scroll{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:4px 4px 10px;scroll-snap-type:none;overscroll-behavior-x:contain;scroll-behavior:auto;touch-action:pan-x pan-y}
 .board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(150px,1fr);gap:10px;min-width:max-content}
 .col{scroll-snap-align:start;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:10px;align-content:start;cursor:pointer;text-align:left;color:inherit;font:inherit;width:100%;transition:border-color .2s,transform .2s}
 .col:hover{border-color:var(--gold);transform:translateY(-2px)}
@@ -304,6 +304,8 @@ details.cli summary::-webkit-details-marker{display:none}
 .sug button:hover,.sug button:focus{background:var(--panel-2)}
 .sug .cfg-tx small{color:var(--muted)}
 .enc-box{display:grid;gap:10px}
+.btn.confirma{background:var(--red);border-color:var(--red);color:#fff}
+@media (prefers-reduced-motion:no-preference){.btn.confirma{animation:sacude .35s}}
 .art-top.con-p{grid-template-columns:auto minmax(0,1fr) auto 30px}
 .enc-p{font-size:13px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}.enc-arts{display:grid;gap:8px}
 .enc-arts .art{padding:8px 10px}
@@ -1009,7 +1011,7 @@ $("#login-f").addEventListener("submit",async e=>{e.preventDefault();
 
 /* ---------- Lógica de pedido ---------- */
 const pkgSt=p=>p.h.length; // 1..7
-function etapa(o){if(!o.paq.length)return o.rec?7+o.local.length:o.tpo?1:0;const m=Math.min(...o.paq.map(pkgSt));return m<7?m:7+o.local.length}
+function etapa(o){if(!o.paq.length)return o.rec?7+o.local.length:o.tpo||o.comprado?1:0;const m=Math.min(...o.paq.map(pkgSt));return m<7?m:7+o.local.length}
 function enDCcuenta(o){return o.paq.filter(p=>pkgSt(p)>=7).length}
 function ultimo(o){const t=[o.creado,...o.paq.flatMap(p=>p.h),...o.local].filter(Boolean).map(x=>+new Date(x));return new Date(Math.max(...t)).toISOString()}
 /* Último movimiento de una guía: la última etapa o el último aviso de PRS (p.prs, lo pone el rastreo automático) */
@@ -1097,7 +1099,7 @@ function renderInicio(){
    ...avisos.map(o=>`<div class="notif"><div class="stage">${etapa(o)}</div><p><b>${esc(cli(o).nombre)}</b> · ${etNombre(o)}<br><small>${resumenPaq(o)||`Avisar desde tu WhatsApp (${fmtTel(EQUIPO[yo].tel)})`}</small></p>
      <a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar</a></div>`),
    ...buy.map(o=>`<div class="notif buy"><div class="stage"><svg width="20" height="20"><use href="#i-cart"/></svg></div><p><b>${esc(cli(o).nombre)}</b> · por comprar${dias(o.creado)?` hace ${dias(o.creado)} d`:""}<br><small>${esc(o.nota||"Sin nota")}</small></p>
-     <button class="btn gold" data-open="${o.id}"><svg><use href="#i-check"/></svg>Ya lo compré</button></div>`)];
+     <button class="btn gold" data-compre="${o.id}"><svg><use href="#i-check"/></svg>Ya lo compré</button></div>`)];
   $("#inbox").innerHTML=items.join("")||`<div class="empty">${D.P.length||D.C.length?"Todo al día. ":""}Aquí aparecen los avisos para tus clientes, los pedidos atascados, las compras pendientes y quién entra a la app.</div>`;
   $("#board").innerHTML=ET.map((e,k)=>{const en=D.P.filter(o=>etapa(o)===k);
     return`<button class="col" data-etapa="${k}"><span class="nm">${e}</span><span class="cnt ${en.length?"":"zero"}" data-n="${en.length}">${en.length}</span>
@@ -1135,8 +1137,10 @@ function detalle(o){
   const e=etapa(o),c=cli(o);
   let h="";
   if(e===0){h+=`<div class="block"><p class="block-t">Por comprar</p><div class="sum">${esc(o.nota||"Sin nota")}</div>
-     <button class="btn gold" style="justify-self:start" data-open="${o.id}"><svg><use href="#i-check"/></svg>Ya lo compré: meterlo en un pedido de Temu</button></div>`}
-  else if(!o.paq.length){h+=`<div class="block"><p class="block-t">Pedido Temu <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}</p><div class="sum">${o.rec?`Recibido sin guía · ${new Date(o.rec).toLocaleDateString("es-PA",{day:"numeric",month:"short"})}`:"Realizado. Falta la guía: agrégala desde el pedido de Temu."}</div>
+     <div class="o-actions"><button class="btn gold" data-compre="${o.id}"><svg><use href="#i-check"/></svg>Ya lo compré</button><button class="btn sm" data-open="${o.id}">Registrarlo en un pedido de Temu</button></div></div>`}
+  else if(!o.paq.length){h+=`<div class="block"><p class="block-t">Pedido Temu <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}</p><div class="sum">${o.rec?`Recibido sin guía · ${new Date(o.rec).toLocaleDateString("es-PA",{day:"numeric",month:"short"})}`:"Realizado. Agrega el número de pedido y la guía cuando los tengas."}</div>
+     ${o.rec?"":`${o.tpo?"":`<div class="guia-row"><input id="tp-${o.id}" class="mono" placeholder="Número de pedido PO-…" aria-label="Número de pedido de Temu" autocomplete="off"><button class="btn sm" data-settpo="${o.id}">Guardar</button></div>`}
+       <div class="guia-row"><input id="g-${o.id}" class="mono" placeholder="Guía PRSPTY…" aria-label="Agregar guía" autocomplete="off"><button class="btn sm" data-addg="${o.id}"><svg><use href="#i-plus"/></svg>Agregar</button></div>`}
      ${o.rec&&e===7?`<button class="btn sm" style="justify-self:start" data-norec="${o.id}">Deshacer “Recibido”</button>`:""}</div>`}
   else{h+=`<div class="block"><p class="block-t">Guías de Temu ${o.paq.length>1?`· ${enDCcuenta(o)} de ${o.paq.length} en DC`:""}</p><div class="pkgs">${o.paq.map((p,i)=>`
      <div class="pkg"><div style="min-width:0"><span class="mono">${esc(p.g)}</span>${cp(p.g,"guía")}<div class="o-sub">${ET[pkgSt(p)]} · ${dias(p.h[p.h.length-1])===0?"hoy":`hace ${dias(p.h[p.h.length-1])} d`}</div>
@@ -1820,6 +1824,12 @@ document.addEventListener("click",e=>{
   else if(d.cf){cFiltro=d.cf;renderClientes();animar(seccion())}
   else if(d.ficha){fichaId=d.ficha;location.hash="clientes";renderClientes();setTimeout(()=>$("#ficha").scrollIntoView({behavior:"smooth",block:"start"}),50)}
   else if(d.open){startBuilder([d.open])}
+  else if(d.compre){const o=find(d.compre);if(!o)return;
+    if(t.dataset.arma!=="1"){t.dataset.arma="1";t.classList.add("confirma");t.innerHTML=`<svg><use href="#i-check"/></svg>Toca otra vez para confirmar`;
+      clearTimeout(t._t);t._t=setTimeout(()=>{if(!t.isConnected)return;t.dataset.arma="";t.classList.remove("confirma");t.innerHTML=`<svg><use href="#i-check"/></svg>Ya lo compré`},4000);return}
+    const a=artsEnc(o).filter(x=>x.d);o.comprado=new Date().toISOString();if(a.some(x=>x.costo))o.costo=+a.reduce((s,x)=>s+num(x.costo),0).toFixed(2);
+    save();refresh();toast(`Listo: ${cli(o).nombre.split(" ")[0]} pasó a Realizado. Agrega el número de pedido y la guía cuando los tengas.`)}
+  else if(d.settpo){const o=find(d.settpo),v=$(`#tp-${o.id}`).value.trim().toUpperCase();if(!v)return toast("Escribe el número de pedido");o.tpo=v;save();refresh();toast("Número de pedido guardado")}
   else if(d.addg){const o=find(d.addg),g=$(`#g-${o.id}`).value.trim().toUpperCase();if(!g)return;o.paq.push({g,h:[new Date().toISOString()]});save();refresh();toast("Guía agregada")}
   else if(d.despachar){const o=find(d.despachar),tf=num($(`#tf-${o.id}`).value);if(!tf){toast("Escribe la tarifa del envío");return}
     o.envio={t:$(`#t-${o.id}`).value,tarifa:tf};if(!o.local.length)o.local=[new Date().toISOString()];save();refresh();toast(`Despachado por ${o.envio.t}. Avísale al cliente`)}
@@ -1893,7 +1903,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=26;
+const APP="admin",APP_VERSION=27;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

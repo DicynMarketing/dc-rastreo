@@ -40,7 +40,7 @@ Cada app es un solo archivo HTML con su CSS y JS dentro. El logo también va emb
 2. Al registrar, primero se pone **lo que pidió cada cliente**: cada artículo con su costo en Temu y lo que se le cobra. Después se pone el **número de pedido de Temu** y el **número de guía**. La guía puede quedar vacía y agregarse después.
 3. Si Temu divide el pedido, hay **varias guías** en el mismo pedido.
 4. Cada cliente dentro del pedido recibe su propio **código DC-xxxx** para seguir su envío. El cliente **nunca ve los productos**, solo el seguimiento.
-5. **Carrito "Por comprar"**: encargos anotados que aún no se compran en Temu. Con "Ya lo compré" pasan a un pedido de Temu.
+5. **Carrito "Por comprar"**: encargos anotados que aún no se compran en Temu. **"Ya lo compré"** (Inicio y detalle) pide **dos toques** (el segundo confirma, se cancela solo a los 4 s) y marca el encargo como Realizado ahí mismo (`o.comprado`, etapa 1, costo = suma de `o.arts`), sin ir a Registrar. Después, en el detalle, se agregan número de pedido (`data-settpo`) y guía. "Registrarlo en un pedido de Temu" sigue abriendo el registro completo.
 6. **Entrega**:
    - En Aguadulce la entregan ellos mismos, coordinando por WhatsApp.
    - A otras provincias envían por **Transporte Ferguson** o **Servientrega**. La tarifa varía según provincia y peso, se escribe a mano al despachar y **se suma al saldo del cliente**.
@@ -106,7 +106,7 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 
 ## Estado actual del panel (prototipo)
 
-- **Inicio**: KPIs del equipo, una tarjeta por persona, "Por hacer" de la persona elegida y un tablero de etapas. Tocar un KPI o una etapa abre Pedidos en la vista "Por cliente" ya filtrada.
+- **Inicio**: KPIs del equipo, una tarjeta por persona, "Por hacer" de la persona elegida y un tablero de etapas. El tablero de ruta se desliza con impulso (sin `scroll-snap`). Tocar un KPI o una etapa abre Pedidos en la vista "Por cliente" ya filtrada.
 - **Pedidos**:
   - Vista "Pedidos de Temu": uno por número de pedido, con sus guías y sus clientes desplegables (artículos con costo y cobro), el % de cada cliente y el total de la compra.
   - Vista "Por cliente": lista con filtros.
