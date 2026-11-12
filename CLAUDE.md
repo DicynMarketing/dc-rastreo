@@ -75,6 +75,11 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 - Sección **Pagos** (`#numeros`): pestañas Pagos (todos por fecha, tipo Abono / Completó el pago / Pago completo), Por cliente (cada pedido con sus abonos; si ya no debe, se une en "Pago completo"), Deudas (solo quien debe, con Registrar pago y Recordar saldo) y Ganancia.
 - Registrar pedido de Temu tiene "Fecha del pedido" para pasar pedidos de meses anteriores.
 
+## Leer captura de Temu (decisión tomada)
+
+- El dueño no quiere copiar y pegar producto por producto en el celular. Botón **"Leer captura"** en cada cliente del registro: elige una o varias capturas del pedido de Temu y **Tesseract.js** (cargado de jsdelivr solo al usarlo, `cargarOCR()`, idioma `spa`) las lee **en el teléfono** (gratis, sin enviar fotos). `parseTemu()` saca líneas `nombre … $precio` (con ×cantidad), el número `PO-…` y las guías `PRSPTY…`.
+- Los artículos leídos quedan en `LEIDOS`; una hoja deja marcar cuáles son del cliente y corregir nombre o costo. Los no usados quedan para el siguiente cliente. Lo que se cobra lo pone el dueño.
+
 ## Diseño
 
 - Azul marino **apagado, no eléctrico** (panel `#0F1522`, cliente `#151D2E`), **bandejas negras con letras blancas** (`#08090C`), **dorado del logo `#D7A95B`** y **beige** (`#E8DCC4` en el panel, hoja `#F2ECE1` en el cliente). Gris del logo: `#4B4C4E`.

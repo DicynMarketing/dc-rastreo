@@ -1,7 +1,19 @@
 {
-  "admin": 14,
+  "admin": 15,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 15,
+      "cliente": 7,
+      "titulo": "Leer captura de Temu",
+      "admin_items": [
+        "Nuevo botón “Leer captura” en cada cliente al registrar un pedido de Temu: eliges una o varias capturas del pedido y la app llena sola los artículos con su costo. También pone el número de pedido (PO-…) y la guía (PRSPTY…) si salen en la captura.",
+        "Marcas qué artículos son de cada cliente (los que sobran quedan para el siguiente cliente) y solo pones lo que le cobras.",
+        "La lectura la hace tu teléfono: es gratis y las fotos no se envían a ningún lado. La primera vez tarda un poco más porque descarga el lector."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 14,
