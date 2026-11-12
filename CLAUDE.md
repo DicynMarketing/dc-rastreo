@@ -64,20 +64,16 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 ## Seguimiento de guías (decisión tomada)
 
 - **No** se entra a las cuentas de Temu para el seguimiento automático: Temu no tiene API pública y automatizarlo va contra sus términos.
-- Se rastrea por **número de guía** con **17TRACK** (API v2.2).
-- **Edge Function `rastrear-guias`** (Supabase) + **pg_cron `rastrear-guias`** cada 4 horas (minuto 7). No gasta uso de Claude. Toma las guías con menos de 7 etapas de pedidos en etapa 1–6, las registra en 17TRACK una sola vez (`guias_rastreo.registrada`, gasta cupo), consulta `gettrackinfo`, avanza las etapas sin retroceder (InfoReceived→2, PickedUp→3, Departure→4, Arrival→5, aduana tras llegar→6, AvailableForPickup/OutForDelivery/Delivered→7) con las fechas de 17TRACK, actualiza todos los pedidos que comparten la guía y recalcula `vista`. Guarda el último movimiento en `guias_rastreo` y el resumen en `rastreo_estado`. Máximo una corrida cada 20 min (`?forzar=1` la salta).
-- La clave va en el secreto **`TRACK17_KEY`** de Edge Functions (el dueño la escribe en Supabase; nunca en el código ni en el chat). Sin el secreto, la función responde "Falta el secreto TRACK17_KEY".
+- Temu entrega en Panamá con **PRS Delivery** (guías `PRSPTY…`). Se rastrea con la misma consulta pública de prsdelivery.com: `POST https://sealcargotrack.cloud/api/v2/prod/tracking` con `{"tracking":"GUIA"}`, sin clave ni captcha. Respuesta: `{isSuccess, trackingNumber, movements:[{code,timestamp,location,description}], was_delivered, date_delivered}` (o formato `is_guia`).
+- Se descartaron 17TRACK (pide correo de empresa) y TrackingMore (la API es de pago).
+- **Edge Function `rastrear-guias`** (código en `supabase/functions/rastrear-guias/index.ts`) + **pg_cron `rastrear-guias`** cada hora (minuto 7). No gasta uso de Claude ni necesita secretos. Toma las guías con menos de 7 etapas de pedidos en etapa 1–6, consulta PRS de 4 en 4 y avanza sin retroceder y **sin pasar de 6**: CNUS01/02→2, otros CN→3, vuelo/salida→4, PTY01 (llegada a Tocumen)→5, PTY02-04 (aduana) y LM* (reparto de PRS)→6. Guarda en cada guía `q.prs={t,f,ent}` (último movimiento y si PRS la entregó, LM360) y recalcula `vista`. Resumen en `rastreo_estado`; último movimiento también en `guias_rastreo`. Máximo una corrida cada 20 min (`?forzar=1` la salta).
+- En el panel: debajo de cada guía "PRS: …"; si PRS ya entregó todas las guías del pedido, sale en Inicio → Por hacer "PRS ya lo entregó" con "Ya lo recibí" (`prsEntrego()`). Atascado cuenta desde el último movimiento de PRS (`ultMov()`).
 
 ## Pagos (decisión tomada)
 
 - Cada pedido guarda `pagos=[{m,f,por}]` (monto, fecha, quién) y `abonado` = la suma (se mantiene igual con `ponerPagos()`). Pedidos viejos sin `pagos` se leen con `pagosDe()` como un pago en la fecha del pedido.
 - Sección **Pagos** (`#numeros`): pestañas Pagos (todos por fecha, tipo Abono / Completó el pago / Pago completo), Por cliente (cada pedido con sus abonos; si ya no debe, se une en "Pago completo"), Deudas (solo quien debe, con Registrar pago y Recordar saldo) y Ganancia.
 - Registrar pedido de Temu tiene "Fecha del pedido" para pasar pedidos de meses anteriores.
-
-## Rastreo con PRS Delivery (en curso)
-
-- Temu entrega en Panamá con **PRS Delivery** (prsdelivery.com). Su página consulta `POST https://sealcargotrack.cloud/api/v2/prod/tracking` con `{"tracking":"GUIA"}`, sin clave ni captcha. Respuesta: `{isSuccess, trackingNumber, movements:[{code,timestamp,location,status,description}]}` (o formato `is_guia`).
-- Plan: cambiar `rastrear-guias` para usar PRS en vez de 17TRACK (17TRACK pide correo de empresa; TrackingMore cobra la API), cada hora, sin pasar de etapa 6. Falta una guía real para ver los códigos de movimiento.
 
 ## Diseño
 
@@ -120,7 +116,7 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 2. ~~Base de datos compartida en Supabase~~ (hecho, ver "Base de datos"). Antes era:
    - Tablas sugeridas: `clientes`, `pedidos_temu` (número único), `pedidos` (uno por cliente dentro de un pedido de Temu, con código DC), `articulos`, `guias`, `eventos_guia`, `abonos`.
    - Seguridad (RLS): el panel con inicio de sesión o PIN para Diego y Cinthya. La app del cliente solo puede leer un pedido por su código, y sin artículos ni precios de costo.
-3. ~~Rastreo automático~~ (hecho: `rastrear-guias`; falta que el dueño ponga `TRACK17_KEY`). Pendiente opcional: mostrar en el panel el último movimiento de cada guía (`guias_rastreo`).
+3. ~~Rastreo automático~~ (hecho con PRS Delivery, ver "Seguimiento de guías"). Si Temu usa otra paquetería, agregar su consulta en `rastrear-guias`.
 4. **App del cliente leyendo datos reales**: ya lee los pedidos del panel (mismo navegador), muestra varios paquetes y las etapas 7 a 9. Falta leerlos de Supabase. Mostrar el saldo pendiente solo si el dueño lo aprueba.
 5. **Editar artículos** de un pedido ya guardado. Hoy no se puede.
 6. ~~Instalable en el teléfono~~ (manifiesto e íconos hechos). Falta: logo original grande para íconos más nítidos, y modo sin conexión (service worker) si se quiere.
