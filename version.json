@@ -1,7 +1,20 @@
 {
   "admin": 28,
-  "cliente": 11,
+  "cliente": 12,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 28,
+      "cliente": 12,
+      "titulo": "Rutas en el inicio y avioncito",
+      "admin_items": [],
+      "cliente_items": [
+        "En el inicio ves la ruta de cada pedido en camino (si tienes dos, salen las dos).",
+        "Un avioncito vuela por detrás de la app dejando su estela.",
+        "La app ya no repite la animación cada vez que se actualiza; solo al abrirla.",
+        "En Ajustes, la primera opción ahora dice “Perfil”."
+      ]
+    },
     {
       "fecha": "2026-11-12",
       "admin": 28,
