@@ -134,7 +134,7 @@ Las etapas 1 a 7 vienen del rastreo de cada guía. Las 8 y 9 se marcan a mano. L
 ## Registro manual (decisión tomada)
 
 - **Se quitó "Importar de Temu"** (no le funcionó al dueño): ya no hay pantalla de importar, "Por repartir", "Repartir" ni `#importar`, y el panel no lee `temu_compras`. Registrar queda solo manual: **"Pedido de Temu"** y **"Encargo por comprar"**.
-- Pendiente de limpiar en Supabase (si no se hizo): borrar las filas de `temu_compras` y la función `importar_temu(jsonb)`; la tabla se puede eliminar cuando nadie use versiones viejas del panel (v10 o menos la leen).
+- En Supabase ya se borraron las compras importadas y la función `importar_temu`. Queda la tabla `temu_compras` vacía; se puede eliminar cuando nadie use versiones viejas del panel (v10 o menos la leen).
 - No volver a crear revisiones automáticas de correo ni tareas programadas sin que el dueño lo pida.
 
 ## Cambio de persona en el panel
