@@ -1,7 +1,19 @@
 {
-  "admin": 13,
+  "admin": 14,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 14,
+      "cliente": 7,
+      "titulo": "Rastreo automático con PRS Delivery",
+      "admin_items": [
+        "Las guías de PRS Delivery (PRSPTY…) se rastrean solas cada hora: la etapa avanza sola hasta “En aduana / en reparto” y el cliente lo ve sin que nadie toque nada.",
+        "Debajo de cada guía sale el último movimiento de PRS (por ejemplo “En ruta para entrega”).",
+        "Cuando PRS marca un paquete como entregado, te sale en Inicio → Por hacer: “PRS ya lo entregó”, con el botón “Ya lo recibí”."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 13,
