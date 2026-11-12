@@ -1,7 +1,18 @@
 {
   "admin": 28,
-  "cliente": 10,
+  "cliente": 11,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 28,
+      "cliente": 11,
+      "titulo": "Ajustes más compactos",
+      "admin_items": [],
+      "cliente_items": [
+        "Ajustes ahora es un menú pequeño que se abre desde el engranaje, con secciones que se despliegan: tu nombre, Mis pedidos, Contactos, Idioma, Tema, Seguridad y Versión.",
+        "Los idiomas llevan su bandera: 🇪🇸 Español, 🇺🇸 English, 🇧🇷 Português y 🇫🇷 Français."
+      ]
+    },
     {
       "fecha": "2026-11-12",
       "admin": 28,
