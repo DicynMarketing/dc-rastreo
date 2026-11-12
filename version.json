@@ -1,7 +1,23 @@
 {
-  "admin": 11,
-  "cliente": 6,
+  "admin": 12,
+  "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 12,
+      "cliente": 7,
+      "titulo": "Etapas nuevas y registro de pagos",
+      "admin_items": [
+        "Etapas a tu manera: Realizado → (rastreo) → Recibido → Preparando despacho → Entregado. En cada pedido está el botón “Ya lo recibí”, también para pedidos sin guía.",
+        "Cada pago o abono queda guardado con su fecha. Dentro del pedido: “Registrar pago”, y se puede borrar un pago mal puesto.",
+        "Nueva sección Pagos: todos los pagos por fecha, por cliente (con “Pago completo” cuando ya terminó de pagar) y Deudas. Ganancia quedó como una pestaña ahí mismo.",
+        "Al registrar un pedido de Temu puedes poner la fecha del pedido, para pasar los de septiembre y octubre."
+      ],
+      "cliente_items": [
+        "Cuando DC Marketing recibe tu paquete verás “Recibido por DC Marketing”.",
+        "Después verás “Preparando tu entrega” mientras preparamos tu paquete para la entrega final."
+      ]
+    },
     {
       "fecha": "2026-11-11",
       "admin": 11,
