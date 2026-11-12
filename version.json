@@ -1,7 +1,18 @@
 {
-  "admin": 22,
+  "admin": 23,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 23,
+      "cliente": 7,
+      "titulo": "Editar clientes",
+      "admin_items": [
+        "En la ficha del cliente hay un botón “Editar”: cambias nombre, WhatsApp, quién lo atiende, entrega y provincia.",
+        "Al vincular a alguien que entró a la app, el cliente toma el nombre con el que se registró en la app (también con el link personal)."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 22,

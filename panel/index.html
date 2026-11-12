@@ -733,6 +733,8 @@ const saveRegs=R=>{REGS=R;save()};
 const APP_URL=new URL(CLIENTE_URL,location.href).href;
 const norm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
 const regNombre=r=>`${r.nombre} ${r.apellido}`.trim();
+/* Al vincular, el cliente queda con el nombre con el que se registró en la app (si no lo tiene otro cliente) */
+function nombreDeApp(c,r){const n=tc(regNombre(r));if(!n||norm(n)===norm(c.nombre)||D.C.some(x=>x!==c&&norm(x.nombre)===norm(n)))return false;c.nombre=n;return true}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const tc=s=>String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s'-])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()); // "kevin morán" → "Kevin Morán"
@@ -753,7 +755,7 @@ const cli=o=>D.C.find(c=>c.id===o.cli)||{nombre:"?",tel:"",ent:"local"};
 function atiende(c){if(c.atiende)return c.atiende;const ps=D.P.filter(o=>o.cli===c.id).sort((a,b)=>new Date(b.creado)-new Date(a.creado));return ps[0]?.quien||"diego"}
 const comparten=(g,oid)=>D.P.filter(o=>o.id!==oid&&o.paq.some(p=>p.g===g));
 /* Quien entró con el link personal de su ficha queda vinculado solo. */
-function autoVincular(){const R=regs();let n=0;R.forEach(r=>{if(!r.cliente&&r.invita){const c=D.C.find(c=>c.invita===r.invita);if(c){r.cliente=c.id;r.vinculado=new Date().toISOString();n++}}});if(n)saveRegs(R)}
+function autoVincular(){const R=regs();let n=0,m=0;R.forEach(r=>{if(!r.cliente&&r.invita){const c=D.C.find(c=>c.invita===r.invita);if(c){r.cliente=c.id;r.vinculado=new Date().toISOString();n++;if(nombreDeApp(c,r))m++}}});if(n)saveRegs(R);if(m)save()}
 const pendientes=()=>regs().filter(r=>!r.cliente||!D.C.some(c=>c.id===r.cliente));
 const haceTxt=iso=>{const d=dias(iso);return d===0?"hoy":d===1?"ayer":`hace ${d} días`};
 function parecidos(r){const t=norm(regNombre(r)).split(/\s+/);
@@ -1344,16 +1346,19 @@ function elegirClientes(){const ya=new Set(nb.clientes.map(k=>k.nombre.trim().to
   h.querySelector("#ec-q")?.addEventListener("input",e=>{const q=norm(e.target.value);h.querySelectorAll(".ec-it").forEach(x=>x.hidden=q&&!norm(x.dataset.ecn).includes(q))})}
 
 /* ---------- Registrar cliente (antes de los pedidos) ---------- */
-let rcEnt="local";
-function abrirRegCliente(){rcEnt="local";hojaSimple("Clientes","Registrar cliente",`
-  <label class="f" for="rc-nom">Nombre y apellido<input id="rc-nom" placeholder="María González" autocomplete="off"></label>
-  <label class="f" for="rc-tel">WhatsApp<input id="rc-tel" placeholder="6123-4567" inputmode="tel" autocomplete="off"></label>
-  <span class="f-lab">Lo atiende</span><div class="seg" id="rc-q">${Object.keys(EQUIPO).map(k=>`<button type="button" data-rcq="${k}" aria-pressed="${k===yo}">${EQUIPO[k].nombre}</button>`).join("")}</div>
-  <span class="f-lab">Entrega</span><div class="seg" id="rc-e"><button type="button" data-rce="local" aria-pressed="true">En Aguadulce</button><button type="button" data-rce="envio" aria-pressed="false">Otra provincia</button></div>
-  <label class="f" for="rc-prov" id="rc-provw" hidden>Provincia<select id="rc-prov">${PROVINCIAS.map(p=>`<option>${p}</option>`).join("")}</select></label>
+let rcEnt="local",rcEdit=null;
+/* Registrar (sin cliente) o editar (con cliente) */
+function abrirRegCliente(c){rcEdit=c?c.id:null;rcEnt=c?.ent||"local";const q=c?atiende(c):yo;
+  hojaSimple("Clientes",c?"Editar cliente":"Registrar cliente",`
+  <label class="f" for="rc-nom">Nombre y apellido<input id="rc-nom" value="${esc(c?.nombre||"")}" placeholder="María González" autocomplete="off"></label>
+  <label class="f" for="rc-tel">WhatsApp<input id="rc-tel" value="${c?.tel?fmtTel(c.tel):""}" placeholder="6123-4567" inputmode="tel" autocomplete="off"></label>
+  <span class="f-lab">Lo atiende</span><div class="seg" id="rc-q">${Object.keys(EQUIPO).map(k=>`<button type="button" data-rcq="${k}" aria-pressed="${k===q}">${EQUIPO[k].nombre}</button>`).join("")}</div>
+  <span class="f-lab">Entrega</span><div class="seg" id="rc-e"><button type="button" data-rce="local" aria-pressed="${rcEnt==="local"}">En Aguadulce</button><button type="button" data-rce="envio" aria-pressed="${rcEnt==="envio"}">Otra provincia</button></div>
+  <label class="f" for="rc-prov" id="rc-provw" ${rcEnt==="envio"?"":"hidden"}>Provincia<select id="rc-prov">${PROVINCIAS.map(p=>`<option ${p===c?.prov?"selected":""}>${p}</option>`).join("")}</select></label>
+  ${c&&regs().some(r=>r.cliente===c.id)?`<p class="ocr-tip">Está vinculado a la app. Si cambias el nombre aquí, lo verás así en el panel.</p>`:""}
   <p class="err" id="rc-err" hidden></p>
-  <div class="upd-btns"><button class="upd-btn" data-rcok>Guardar y registrar otro</button><button class="upd-btn sec" data-updx>Listo</button></div>`);
-  setTimeout(()=>$("#rc-nom")?.focus(),250)}
+  <div class="upd-btns"><button class="upd-btn" data-rcok>${c?"Guardar cambios":"Guardar y registrar otro"}</button><button class="upd-btn sec" data-updx>${c?"Cancelar":"Listo"}</button></div>`);
+  if(!c)setTimeout(()=>$("#rc-nom")?.focus(),250)}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-rcq],[data-rce]");if(!b)return;
   if(b.dataset.rcq)$$("#rc-q button").forEach(x=>x.setAttribute("aria-pressed",x===b));
   else{rcEnt=b.dataset.rce;$$("#rc-e button").forEach(x=>x.setAttribute("aria-pressed",x===b));$("#rc-provw").hidden=rcEnt!=="envio"}});
@@ -1361,8 +1366,12 @@ function guardarRegCliente(){const nombre=tc($("#rc-nom").value.trim()),tel=$("#
   const fail=t=>{er.textContent=t;er.hidden=false};
   if(!nombre)return fail("Escribe el nombre del cliente.");
   if(tel.length<8)return fail("Escribe el WhatsApp (8 números).");
-  if(D.C.some(c=>c.nombre.toLowerCase()===nombre.toLowerCase()))return fail(`${nombre} ya está registrado.`);
+  if(D.C.some(c=>c.id!==rcEdit&&c.nombre.toLowerCase()===nombre.toLowerCase()))return fail(`${nombre} ya está registrado.`);
   const q=$("#rc-q [aria-pressed=true]")?.dataset.rcq||yo;
+  if(rcEdit){const c=D.C.find(x=>x.id===rcEdit);if(!c)return;const antes=atiende(c);
+    Object.assign(c,{nombre,tel,ent:rcEnt,prov:rcEnt==="envio"?$("#rc-prov").value:"",atiende:q});
+    if(q!==antes)D.P.filter(o=>o.cli===c.id&&etapa(o)<9).forEach(o=>o.quien=q);
+    document.getElementById("upd")?.remove();save();refresh();toast(`Datos de ${nombre.split(" ")[0]} guardados`);return}
   D.C.push({id:"c"+Date.now()+Math.random().toString(36).slice(2,6),nombre,tel,ent:rcEnt,prov:rcEnt==="envio"?$("#rc-prov").value:"",atiende:q});
   save();refresh();toast(`${nombre} registrado`);abrirRegCliente()}
 
@@ -1604,7 +1613,7 @@ function renderFicha(){const f=$("#ficha"),c=D.C.find(x=>x.id===fichaId);if(!c){
   f.innerHTML=`<div class="ficha-h"><div class="av">${esc(c.nombre[0])}</div><div style="min-width:0"><h2 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:18px">${esc(c.nombre)}</h2>
      <div class="o-sub"><span>${c.tel?fmtTel(c.tel)+cp(c.tel,"WhatsApp"):"Sin WhatsApp"}</span><span>${c.ent==="envio"?"Envío a "+esc(c.prov):"Entrega en Aguadulce"}</span></div>
      <label class="o-sub" for="at-${c.id}" style="align-items:center;margin-top:6px">Lo atiende <select id="at-${c.id}" data-atiende="${c.id}" style="padding:5px 8px;font-size:16px">${Object.keys(EQUIPO).map(k=>`<option value="${k}" ${atiende(c)===k?"selected":""}>${EQUIPO[k].nombre}</option>`).join("")}</select></label></div>
-     <button class="btn sm" style="margin-left:auto" id="cerrar-ficha" aria-label="Cerrar ficha">Cerrar</button></div>
+     <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="btn sm gold" data-rceditar="${c.id}">Editar</button><button class="btn sm" id="cerrar-ficha" aria-label="Cerrar ficha">Cerrar</button></span></div>
    <div class="sum"><span>Pedidos <b>${s.n}</b></span><span>Gastado <b>${$$m(s.gasto)}</b></span><span>Ganancia que te dejó <b>${$$m(s.ps.reduce((a,o)=>a+ganancia(o),0))}</b></span><span class="${s.debe?"due":"paid"}">${s.debe?`Debe <b>${$$m(s.debe)}</b>`:"Sin deudas"}</span></div>
    <div class="block"><span class="f-lab">App del cliente</span>
      ${ap.length?ap.map(r=>`<div class="sum" style="align-items:center"><span class="paid">Entró como <b>${esc(regNombre(r))}</b></span><span>${haceTxt(r.fecha)}</span><button class="btn sm red" style="margin-left:auto" data-desv="${r.id}">Desvincular</button></div>`).join("")
@@ -1737,6 +1746,7 @@ document.addEventListener("click",e=>{
     ids.forEach(id=>{const c=D.C.find(x=>x.id===id);if(c)nb.clientes.push({nombre:c.nombre,tel:fmtTel(c.tel),quien:atiende(c),ent:c.ent||"local",prov:c.prov||"Chiriquí",adel:"",pago:"nada"})});
     document.getElementById("upd")?.remove();renderNB(true);toast(`${ids.length} cliente${ids.length>1?"s":""} en el pedido. Ahora elige “¿De quién?” en cada artículo.`)}
   else if("rcabrir" in d){abrirRegCliente()}
+  else if(d.rceditar){const c=D.C.find(x=>x.id===d.rceditar);if(c)abrirRegCliente(c)}
   else if("rcok" in d){guardarRegCliente()}
   else if(d.nbcart){const o=find(d.nbcart),c=cli(o);const blank=nb.clientes.length===1&&!nb.clientes[0].nombre;
     const k={nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",pago:num(o.abonado)?"adelanto":"nada",desde:o.id};
@@ -1767,7 +1777,9 @@ document.addEventListener("click",e=>{
   else if(d.vincular){const v=$("#vs-"+d.vincular).value;if(!v)return toast("Elige quién es en tu lista");
     const R=regs(),r=R.find(x=>x.id===d.vincular);if(!r)return;let c;
     if(v==="nuevo"){c={id:"c"+Date.now(),nombre:regNombre(r),tel:"",ent:"local",prov:"",atiende:yo};D.C.push(c);save()}else c=D.C.find(x=>x.id===v);
-    r.cliente=c.id;r.vinculado=new Date().toISOString();saveRegs(R);refresh();toast(`${r.nombre} ya puede ver los pedidos de ${c.nombre}`)}
+    const antes=c.nombre,cambio=v!=="nuevo"&&nombreDeApp(c,r);
+    r.cliente=c.id;r.vinculado=new Date().toISOString();saveRegs(R);if(cambio)save();refresh();
+    toast(cambio?`Vinculado. “${antes}” ahora se llama “${c.nombre}”, como se registró en la app`:`${r.nombre} ya puede ver los pedidos de ${c.nombre}`)}
   else if(d.desv){const R=regs(),r=R.find(x=>x.id===d.desv);if(!r||!confirm(`¿Desvincular a ${regNombre(r)}? Dejará de ver estos pedidos.`))return;
     r.cliente=null;r.invita=null;saveRegs(R);refresh();toast("Desvinculado")}
   else if(d.copiar){copiar(d.copiar,t)}
@@ -1829,7 +1841,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=22;
+const APP="admin",APP_VERSION=23;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
