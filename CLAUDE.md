@@ -167,6 +167,11 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 - **Pedido viejo ya entregado**: casilla `#nb-ent` en el registro (`nb.entregado`: guías a etapa 7 con la fecha del pedido, `local=[f,f]`, `avisado=9`) y botón "Ya fue entregado" (`data-yaent`, dos toques) en el detalle de cualquier pedido en etapa 1–8.
 - **Editar pedido**: `EDIT` (Set de ids en edición) y `editorPedido(o)`: fecha del pedido (`data-ep` id|fecha, cambia `creado`, el primer paso de las guías y el pago único en todos los clientes del mismo `tpo`), número de Temu (`data-ep`), artículos (`data-ei` id|i|campo, `data-eiadd`, `data-eix`), "Listo" (`data-eilisto`, recalcula con `syncItems`) y "Borrar pedido" (`data-eborrar`, con confirmación; borra la fila en Supabase).
 
+## Avisos al teléfono del cliente (push, decisión tomada)
+
+- Gratis, con Web Push estándar. Cliente: `cliente/sw.js` (solo muestra avisos, sin caché), tarjeta "🔔 Avísame cuando se mueva" en el inicio (`tipAvisos()`, se cierra con × → `dc-cli-pushx`) y Ajustes → **Avisos** (`activarPush()`/`apagarPush()`, `localStorage` `dc-cli-push`). Llave pública `VAPID` en el HTML; la **privada está en Supabase Vault** (`vapid_private`, se lee con `push_vapid()` solo desde el servidor). En iPhone solo funciona con la app instalada (Agregar a inicio).
+- Base de datos (`supabase/migrations/push_notificaciones.sql`): `push_subs` (endpoint, registro, llaves, idioma), `push_log` (última etapa avisada por pedido), `app_push(id,token,sub,on,lang)` y trigger `push_al_cambiar` en `pedidos`: si cambia `vista.i` y el cliente tiene avisos, llama por `pg_net` a la Edge Function **`avisar-push`** (`verify_jwt` false; solo recibe el id y nunca avisa dos veces la misma etapa ni hacia atrás). Mensajes en es/en/pt/fr según el idioma de la app.
+
 ## Cambio de persona en el panel
 
 - El selector Diego / Cinthya (y las tarjetas del equipo en Inicio) piden **confirmar con PIN o Face ID / huella** para ver la vista de la otra persona (`pedirCambio()`); volver a la propia cuenta (`CUENTA`) es libre. Sin PIN configurado, se confirma con un mensaje.

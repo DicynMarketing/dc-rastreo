@@ -426,7 +426,7 @@ const EQUIPO={diego:{nombre:"Diego",tel:"68673410"},cinthya:{nombre:"Cinthya",te
 /* ---------- Idiomas (español, inglés, portugués de Brasil y francés) ----------
    La app se escribe en español. Si el cliente elige otro idioma, cada texto que aparece en pantalla se traduce con
    este diccionario (I18N: frase exacta → [en, pt, fr]; I18P: frases con números o nombres). Lo que no está, queda en español. */
-const I18N={"Empacando":["Packing","Embalando","Emballage"],"Aduana":["Customs","Alfândega","Douane"],"En DC":["At DC","Na DC","Chez DC"],"Despacho":["Dispatch","Despacho","Expédition"],
+const I18N={"Avisos":["Alerts", "Avisos", "Alertes"],"Activados":["On", "Ativados", "Activées"],"Apagados":["Off", "Desativados", "Désactivées"],"🔔 Avísame cuando se mueva":["🔔 Notify me when it moves", "🔔 Avise-me quando se mover", "🔔 Préviens-moi quand ça bouge"],"Te llega un aviso cada vez que tu pedido avanza.":["You get an alert every time your order moves forward.", "Você recebe um aviso cada vez que seu pedido avança.", "Tu reçois une alerte chaque fois que ta commande avance."],"Activar":["Turn on", "Ativar", "Activer"],"Activar avisos":["Turn on alerts", "Ativar avisos", "Activer les alertes"],"Apagar avisos":["Turn off alerts", "Desativar avisos", "Désactiver les alertes"],"Te llega una notificación cada vez que tu pedido avanza.":["You get a notification every time your order moves forward.", "Você recebe uma notificação cada vez que seu pedido avança.", "Tu reçois une notification chaque fois que ta commande avance."],"Activa los avisos y te llega una notificación cada vez que tu pedido avanza.":["Turn on alerts and get a notification every time your order moves forward.", "Ative os avisos e receba uma notificação cada vez que seu pedido avançar.", "Active les alertes et reçois une notification chaque fois que ta commande avance."],"Para recibir avisos en iPhone, primero instala la app: en Safari toca Compartir y luego “Agregar a inicio”.":["To get alerts on iPhone, first install the app: in Safari tap Share and then “Add to Home Screen”.", "Para receber avisos no iPhone, primeiro instale o app: no Safari toque em Compartilhar e depois em “Adicionar à Tela de Início”.", "Pour recevoir des alertes sur iPhone, installe d'abord l'app : dans Safari, touche Partager puis « Sur l'écran d'accueil »."],"Primero instala la app: en Safari toca Compartir y luego “Agregar a inicio”.":["First install the app: in Safari tap Share and then “Add to Home Screen”.", "Primeiro instale o app: no Safari toque em Compartilhar e depois em “Adicionar à Tela de Início”.", "Installe d'abord l'app : dans Safari, touche Partager puis « Sur l'écran d'accueil »."],"Este teléfono no permite avisos.":["This phone doesn't allow alerts.", "Este telefone não permite avisos.", "Ce téléphone n'autorise pas les alertes."],"No diste permiso para los avisos. Puedes activarlo en los ajustes del teléfono.":["You didn't allow alerts. You can turn them on in your phone settings.", "Você não permitiu os avisos. Pode ativá-los nos ajustes do telefone.", "Tu n'as pas autorisé les alertes. Tu peux les activer dans les réglages du téléphone."],"Listo, te avisaremos cuando tu pedido avance":["Done, we'll let you know when your order moves forward", "Pronto, avisaremos quando seu pedido avançar", "C'est fait, on te préviendra quand ta commande avancera"],"Avisos apagados":["Alerts off", "Avisos desativados", "Alertes désactivées"],"No se pudo activar. Intenta de nuevo.":["Couldn't turn it on. Try again.", "Não foi possível ativar. Tente de novo.", "Impossible d'activer. Réessaie."],"Empacando":["Packing","Embalando","Emballage"],"Aduana":["Customs","Alfândega","Douane"],"En DC":["At DC","Na DC","Chez DC"],"Despacho":["Dispatch","Despacho","Expédition"],
 "Aún sin pagos":["No payments yet","Ainda sem pagamentos","Pas encore de paiement"],"Sin pagos":["No payments","Sem pagamentos","Aucun paiement"],"Completo":["Complete","Completo","Complet"],
 "Por pagar":["To pay","A pagar","À payer"],"Proceso":["Progress","Processo","Progression"],"Ver seguimiento completo ›":["See full tracking ›","Ver rastreamento completo ›","Voir le suivi complet ›"],
 "Toca un punto para ver su fecha":["Tap a point to see its date","Toque em um ponto para ver a data","Touchez un point pour voir sa date"],"Aún no":["Not yet","Ainda não","Pas encore"],
@@ -590,6 +590,29 @@ function lanzar(nombre,fin){
     if(k<1)requestAnimationFrame(f);else setTimeout(fin,450)})(performance.now());
 }
 
+/* ---------- Avisos al teléfono (notificaciones push). Gratis: los manda Supabase (función avisar-push) cuando el pedido cambia de etapa. ---------- */
+const VAPID="BHgbtVy3w1lqsV1hRfP1vuVNGaSLqxsehoG4UD4tAo_b91iHfwEwKLrhGuaYFiJUgJqD6xCJOI9GRJILwU6eKQc",K_PUSH="dc-cli-push",K_PUSHX="dc-cli-pushx";
+const pushOK=()=>"serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window;
+const instalada=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const pushActivo=()=>pushOK()&&Notification.permission==="granted"&&leer(K_PUSH,0)===1;
+async function suscripcion(){const reg=await navigator.serviceWorker.register("sw.js");await navigator.serviceWorker.ready;
+  return await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:deB64u(VAPID)})}
+async function activarPush(){const r=miRegistro();if(!r)return;
+  if(!pushOK()){toast(/iP(hone|ad|od)/.test(navigator.userAgent)&&!instalada()?"Primero instala la app: en Safari toca Compartir y luego “Agregar a inicio”.":"Este teléfono no permite avisos.");return}
+  try{const perm=await Notification.requestPermission();if(perm!=="granted"){toast("No diste permiso para los avisos. Puedes activarlo en los ajustes del teléfono.");return}
+    const sub=await suscripcion();const ok=await rpc("app_push",{p_id:r.id,p_token:r.token,p_sub:sub.toJSON(),p_on:true,p_lang:LANG});
+    if(!ok)throw new Error("no");escribir(K_PUSH,1);toast("Listo, te avisaremos cuando tu pedido avance")}
+  catch(e){toast("No se pudo activar. Intenta de nuevo.")}
+  refrescarAvisos()}
+async function apagarPush(){const r=miRegistro();try{const reg=await navigator.serviceWorker.getRegistration();const sub=await reg?.pushManager.getSubscription();
+  if(sub){await rpc("app_push",{p_id:r.id,p_token:r.token,p_sub:sub.toJSON(),p_on:false,p_lang:LANG}).catch(()=>{});await sub.unsubscribe()}}catch(e){}
+  escribir(K_PUSH,0);toast("Avisos apagados");refrescarAvisos()}
+function refrescarAvisos(){if(document.getElementById("upd")&&cfgVista==="avisos")abrirAjustes("avisos");else if(vistaActual==="inicio")inicio(false)}
+// al abrir la app, vuelve a guardar la suscripción (por si el teléfono la cambió) con el idioma actual
+addEventListener("load",()=>{const r=miRegistro();if(r&&pushActivo())suscripcion().then(sub=>rpc("app_push",{p_id:r.id,p_token:r.token,p_sub:sub.toJSON(),p_on:true,p_lang:LANG})).catch(()=>{})});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-pushon],[data-pushoff],[data-pushx]");if(!b)return;
+  if("pushon" in b.dataset)activarPush();else if("pushoff" in b.dataset)apagarPush();else{escribir(K_PUSHX,1);inicio(false)}});
+
 /* ---------- Mis pedidos ---------- */
 let bip=null;
 addEventListener("beforeinstallprompt",e=>{e.preventDefault();bip=e;if(vistaActual==="inicio")inicio()});
@@ -599,6 +622,9 @@ function tipHTML(){
   if(bip)return`<div class="tip"><span><b>Tenla como app</b><small>Instálala y ábrela con un toque.</small></span><span style="display:flex;gap:4px;align-items:center"><button class="tbtn" data-instalar>Instalar</button><button class="tx" data-tipx aria-label="Cerrar">×</button></span></div>`;
   if(ios)return`<div class="tip"><span><b>Tenla como app</b><small>En Safari toca Compartir y luego “Agregar a inicio”.</small></span><button class="tx" data-tipx aria-label="Cerrar">×</button></div>`;
   return"";
+}
+function tipAvisos(){if(!pushOK()||pushActivo()||leer(K_PUSHX,0)||(typeof Notification!=="undefined"&&Notification.permission==="denied"))return"";
+  return`<div class="tip"><span><b>🔔 Avísame cuando se mueva</b><small>Te llega un aviso cada vez que tu pedido avanza.</small></span><span style="display:flex;gap:4px;align-items:center"><button class="tbtn" data-pushon>Activar</button><button class="tx" data-pushx aria-label="Cerrar">×</button></span></div>`;
 }
 /* Pago de un pedido: total, pagado y abonos. Solo lo que paga el cliente (nunca costos). */
 const $m=n=>"$"+(+n||0).toFixed(2);
@@ -637,6 +663,9 @@ function abrirAjustes(v){cfgVista=v||"";const r=miRegistro();if(!r)return;cerrar
     sec("contactos","💬","Contactos","",
       Object.keys(EQUIPO).map(k=>`<div class="acc-ct"><span class="acc-av sm">${EQUIPO[k].nombre[0]}</span><span class="acc-ctx"><b>${EQUIPO[k].nombre}</b><small>${fmtTel(EQUIPO[k].tel)}</small></span>
         <a class="wa-mini" href="${waLink(k,`Hola ${EQUIPO[k].nombre}, soy ${r.nombre} ${r.apellido||""}. Te escribo desde la app de Dicyn Marketing.`)}" target="_blank" rel="noopener" aria-label="WhatsApp ${EQUIPO[k].nombre}"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.8 8.6c.2-.5.5-.5.8-.5h.5c.2 0 .4 0 .5.4l.7 1.6c.1.2 0 .4-.1.6l-.5.6c-.1.1-.2.3 0 .5.5.9 1.4 1.8 2.4 2.3.2.1.4.1.5 0l.6-.7c.2-.2.4-.2.6-.1l1.6.7c.3.1.4.3.3.5 0 .5-.3 1.2-.8 1.4-.5.3-1.4.4-2.6-.1-1.6-.6-3-2-3.8-3.4-.6-1.1-.8-2-.3-2.6z" fill="currentColor"/></svg></a></div>`).join(""))+
+    sec("avisos","🔔","Avisos",pushActivo()?"Activados":"Apagados",
+      `<small class="acc-note">${pushActivo()?"Te llega una notificación cada vez que tu pedido avanza.":!pushOK()&&esIOS&&!instalada()?"Para recibir avisos en iPhone, primero instala la app: en Safari toca Compartir y luego “Agregar a inicio”.":!pushOK()?"Este teléfono no permite avisos.":"Activa los avisos y te llega una notificación cada vez que tu pedido avanza."}</small>
+       ${pushOK()?`<div class="acc-btns">${pushActivo()?`<button class="mini-btn" data-pushoff>Apagar avisos</button>`:`<button class="mini-btn oro" data-pushon>Activar avisos</button>`}</div>`:""}`)+
     sec("idioma",BANDERA[LANG],"Idioma",`<span data-notr>${nomL}</span>`,
       `<div class="acc-list" data-notr>${IDIOMAS.map(([k,n])=>`<button type="button" class="acc-opt" data-lang="${k}" aria-pressed="${LANG===k}"><span class="flag">${BANDERA[k]}</span>${n}<span class="tick">✓</span></button>`).join("")}</div>`)+
     sec("tema",TEMA==="claro"?"☀️":"🌙","Tema",TEMA==="claro"?"Claro":"Oscuro",
@@ -771,7 +800,7 @@ function inicio(anim){
     ${act.length?`<div class="rutas">${act.map((v,k)=>`<a class="mruta" href="#${v.code}" style="--k:${k}"><span class="mr-h"><span class="mono">${v.code}</span><span class="mr-e">${CORTO[v.i]}</span></span>${rutaSVG(v.i,"-"+k,true)}</a>`).join("")}</div>`:""}
   </header>
   <main class="sheet pad">
-    ${tipHTML()}
+    ${tipHTML()||tipAvisos()}
     ${encargos?`<div class="encargo">${IC.cart}<span>Tienes ${encargos===1?"un encargo anotado":`${encargos} encargos anotados`}. Te avisamos en cuanto lo compremos.</span></div>`:""}
     ${lista.length?`<div class="ctabs" role="tablist"><span class="ctab-ind" style="--x:${["camino","pagos","guardados"].indexOf(tabCli)}"></span>
       <button role="tab" data-ctab="camino" aria-selected="${tabCli==="camino"}">En camino${act.length?` <i>${act.length}</i>`:""}</button>
@@ -924,7 +953,7 @@ setInterval(()=>{if(document.visibilityState==="visible"&&vistaActual==="inicio"
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="cliente",APP_VERSION=13;
+const APP="cliente",APP_VERSION=14;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

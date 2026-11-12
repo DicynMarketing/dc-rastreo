@@ -1,7 +1,20 @@
 {
   "admin": 34,
-  "cliente": 13,
+  "cliente": 14,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 34,
+      "cliente": 14,
+      "titulo": "Avisos en tu teléfono",
+      "admin_items": [
+        "Los clientes ya pueden activar avisos en su app: les llega una notificación cada vez que su pedido avanza, sin que tengas que escribirles."
+      ],
+      "cliente_items": [
+        "Nuevo: activa los avisos (🔔 en el inicio o en Ajustes → Avisos) y te llega una notificación cada vez que tu pedido avanza.",
+        "En iPhone, primero instala la app: en Safari toca Compartir y luego “Agregar a inicio”."
+      ]
+    },
     {
       "fecha": "2026-11-12",
       "admin": 34,
