@@ -1,7 +1,18 @@
 {
-  "admin": 33,
+  "admin": 34,
   "cliente": 13,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 34,
+      "cliente": 13,
+      "titulo": "Editar desde Pedidos de Temu y flete opcional",
+      "admin_items": [
+        "En \"Pedidos de Temu\" ahora sale \"✏️ Editar pedido\" debajo de la fecha, y un lápiz ✏️ junto a cada cliente.",
+        "El flete es opcional: puedes despachar a otra provincia sin escribir flete."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 33,

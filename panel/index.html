@@ -245,7 +245,7 @@ button.kpi:hover{border-color:var(--gold)}
 .clis{display:grid;gap:6px}
 details.cli{background:var(--bg);border-radius:12px;border:1px solid transparent}
 details.cli[open]{border-color:var(--line)}
-details.cli summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}
+details.cli summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}
 details.cli summary::-webkit-details-marker{display:none}
 .pct{display:block;height:4px;border-radius:2px;background:var(--line);margin-top:6px;overflow:hidden}
 .pct i{display:block;height:100%;background:var(--gold)}
@@ -309,6 +309,7 @@ details.cli summary::-webkit-details-marker{display:none}
 .ya-ent input{width:20px;height:20px;accent-color:var(--gold)}
 .flete-in{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}.flete-in input{flex:1;min-width:0}
 .edit-top{width:100%;justify-content:center;border:1px dashed var(--gold);color:var(--gold);background:transparent}
+.cli-ed{border:1px solid var(--line);background:var(--panel-2);border-radius:10px;width:36px;height:36px;font-size:16px;cursor:pointer;flex:none}
 .edit-box{border:1px dashed var(--gold);border-radius:14px;padding:12px}
 .segbox{background:var(--panel);border:1px solid var(--line);border-radius:16px}
 .segbox summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer}
@@ -1180,7 +1181,7 @@ function detalle(o){
     h+=`<div class="block"><p class="block-t">Entrega · ${env?`envío a ${esc(c.prov)}`:"en Aguadulce"}</p>`;
     if(e===7)h+=`<div class="o-actions"><button class="btn gold" data-prep="${o.id}"><svg><use href="#i-box"/></svg>Preparando despacho</button>${env?"":`<a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Coordinar entrega</a>`}</div>`;
     if(env&&e===8&&!o.envio)h+=`<div class="ship"><label for="t-${o.id}">Transporte<select id="t-${o.id}">${TRANSPORTE.map(t=>`<option>${t}</option>`).join("")}</select></label>
-      <label for="tf-${o.id}">Tarifa cobrada<input id="tf-${o.id}" inputmode="decimal" placeholder="0.00"></label>
+      <label for="tf-${o.id}">Flete (opcional)<input id="tf-${o.id}" inputmode="decimal" placeholder="0.00"></label>
       <button class="btn gold" data-despachar="${o.id}"><svg><use href="#i-truck"/></svg>Despachar</button></div>`;
     if(e===8)h+=`<div class="sum">${o.envio?`Enviado por <b>${esc(o.envio.t)}</b> · tarifa <b>${$$m(tarifa(o))}</b>`:"Preparando despacho: el cliente lo ve como “preparando tu entrega”."}</div>
       <button class="btn gold" style="justify-self:start" data-entregar="${o.id}"><svg><use href="#i-check"/></svg>Marcar entregado</button>`;
@@ -1189,8 +1190,8 @@ function detalle(o){
   // flete (envío a otra provincia): se puede poner o corregir en cualquier momento
   if(e>=1&&c.ent==="envio"&&!(e===8&&!o.envio))h+=`<div class="block"><p class="block-t">Flete · ${esc(c.prov||"otra provincia")}</p><div class="ship">
       <label for="tt-${o.id}">Transporte<select id="tt-${o.id}">${TRANSPORTE.map(t=>`<option ${o.envio?.t===t?"selected":""}>${t}</option>`).join("")}</select></label>
-      <label for="tff-${o.id}">Flete cobrado<input id="tff-${o.id}" inputmode="decimal" placeholder="0.00" value="${o.envio?tarifa(o)||"":""}"></label>
-      <button class="btn sm gold" data-flete="${o.id}">${o.envio?"Guardar":"Agregar flete"}</button></div><p class="note">El flete se suma a lo que paga el cliente y no cuenta como ganancia.</p></div>`;
+      <label for="tff-${o.id}">Flete (opcional)<input id="tff-${o.id}" inputmode="decimal" placeholder="0.00" value="${o.envio?tarifa(o)||"":""}"></label>
+      <button class="btn sm gold" data-flete="${o.id}">${o.envio?"Guardar":"Agregar flete"}</button></div><p class="note">Opcional: si lo cobras, se suma a lo que paga el cliente y no cuenta como ganancia.</p></div>`;
   if(EDIT.has(o.id))h+=editorPedido(o);
   else if(o.items&&o.items.length)h+=`<div class="block"><p class="block-t">Lo que pidió ${o.tpo?`· pedido <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}`:""}</p><div class="items">${o.items.map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}</div></div>`;
   const ro=o.items&&o.items.length?'readonly title="Se calcula de los artículos"':"";
@@ -1259,6 +1260,7 @@ function renderCompras(){
       <div style="display:flex;align-items:center;gap:8px"><span class="state ${stuck?"red":done?"done":""}">${estado}</span><svg class="chev"><use href="#i-chev"/></svg></div></summary>
       <div class="o-body">
         <div class="sum"><span>Pedido <b>${f.toLocaleDateString("es-PA",{day:"numeric",month:"long",year:"numeric"})}</b></span></div>
+        <button class="btn edit-top" data-verped="${c.os[0].id}" data-edit="1">✏️ Editar pedido (fecha, artículos, número)</button>
         <div class="block"><p class="block-t">Guías</p>
           ${c.guias.length?`<div class="pkgs">${c.guias.map(g=>{const p=D.P.flatMap(o=>o.paq).find(x=>x.g===g);
             return`<div class="pkg"><div style="min-width:0"><span class="mono">${esc(g)}</span>${cp(g,"guía")}<div class="o-sub">${ET[pkgSt(p)]} · ${dias(p.h.at(-1))?`hace ${dias(p.h.at(-1))} d`:"hoy"}</div></div>${miniBar(pkgSt(p))}</div>`}).join("")}</div>`
@@ -1270,7 +1272,7 @@ function renderCompras(){
               <span class="who-av ${o.quien}">${EQUIPO[o.quien].nombre[0]}</span>
               <span style="min-width:0"><b>${esc(cli(o).nombre)}</b><span class="o-sub" style="display:flex"><span>${it.length} art.</span><span class="mono">${o.id}${cp(o.id)}</span>${saldo(o)?`<span style="color:var(--gold)">debe ${$$m(saldo(o))}</span>`:num(o.precio)?`<span style="color:var(--ok)">pagado</span>`:""}</span>
                 <span class="pct"><i style="width:${pct}%"></i></span></span>
-              <span class="cli-tot"><b>${$$m(total(o))}</b><small>${pct}% del pedido</small></span></summary>
+              <button class="cli-ed" data-verped="${o.id}" data-edit="1" aria-label="Editar pedido de ${esc(cli(o).nombre)}">✏️</button><span class="cli-tot"><b>${$$m(total(o))}</b><small>${pct}% del pedido</small></span></summary>
               <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${it.map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
                 <div class="item head"><span>Total de ${esc(cli(o).nombre.split(" ")[0])}</span><span class="c">${$$m(o.costo)}</span><span class="p">${$$m(o.precio)}</span></div>
                 ${o.envio?`<div class="item"><span>Envío ${esc(o.envio.t)}</span><span class="c"></span><span class="p">${$$m(tarifa(o))}</span></div>`:""}
@@ -1532,7 +1534,7 @@ function renderNB(entra){
        <div class="seg sm"><button type="button" data-nbe="${ci}|local" aria-pressed="${k.ent==="local"}">Aguadulce</button><button type="button" data-nbe="${ci}|envio" aria-pressed="${k.ent==="envio"}">Otra prov.</button></div>
        ${k.ent==="envio"?`<select data-nb="${ci}|prov" aria-label="Provincia">${PROVINCIAS.map(p=>`<option ${p===k.prov?"selected":""}>${p}</option>`).join("")}</select>
          <select data-nb="${ci}|transp" aria-label="Transporte"><option value="">Transporte (si ya lo enviaste)</option>${TRANSPORTE.map(t=>`<option ${t===k.transp?"selected":""}>${t}</option>`).join("")}</select>
-         <label class="flete-in"><span>Flete $</span><input data-nb="${ci}|flete" value="${esc(k.flete||"")}" inputmode="decimal" placeholder="0.00" aria-label="Flete"></label>`:""}
+         <label class="flete-in"><span>Flete $</span><input data-nb="${ci}|flete" value="${esc(k.flete||"")}" inputmode="decimal" placeholder="opcional" aria-label="Flete"></label>`:""}
      </div>
      <div class="cli-arts">${its.length?its.map(x=>`<span class="chip-a"><span>${esc(x.d.trim()||"Artículo")}</span><b>${$$m(num(x.precio))}</b></span>`).join(""):`<span class="note">Sin artículos todavía: elígelo arriba en “¿De quién?”.</span>`}</div>
      <div class="nb-cli-f"><span class="nb-sub" id="nbs-${ci}">${its.length} art. · <b>${$$m(s.precio)}</b></span></div>
@@ -1863,7 +1865,7 @@ document.addEventListener("click",e=>{
   else if(d.tguia){const key=d.tguia,inp=document.getElementById("tg-"+key),g=inp.value.trim().toUpperCase();if(!g)return toast("Escribe el número de guía");
     const c=compras().find(x=>x.key===key),now=new Date().toISOString(),ex=D.P.flatMap(x=>x.paq).find(q=>q.g===g);
     c.os.forEach(o=>{if(!o.paq.some(p=>p.g===g))o.paq.push({g,h:ex?[...ex.h]:[now]})});save();refresh();toast(`Guía agregada a ${c.os.length} clientes`)}
-  else if(d.verped){if(d.edit){EDIT.add(d.verped);const o=find(d.verped);if(o&&!o.items?.length)o.items=[{d:o.nota||"Pedido",costo:num(o.costo),precio:num(o.precio)}]}location.hash="pedidos";modo="cliente";filtro="todos";$("#scope").value="todos";$("#q").value=d.verped;abiertos=new Set([d.verped]);renderCompras();renderPedidos();scrollTo({top:0})}
+  else if(d.verped){e.preventDefault();if(d.edit){EDIT.add(d.verped);const o=find(d.verped);if(o&&!o.items?.length)o.items=[{d:o.nota||"Pedido",costo:num(o.costo),precio:num(o.precio)}]}location.hash="pedidos";modo="cliente";filtro="todos";$("#scope").value="todos";$("#q").value=d.verped;abiertos=new Set([d.verped]);renderCompras();renderPedidos();scrollTo({top:0})}
   else if(d.p){pick=d.p;renderRegistrar()}
   else if(d.ent){fEnt=d.ent;renderRegistrar()}
   else if(d.cmp){fCmp=d.cmp;renderRegistrar()}
@@ -1888,8 +1890,7 @@ document.addEventListener("click",e=>{
     D.P=D.P.filter(x=>x!==o);EDIT.delete(o.id);sb?.from("pedidos").delete().eq("id",o.id).then(({error})=>{if(!error)delete SNAP.p[o.id]});refresh();toast("Pedido borrado")}
   else if(d.settpo){const o=find(d.settpo),v=$(`#tp-${o.id}`).value.trim().toUpperCase();if(!v)return toast("Escribe el número de pedido");o.tpo=v;save();refresh();toast("Número de pedido guardado")}
   else if(d.addg){const o=find(d.addg),g=$(`#g-${o.id}`).value.trim().toUpperCase();if(!g)return;o.paq.push({g,h:[new Date().toISOString()]});save();refresh();toast("Guía agregada")}
-  else if(d.despachar){const o=find(d.despachar),tf=num($(`#tf-${o.id}`).value);if(!tf){toast("Escribe la tarifa del envío");return}
-    o.envio={t:$(`#t-${o.id}`).value,tarifa:tf};if(!o.local.length)o.local=[new Date().toISOString()];save();refresh();toast(`Despachado por ${o.envio.t}. Avísale al cliente`)}
+  else if(d.despachar){const o=find(d.despachar),tf=num($(`#tf-${o.id}`).value);o.envio={t:$(`#t-${o.id}`).value,tarifa:tf};if(!o.local.length)o.local=[new Date().toISOString()];save();refresh();toast(`Despachado por ${o.envio.t}. Avísale al cliente`)}
   else if(d.coord){const o=find(d.coord);o.local=[new Date().toISOString()];o.avisado=8;save();refresh();toast("Entrega coordinada")}
   else if(d.entregar){const o=find(d.entregar);if(o.local.length<1)o.local.push(new Date().toISOString());o.local[1]=new Date().toISOString();save();refresh();toast(saldo(o)?`Entregado. Aún debe ${$$m(saldo(o))}`:"Entregado y pagado")}
   else if(d.vincir){location.hash="clientes";renderClientes();setTimeout(()=>{const el=$("#reg-"+d.vincir);if(el){el.scrollIntoView({behavior:"smooth",block:"center"});$("#vs-"+d.vincir).focus({preventScroll:true})}},60)}
@@ -1967,7 +1968,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=33;
+const APP="admin",APP_VERSION=34;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
