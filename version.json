@@ -1,7 +1,19 @@
 {
   "admin": 28,
-  "cliente": 8,
+  "cliente": 9,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 28,
+      "cliente": 9,
+      "titulo": "Ajustes y PIN en la app",
+      "admin_items": [],
+      "cliente_items": [
+        "Arriba ahora dice Dicyn Marketing.",
+        "Nuevo botón de engranaje (Ajustes): tu nombre, un resumen de tus pedidos (en camino, lo que te falta pagar y guardados), los contactos de Diego y Cinthya por WhatsApp, Seguridad y la versión de la app.",
+        "Seguridad: puedes poner un PIN de 4 o 6 dígitos y Face ID o huella para abrir la app."
+      ]
+    },
     {
       "fecha": "2026-11-12",
       "admin": 28,
