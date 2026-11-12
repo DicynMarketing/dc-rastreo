@@ -1,7 +1,19 @@
 {
-  "admin": 24,
+  "admin": 25,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 25,
+      "cliente": 7,
+      "titulo": "Leer capturas del carrito de Temu",
+      "admin_items": [
+        "“Leer captura” ahora entiende las capturas del carrito (antes de comprar): toma el nombre del producto (el que va después de la “|” o debajo de “Enviado por Temu”), el precio que no está tachado y la cantidad.",
+        "En los encargos, cada artículo muestra su precio de Temu y abajo el total de referencia.",
+        "Al tocar “Ya lo compré”, esos precios pasan como costo de cada artículo (los puedes corregir)."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 24,
