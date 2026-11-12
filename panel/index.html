@@ -272,9 +272,9 @@ details.cli summary::-webkit-details-marker{display:none}
 .seg.sm button{padding:7px 6px;font-size:12px}
 .pagos{display:grid;gap:8px}
 .o-sub.prs{color:var(--muted);font-size:12px}.o-sub.prs.ok{color:var(--ok)}
-.pago{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.pg-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
 .pago-r{display:grid;justify-items:end;gap:4px}
-.pago .m,.pagos-mini b{font-variant-numeric:tabular-nums;font-weight:800}
+.pg-row .m,.pagos-mini b{font-variant-numeric:tabular-nums;font-weight:800}
 .pago-cli{background:var(--panel);border:1px solid var(--line);border-radius:14px}
 .pago-cli summary{list-style:none;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:12px 14px;cursor:pointer}
 .pago-cli summary::-webkit-details-marker{display:none}
@@ -399,6 +399,13 @@ body.hay-act .toast{bottom:calc(152px + env(safe-area-inset-bottom,0px))}
 .cfg-av.sm{width:38px;height:38px;font-size:16px;border-radius:12px}
 .cfg-perfil{grid-template-columns:auto minmax(0,1fr);align-items:center;gap:14px}
 .cfg-back{justify-self:start;border:0;background:none;color:var(--u-acc);font:700 14px var(--u-body);padding:4px 0;cursor:pointer}
+.ocr-st{display:grid;justify-items:center;gap:12px;margin:10px 0;color:var(--u-mute);font-size:14px;text-align:center}
+.ocr-av{margin:0;color:var(--red);font-size:14px}.ocr-ok{margin:0;color:var(--ok);font-size:13px}.ocr-tip{margin:0;color:var(--u-mute);font-size:13px}
+.ocr-list{display:grid;gap:8px}
+.ocr-it{display:grid;grid-template-columns:auto minmax(0,1fr) 78px;gap:8px;align-items:center;background:var(--u-card);border:1px solid var(--u-line);border-radius:14px;padding:8px}
+.ocr-it input[type=checkbox]{width:22px;height:22px;accent-color:var(--u-acc)}
+.ocr-it input:not([type=checkbox]){min-width:0;font:500 16px var(--u-body);color:var(--u-ink);background:transparent;border:1px solid var(--u-line);border-radius:10px;padding:8px}
+.ocr-it input[inputmode]{text-align:right;font-variant-numeric:tabular-nums}
 .upd-nota ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
 .upd-nota li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;font-size:14px;line-height:1.4}
 .upd-nota li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--u-acc);margin-top:6px}
@@ -493,6 +500,7 @@ details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-
   <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
   <symbol id="i-cart" viewBox="0 0 24 24"><path d="M3 4h2l2.2 11h11l2-8H6.3M9 20a1 1 0 1 0 0-.1M17 20a1 1 0 1 0 0-.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
   <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 6h12v10H2zM14 10h4l3 3v3h-7M6 19a1.8 1.8 0 1 0 0-.1M17 19a1.8 1.8 0 1 0 0-.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
 </svg>
@@ -1164,6 +1172,75 @@ function renderCompras(){
       </div></details>`}).join(""):`<div class="empty">${q?"Ningún pedido coincide.":"Aún no hay pedidos de Temu. Toca “Nuevo pedido de Temu”."}</div>`;
 }
 
+/* ---------- Leer captura de Temu ----------
+   La lectura (OCR) la hace el mismo teléfono con Tesseract.js: gratis y sin enviar las fotos a ningún lado.
+   Saca nombre y precio de cada artículo, y si aparecen, el número de pedido (PO-…) y la guía (PRSPTY…).
+   Los artículos leídos quedan en LEIDOS para repartirlos entre los clientes del pedido. */
+let LEIDOS=[],leerPara=0,ocrWorker=null;
+function cargarOCR(){return window.Tesseract?Promise.resolve():new Promise((ok,mal)=>{const x=document.createElement("script");
+  x.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";x.onload=ok;x.onerror=()=>mal(new Error("sin conexión"));document.head.appendChild(x)})}
+const NO_ART=/total|env[ií]o|descuento|subtotal|impuesto|pago|ahorr|cup[oó]n|art[ií]culos|reembolso|carrito|comprar|entregado|enviar a|incluye|cr[eé]dito|precio|pedido/i;
+const PRECIO=/^(.*?)[\s:]*(?:US)?[$S§]\s?(\d{1,4}[.,]\d{2})\s*$/;
+const PRECIO2=/^(.*?)(?:\.{2,}|…)\s*(?:US)?[$S§]?\s?(\d{1,4}[.,]\d{2})\s*$/;  // a veces el lector no ve el "$"
+const limpiar=d=>d.replace(/(\.{2,}|…)\s*$/,"").replace(/^(\S{1,2}\s+){1,3}(?=\S{3,})/,"").trim();  // quita letras sueltas de las fotos
+const QTY=/(?:^|\s)[x×X]\s?(\d{1,3})\s*$/;
+function parseTemu(txt){
+  const L=txt.split(/\n/).map(x=>x.replace(/[|]/g," ").replace(/\s+/g," ").trim()).filter(Boolean),out=[];
+  const plano=txt.replace(/\s+/g,"");
+  const mpo=plano.match(/PO[-–—]?(\d{3})[-–—]?(\d{10,20})/i),po=mpo?`PO-${mpo[1]}-${mpo[2]}`:"";
+  const guias=[...new Set((plano.match(/PRSPTY\d{8,14}/gi)||[]).map(g=>g.toUpperCase()))];
+  for(let i=0;i<L.length;i++){const m=L[i].match(PRECIO)||L[i].match(PRECIO2);if(!m)continue;
+    let d=limpiar(m[1]);
+    if(d.length<3){const pr=L[i-1]||"";if(PRECIO.test(pr)||NO_ART.test(pr))continue;d=limpiar(pr)}
+    if(d.length<3||NO_ART.test(d))continue;
+    let q=1;
+    for(let j=i+1;j<Math.min(L.length,i+3);j++){const l=L[j];if(PRECIO.test(l))break;const mq=l.match(QTY);if(mq){q=+mq[1];break}}
+    const p=+m[2].replace(",",".");
+    out.push({d:`${q>1?q+"× ":""}${d}`.slice(0,90),costo:+(p*q).toFixed(2),usado:false,si:true})}
+  return{items:out,po,guias}}
+async function leerCapturas(files){
+  if(!files.length)return;
+  const hoja=hojaLeer(`<p class="ocr-st"><span class="cg-bar"><i></i></span><span id="ocr-msg">Preparando el lector…</span></p>`);
+  try{await cargarOCR();if(!ocrWorker)ocrWorker=await Tesseract.createWorker("spa")}
+  catch(e){hoja.querySelector("#ocr-msg").textContent="No se pudo cargar el lector. Revisa tu internet e intenta de nuevo.";return}
+  let nuevos=0,po="",gs=[];
+  for(let i=0;i<files.length;i++){const msg=document.getElementById("ocr-msg");if(msg)msg.textContent=`Leyendo captura ${i+1} de ${files.length}…`;
+    try{const{data:{text}}=await ocrWorker.recognize(files[i]);const r=parseTemu(text);
+      r.items.forEach(x=>{if(!LEIDOS.some(y=>y.d===x.d&&y.costo===x.costo)){LEIDOS.push(x);nuevos++}});
+      po=po||r.po;gs.push(...r.guias)}catch(e){}}
+  if(nb){if(po&&!nb.numero.trim())nb.numero=po;
+    [...new Set(gs)].forEach(g=>{if(nb.guias.includes(g))return;const v=nb.guias.findIndex(x=>!x.trim());if(v>=0)nb.guias[v]=g;else nb.guias.push(g)})}
+  abrirLeidos(nuevos?"":"No encontré artículos con precio en esa captura. Prueba con una captura donde se vean el nombre y el precio de cada producto.",po,gs)}
+function hojaLeer(html){document.getElementById("upd")?.remove();const d=document.createElement("div");d.className="upd";d.id="upd";
+  d.innerHTML=`<div class="upd-bg" data-updx></div><div class="upd-sheet" role="dialog" aria-modal="true" aria-labelledby="ocr-t"><div class="upd-grab"></div><p class="upd-k">Leer captura de Temu</p><h2 id="ocr-t">Artículos de la captura</h2>${html}</div>`;
+  document.body.appendChild(d);return d}
+function abrirLeidos(aviso,po,gs){const k=nb?.clientes[leerPara],nom=k?.nombre.trim()||`el cliente ${leerPara+1}`,L=LEIDOS.map((x,i)=>({x,i})).filter(o=>!o.x.usado);
+  const extra=[po?`pedido <b class="mono">${esc(po)}</b>`:"",gs?.length?`guía <b class="mono">${esc([...new Set(gs)].join(", "))}</b>`:""].filter(Boolean);
+  hojaLeer(`${aviso?`<p class="ocr-av">${aviso}</p>`:""}
+    ${extra.length?`<p class="ocr-ok">También encontré el ${extra.join(" y la ")}. Ya lo puse arriba.</p>`:""}
+    ${L.length?`<p class="ocr-tip">Marca los artículos de <b>${esc(nom)}</b>. Si algo se leyó mal, corrígelo aquí.</p>
+    <div class="ocr-list">${L.map(({x,i})=>`<label class="ocr-it"><input type="checkbox" data-ldc="${i}" ${x.si?"checked":""} aria-label="Es de ${esc(nom)}">
+      <input data-ld="${i}|d" value="${esc(x.d)}" aria-label="Artículo"><input data-ld="${i}|costo" value="${x.costo.toFixed(2)}" inputmode="decimal" aria-label="Costo en Temu"></label>`).join("")}</div>
+    <div class="upd-btns"><button class="upd-btn" data-ldok>Agregar a ${esc(nom)}</button></div>`:""}
+    <div class="upd-btns"><button class="upd-btn sec" data-ldmas>${L.length?"Leer otra captura":"Elegir capturas"}</button>${LEIDOS.length?`<button class="upd-btn sec" data-ldborrar>Borrar lo leído</button>`:""}<button class="upd-btn sec" data-updx>Cerrar</button></div>`)}
+function agregarLeidos(){const k=nb?.clientes[leerPara];if(!k)return;const sel=LEIDOS.filter(x=>!x.usado&&x.si&&x.d.trim());
+  if(!sel.length)return toast("Marca al menos un artículo");
+  k.items=k.items.filter(x=>x.d.trim()||String(x.costo).trim()||String(x.precio).trim());
+  sel.forEach(x=>{k.items.push({d:x.d.trim(),costo:x.costo.toFixed(2),precio:""});x.usado=true});
+  LEIDOS.forEach(x=>{if(!x.usado)x.si=true});
+  document.getElementById("upd")?.remove();renderNB();
+  toast(`${sel.length} artículo${sel.length>1?"s":""} agregado${sel.length>1?"s":""}. Ahora pon lo que le cobras.`);
+  setTimeout(()=>document.querySelector(`[data-nb="${leerPara}|${k.items.length-sel.length}|precio"]`)?.focus(),250)}
+const ocrFile=document.createElement("input");ocrFile.type="file";ocrFile.accept="image/*";ocrFile.multiple=true;ocrFile.hidden=true;document.body.appendChild(ocrFile);
+ocrFile.addEventListener("change",()=>{const f=[...ocrFile.files];ocrFile.value="";leerCapturas(f)});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-nbleer],[data-ldok],[data-ldmas],[data-ldborrar]");if(!b)return;const d=b.dataset;
+  if(d.nbleer!==undefined){leerPara=+d.nbleer;if(LEIDOS.some(x=>!x.usado))abrirLeidos();else ocrFile.click()}
+  else if("ldok" in d)agregarLeidos();
+  else if("ldmas" in d)ocrFile.click();
+  else if("ldborrar" in d){LEIDOS=[];abrirLeidos();renderNB()}});
+document.addEventListener("input",e=>{const t=e.target;if(t.dataset.ld){const[i,f]=t.dataset.ld.split("|");LEIDOS[+i][f]=f==="costo"?num(t.value):t.value}});
+document.addEventListener("change",e=>{const t=e.target;if(t.dataset.ldc!==undefined)LEIDOS[+t.dataset.ldc].si=t.checked});
+
 /* ---------- Registrar pedido de Temu (varios clientes, varios artículos) ---------- */
 let nb=null,regModo="temu";
 function nbNuevo(desdeCarrito){
@@ -1191,7 +1268,7 @@ function renderNB(){
      ${nb.guias.map((g,gi)=>`<label class="f">Número de guía ${nb.guias.length>1?gi+1:""}<span class="guia-row"><input class="mono" data-nbg="${gi}" value="${esc(g)}" list="dl-guias" placeholder="Opcional por ahora" autocomplete="off">${gi?`<button type="button" class="x" data-nbgdel="${gi}" aria-label="Quitar guía">×</button>`:""}</span></label>`).join("")}
    </div>
    <button type="button" class="btn sm" id="nb-addg" style="justify-self:start"><svg><use href="#i-plus"/></svg>Otra guía (Temu lo dividió)</button>
-   <div class="nb-step"><span class="nb-n">2</span><div><b>Clientes y lo que pidió cada uno</b><p class="note">Un bloque por cliente con todos sus artículos, sean 2 o 20. Toca “Siguiente” en el teclado para avanzar; al terminar la fila se agrega otro artículo solo.</p></div></div>
+   <div class="nb-step"><span class="nb-n">2</span><div><b>Clientes y lo que pidió cada uno</b><p class="note">Un bloque por cliente con todos sus artículos. Con <b>“Leer captura”</b> eliges las capturas del pedido de Temu y la app llena los artículos y sus costos sola; tú marcas cuáles son de este cliente y pones lo que le cobras.</p></div></div>
    ${nb.clientes.map((k,ci)=>{const s=sumItems(k.items);return`<div class="nb-cli">
      <div class="nb-cli-h"><span class="nb-idx">${ci+1}</span>
        <input data-nb="${ci}|nombre" list="dl-clientes" value="${esc(k.nombre)}" placeholder="Nombre del cliente" aria-label="Cliente ${ci+1}" autocomplete="off">
@@ -1209,6 +1286,7 @@ function renderNB(){
        <input data-nb="${ci}|${ii}|precio" value="${esc(x.precio)}" inputmode="decimal" placeholder="0.00" aria-label="Le cobras" enterkeyhint="next">
        <button type="button" class="x" data-nbix="${ci}|${ii}" aria-label="Quitar artículo" ${k.items.length<2?"disabled":""}>×</button></div>`).join("")}
      <div class="nb-cli-f"><button type="button" class="btn sm" data-nbadd="${ci}"><svg><use href="#i-plus"/></svg>Artículo</button>
+       <button type="button" class="btn sm gold" data-nbleer="${ci}"><svg><use href="#i-cam"/></svg>Leer captura${LEIDOS.some(x=>!x.usado)?` · ${LEIDOS.filter(x=>!x.usado).length}`:""}</button>
        <span class="nb-sub" id="nbs-${ci}">${llenos(k)} art. · <b>${$$m(s.precio)}</b></span></div>
      <div class="pago"><span class="f-lab">¿Cómo pagó?</span>
        <div class="seg sm"><button type="button" data-nbpago="${ci}|nada" aria-pressed="${k.pago==="nada"}">Aún no</button><button type="button" data-nbpago="${ci}|adelanto" aria-pressed="${k.pago==="adelanto"}">Adelanto</button><button type="button" data-nbpago="${ci}|completo" aria-pressed="${k.pago==="completo"}">Completo</button></div>
@@ -1408,7 +1486,7 @@ function renderPagos(){
   if(pgModo==="pagos"){const L=P.filter(p=>coincide(p.o));let mes="";
     h=L.length?`<div class="pagos">${L.map(p=>{const d=new Date(p.x.f),mm=d.toLocaleDateString("es-PA",{month:"long",year:"numeric"});
       const cab=mm!==mes?(mes=mm,`<p class="block-t" style="margin-top:6px">${mm}</p>`):"";
-      return cab+`<div class="pago"><div style="min-width:0"><b>${esc(cli(p.o).nombre)}</b><div class="o-sub"><span>${fechaC(p.x.f)}</span><span class="mono">${pedTxt(p.o)}</span></div></div>
+      return cab+`<div class="pg-row"><div style="min-width:0"><b>${esc(cli(p.o).nombre)}</b><div class="o-sub"><span>${fechaC(p.x.f)}</span><span class="mono">${pedTxt(p.o)}</span></div></div>
         <div class="pago-r"><b class="m">${$$m(p.x.m)}</b><span class="pill ${p.tipo==="Abono"?"gold":"ok"}">${p.tipo}</span></div></div>`}).join("")}</div>`
       :`<div class="empty">${q?"Ningún pago coincide.":"Todavía no hay pagos registrados. Se registran al guardar un pedido con adelanto o pago completo, o con “Registrar pago” dentro del pedido."}</div>`}
   else{const soloDeuda=pgModo==="deudas";
@@ -1585,7 +1663,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=14;
+const APP="admin",APP_VERSION=15;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
