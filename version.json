@@ -1,7 +1,20 @@
 {
-  "admin": 21,
+  "admin": 22,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 22,
+      "cliente": 7,
+      "titulo": "Encargos por comprar más rápidos",
+      "admin_items": [
+        "En “Encargo por comprar”, al escribir parte del nombre salen tus clientes registrados: tocas uno y se llenan su WhatsApp, entrega, provincia y quién lo atiende.",
+        "“Leer captura” también en encargos: lee los artículos de las capturas y los pone en la lista, uno por línea (×2 sale dos veces).",
+        "En encargos solo se pone el total estimado para el cliente. Los precios reales se ponen al comprarlo.",
+        "Al tocar “Ya lo compré”, cada línea del encargo pasa como un artículo del pedido de Temu."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 21,
