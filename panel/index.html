@@ -305,6 +305,8 @@ details.cli summary::-webkit-details-marker{display:none}
 .art-bot label{display:grid;gap:4px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:0}
 .art-bot input,.art-bot select{width:100%;box-sizing:border-box;min-width:0;padding:9px 8px}
 .art-bot input{text-align:right}
+.art-bot.con-g{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.art-bot .art-g,.art-bot.con-g .art-de{grid-column:1/-1}
 .art.sin .art-de select{border-color:var(--gold)}
 .cli-arts{display:flex;flex-wrap:wrap;gap:6px}
 .chip-a{display:inline-flex;gap:8px;align-items:center;max-width:100%;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:12px}
@@ -1260,7 +1262,8 @@ function nbNuevo(desdeCarrito){
     nb.items.push({d:o.nota||"",costo:"",precio:"",c:nb.clientes.length-1})});
   if(!nb.items.length)nb.items.push(nbArt());
 }
-const nbArt=()=>({d:"",costo:"",precio:"",c:""});
+const nbArt=()=>({d:"",costo:"",precio:"",c:"",g:""});
+const gLabel=(g,gi)=>`Guía ${gi+1}${g.trim()?` · …${g.trim().toUpperCase().slice(-6)}`:""}`;
 const nbCli=()=>({nombre:"",tel:"",quien:yo,ent:"local",prov:"Chiriquí",adel:"",pago:"nada"});
 const artsDe=ci=>nb.items.filter(x=>x.c===ci);
 const lleno=x=>x.d.trim()||num(x.costo)||num(x.precio);
@@ -1287,9 +1290,10 @@ function renderNB(entra){
    <div class="nb-bar"><button type="button" class="btn gold" data-nbleer><svg><use href="#i-cam"/></svg>Leer captura</button><button type="button" class="btn" data-nbaddcli><svg><use href="#i-users"/></svg>Agregar cliente</button></div>
    <div class="arts">${nb.items.map((x,ii)=>`<div class="art ${x.c===""&&lleno(x)?"sin":""}" style="--i:${ii}">
      <div class="art-top"><span class="art-n">${ii+1}</span><input data-ni="${ii}|d" value="${esc(x.d)}" placeholder="${ii?"Artículo "+(ii+1):"Ej. Funda iPhone 13"}" aria-label="Artículo ${ii+1}" enterkeyhint="next" autocomplete="off"><button type="button" class="x" data-nbix="${ii}" aria-label="Quitar artículo">×</button></div>
-     <div class="art-bot">
+     <div class="art-bot ${nb.guias.length>1?"con-g":""}">
        <label>Costo Temu<input data-ni="${ii}|costo" value="${esc(x.costo)}" inputmode="decimal" placeholder="0.00" enterkeyhint="next"></label>
        <label>Le cobras<input data-ni="${ii}|precio" value="${esc(x.precio)}" inputmode="decimal" placeholder="0.00" enterkeyhint="next"></label>
+       ${nb.guias.length>1?`<label class="art-g">¿En qué guía vino?<select data-nig="${ii}"><option value="" ${x.g===""||x.g===undefined?"selected":""}>No sé / en todas</option>${nb.guias.map((g,gi)=>`<option value="${gi}" data-gi="${gi}" ${x.g===gi?"selected":""}>${esc(gLabel(g,gi))}</option>`).join("")}</select></label>`:""}
        <label class="art-de">¿De quién?<select data-nic="${ii}">${nb.clientes.length?`<option value="" ${x.c===""?"selected":""}>Elegir…</option>${nb.clientes.map((k,ci)=>`<option value="${ci}" ${x.c===ci?"selected":""}>${esc(k.nombre.trim()||"Cliente "+(ci+1))}</option>`).join("")}`:`<option value="">Agrega un cliente</option>`}</select></label>
      </div></div>`).join("")}</div>
    <button type="button" class="btn sm" data-nbadd style="justify-self:start"><svg><use href="#i-plus"/></svg>Artículo a mano</button>
@@ -1347,7 +1351,9 @@ function nbGuardar(){
   if(D.P.some(o=>o.tpo===numero))return fail(`El número ${numero} ya está registrado. Cada pedido de Temu es único.`);
   err.hidden=true;const now=new Date().toISOString(),creados=[];
   const fechaPed=nb.fecha&&nb.fecha!==hoyISO()?new Date(nb.fecha+"T12:00:00").toISOString():now;
-  const paqDe=()=>guias.map(g=>{const ex=D.P.flatMap(x=>x.paq).find(q=>q.g===g);return{g,h:ex?[...ex.h]:[now]}});
+  const gDe=its=>{const L=its.map(x=>x.g===""||x.g===undefined?null:(nb.guias[x.g]||"").trim().toUpperCase());
+    return L.some(g=>!g)?guias:[...new Set(L)].filter(g=>guias.includes(g))};
+  const paqDe=(lista=guias)=>lista.map(g=>{const ex=D.P.flatMap(x=>x.paq).find(q=>q.g===g);return{g,h:ex?[...ex.h]:[now]}});
   nb.clientes.forEach((k,ci)=>{
     const nombre=tc(k.nombre),tel=k.tel.replace(/\D/g,"");
     let c=D.C.find(x=>x.nombre.toLowerCase()===nombre.toLowerCase());
@@ -1356,8 +1362,8 @@ function nbGuardar(){
     const items=artsDe(ci).map(x=>({d:x.d.trim(),costo:num(x.costo),precio:num(x.precio)}));
     let o=k.desde&&find(k.desde);
     const abonado=nbPagado(k,items);
-    if(o){Object.assign(o,{items,tpo:numero,quien:k.quien,paq:paqDe(),abonado,pagos:pagoIni(abonado,fechaPed,k.quien),creado:fechaPed})}
-    else{o={id:newCode(),cli:c.id,quien:k.quien,items,costo:0,precio:0,abonado,pagos:pagoIni(abonado,fechaPed,k.quien),nota:"",tpo:numero,creado:fechaPed,local:[],envio:null,avisado:-1,paq:paqDe()};D.P.unshift(o)}
+    if(o){Object.assign(o,{items,tpo:numero,quien:k.quien,paq:paqDe(gDe(artsDe(ci))),abonado,pagos:pagoIni(abonado,fechaPed,k.quien),creado:fechaPed})}
+    else{o={id:newCode(),cli:c.id,quien:k.quien,items,costo:0,precio:0,abonado,pagos:pagoIni(abonado,fechaPed,k.quien),nota:"",tpo:numero,creado:fechaPed,local:[],envio:null,avisado:-1,paq:paqDe(gDe(artsDe(ci)))};D.P.unshift(o)}
     syncItems(o);creados.push(o)});
   save();nb=null;renderAll();
   $("#nb").hidden=true;const d=$("#done");d.hidden=false;const t=creados.reduce((a,o)=>a+num(o.costo),0);
@@ -1605,7 +1611,7 @@ document.addEventListener("click",e=>{
     const k={nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",pago:num(o.abonado)?"adelanto":"nada",desde:o.id};
     if(blank)nb.clientes[0]=k;else nb.clientes.push(k);nb.items=nb.items.filter(lleno);nb.items.push({d:o.nota||"",costo:"",precio:"",c:blank?0:nb.clientes.length-1});renderNB()}
   else if(t.id==="nb-addg"){nb.guias.push("");renderNB();document.querySelector(`[data-nbg="${nb.guias.length-1}"]`)?.focus()}
-  else if(d.nbgdel){nb.guias.splice(+d.nbgdel,1);renderNB()}
+  else if(d.nbgdel){const gi=+d.nbgdel;nb.guias.splice(gi,1);nb.items.forEach(x=>{if(x.g===gi)x.g="";else if(x.g!==""&&x.g>gi)x.g--});renderNB()}
   else if("logout" in d){if(confirm("¿Cerrar sesión en este teléfono?"))sb?.auth.signOut().finally(()=>location.reload())}
   else if(d.nbpago){const[ci,v]=d.nbpago.split("|");nb.clientes[+ci].pago=v;renderNB();if(v==="adelanto")document.querySelector(`[data-nb="${ci}|adel"]`)?.focus()}
   else if(t.id==="nb-save"){nbGuardar()}
@@ -1650,6 +1656,7 @@ document.addEventListener("click",e=>{
 document.addEventListener("change",e=>{
   const t=e.target;
   if(t.id==="scope")return renderPedidos();
+  if(t.dataset.nig!==undefined&&nb){nb.items[+t.dataset.nig].g=t.value===""?"":+t.value;return}
   if(t.dataset.nic!==undefined&&nb){nb.items[+t.dataset.nic].c=t.value===""?"":+t.value;renderNB();return}
   if(t.dataset.nb&&t.dataset.nb.endsWith("|nombre")){const ci=+t.dataset.nb.split("|")[0],c=D.C.find(x=>x.nombre.toLowerCase()===t.value.trim().toLowerCase());
     if(c){Object.assign(nb.clientes[ci],{nombre:c.nombre,tel:fmtTel(c.tel),quien:atiende(c),ent:c.ent,prov:c.prov||"Chiriquí"});renderNB();toast("Cliente conocido: datos cargados")}else $$(`select[data-nic] option[value="${ci}"]`).forEach(op=>op.textContent=t.value.trim()||`Cliente ${ci+1}`);return}
@@ -1676,7 +1683,7 @@ document.addEventListener("input",e=>{const t=e.target;
   if(t.dataset.ni){const[i,f]=t.dataset.ni.split("|"),x=nb.items[+i];if(!x)return;x[f]=t.value;nbGrand();
     if(f==="precio"&&x.c!==""){const ch=document.querySelectorAll(`.nb-cli`)[x.c];if(ch){const its=artsDe(x.c),j=its.indexOf(x),b=ch.querySelectorAll(".chip-a b")[j];if(b)b.textContent=$$m(num(t.value))}}}
   else if(t.dataset.nb){const a=t.dataset.nb.split("|");const k=nb.clientes[+a[0]];if(!k)return;k[a[1]]=t.value;nbGrand()}
-  else if(t.dataset.nbg!==undefined){nb.guias[+t.dataset.nbg]=t.value}
+  else if(t.dataset.nbg!==undefined){const gi=+t.dataset.nbg;nb.guias[gi]=t.value;$$(`select[data-nig] option[data-gi="${gi}"]`).forEach(op=>op.textContent=gLabel(t.value,gi))}
   else if(t.dataset.nbtop){nb[t.dataset.nbtop]=t.value}});
 document.addEventListener("toggle",e=>{if(e.target.open&&e.target.matches?.("details")){const x=e.target;x.classList.add("just");contar(x);setTimeout(()=>x.classList.toggle("just",false),500)}if(e.target.matches?.("details.cli")){e.target.open?cliAbiertos.add(e.target.dataset.cli):cliAbiertos.delete(e.target.dataset.cli);return}if(e.target.matches?.("details.order[data-compra]")){e.target.open?abiertasC.add(e.target.dataset.compra):abiertasC.delete(e.target.dataset.compra);return}if(e.target.matches?.("details.order")){e.target.open?abiertos.add(e.target.dataset.id):abiertos.delete(e.target.dataset.id)}},true);
 
@@ -1690,7 +1697,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=16;
+const APP="admin",APP_VERSION=17;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
