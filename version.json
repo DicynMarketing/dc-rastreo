@@ -1,7 +1,20 @@
 {
-  "admin": 15,
+  "admin": 16,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 16,
+      "cliente": 7,
+      "titulo": "Registro más sencillo con Leer captura",
+      "admin_items": [
+        "Registrar un pedido de Temu ahora va en este orden: 1) fecha, número de pedido y guía; 2) “Leer captura”: eliges todas las capturas y salen todos los artículos con su costo; 3) “Agregar cliente” y en cada artículo eliges “¿De quién?”.",
+        "Cada cliente muestra los artículos que le tocan y su total, y ahí mismo marcas cómo pagó.",
+        "Si hay un solo cliente, todos los artículos son suyos sin elegir nada.",
+        "Al abrir un pedido, sus partes aparecen con animación: guías, entrega, artículos y cobro."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 15,

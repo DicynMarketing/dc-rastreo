@@ -293,6 +293,37 @@ details.cli summary::-webkit-details-marker{display:none}
 .it-row input[inputmode="decimal"]{text-align:right}
 .x{border:0;background:none;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px;height:36px}
 .x:disabled{opacity:.3;cursor:default}
+.nb-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.nb-bar .btn{justify-content:center}
+.arts{display:grid;gap:8px}
+.art{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:10px;display:grid;gap:8px;transition:border-color .2s}
+.art.sin{border-color:rgba(215,169,91,.55)}
+.art-top{display:grid;grid-template-columns:auto minmax(0,1fr) 30px;gap:8px;align-items:center}
+.art-top input{min-width:0;font-weight:600}
+.art-n{width:24px;height:24px;border-radius:8px;background:var(--bg);color:var(--muted);display:grid;place-items:center;font:800 11px var(--f-display)}
+.art-bot{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,.8fr) minmax(0,1.4fr);gap:8px}
+.art-bot label{display:grid;gap:4px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:0}
+.art-bot input,.art-bot select{width:100%;box-sizing:border-box;min-width:0;padding:9px 8px}
+.art-bot input{text-align:right}
+.art.sin .art-de select{border-color:var(--gold)}
+.cli-arts{display:flex;flex-wrap:wrap;gap:6px}
+.chip-a{display:inline-flex;gap:8px;align-items:center;max-width:100%;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:12px}
+.chip-a span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.chip-a b{color:var(--gold);font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:no-preference){
+ #nb.entra .art,#nb.entra .nb-cli{animation:up .45s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(min(var(--i),14)*55ms)}
+ details.order.just>.o-body{animation:none}
+ details.order.just>.o-body>*{animation:up .45s cubic-bezier(.2,.8,.2,1) both}
+ details.order.just>.o-body>*:nth-child(2){animation-delay:.06s}details.order.just>.o-body>*:nth-child(3){animation-delay:.12s}
+ details.order.just>.o-body>*:nth-child(4){animation-delay:.18s}details.order.just>.o-body>*:nth-child(5){animation-delay:.24s}
+ details.order.just>.o-body>*:nth-child(n+6){animation-delay:.3s}
+ details.order.just .item{animation:desliza .4s cubic-bezier(.2,.8,.2,1) both}
+ details.order.just .item:nth-child(2){animation-delay:.18s}details.order.just .item:nth-child(3){animation-delay:.24s}details.order.just .item:nth-child(4){animation-delay:.3s}details.order.just .item:nth-child(n+5){animation-delay:.36s}
+ details.order.just .mini i.on{animation:grow .5s cubic-bezier(.2,.8,.2,1) .2s both;transform-origin:left}
+ details.order.just .pagos-mini>div,details.order.just .sum{animation:up .45s cubic-bezier(.2,.8,.2,1) .25s both}
+ details.order.just .ring{animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
+ @keyframes desliza{from{opacity:0;transform:translateX(-12px)}}
+}
 .nb-cli-f{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .adel{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);font-weight:600}
 .adel input{width:80px;padding:7px 8px;text-align:right}
@@ -1175,8 +1206,8 @@ function renderCompras(){
 /* ---------- Leer captura de Temu ----------
    La lectura (OCR) la hace el mismo teléfono con Tesseract.js: gratis y sin enviar las fotos a ningún lado.
    Saca nombre y precio de cada artículo, y si aparecen, el número de pedido (PO-…) y la guía (PRSPTY…).
-   Los artículos leídos quedan en LEIDOS para repartirlos entre los clientes del pedido. */
-let LEIDOS=[],leerPara=0,ocrWorker=null;
+   Los artículos leídos se agregan a la lista del pedido (nb.items) y luego se elige de quién es cada uno. */
+let ocrWorker=null;
 function cargarOCR(){return window.Tesseract?Promise.resolve():new Promise((ok,mal)=>{const x=document.createElement("script");
   x.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";x.onload=ok;x.onerror=()=>mal(new Error("sin conexión"));document.head.appendChild(x)})}
 const NO_ART=/total|env[ií]o|descuento|subtotal|impuesto|pago|ahorr|cup[oó]n|art[ií]culos|reembolso|carrito|comprar|entregado|enviar a|incluye|cr[eé]dito|precio|pedido/i;
@@ -1199,60 +1230,44 @@ function parseTemu(txt){
     out.push({d:`${q>1?q+"× ":""}${d}`.slice(0,90),costo:+(p*q).toFixed(2),usado:false,si:true})}
   return{items:out,po,guias}}
 async function leerCapturas(files){
-  if(!files.length)return;
+  if(!files.length||!nb)return;
   const hoja=hojaLeer(`<p class="ocr-st"><span class="cg-bar"><i></i></span><span id="ocr-msg">Preparando el lector…</span></p>`);
   try{await cargarOCR();if(!ocrWorker)ocrWorker=await Tesseract.createWorker("spa")}
-  catch(e){hoja.querySelector("#ocr-msg").textContent="No se pudo cargar el lector. Revisa tu internet e intenta de nuevo.";return}
-  let nuevos=0,po="",gs=[];
+  catch(e){const m=document.getElementById("ocr-msg");if(m)m.textContent="No se pudo cargar el lector. Revisa tu internet e intenta de nuevo.";return}
+  nb.items=nb.items.filter(x=>x.d.trim()||String(x.costo).trim()||String(x.precio).trim());
+  let n=0,po="",gs=[];
   for(let i=0;i<files.length;i++){const msg=document.getElementById("ocr-msg");if(msg)msg.textContent=`Leyendo captura ${i+1} de ${files.length}…`;
     try{const{data:{text}}=await ocrWorker.recognize(files[i]);const r=parseTemu(text);
-      r.items.forEach(x=>{if(!LEIDOS.some(y=>y.d===x.d&&y.costo===x.costo)){LEIDOS.push(x);nuevos++}});
+      r.items.forEach(x=>{if(nb.items.some(y=>y.d===x.d&&num(y.costo)===x.costo))return;nb.items.push({d:x.d,costo:x.costo.toFixed(2),precio:"",c:nb.clientes.length===1?0:""});n++});
       po=po||r.po;gs.push(...r.guias)}catch(e){}}
-  if(nb){if(po&&!nb.numero.trim())nb.numero=po;
-    [...new Set(gs)].forEach(g=>{if(nb.guias.includes(g))return;const v=nb.guias.findIndex(x=>!x.trim());if(v>=0)nb.guias[v]=g;else nb.guias.push(g)})}
-  abrirLeidos(nuevos?"":"No encontré artículos con precio en esa captura. Prueba con una captura donde se vean el nombre y el precio de cada producto.",po,gs)}
+  if(po&&!nb.numero.trim())nb.numero=po;
+  [...new Set(gs)].forEach(g=>{if(nb.guias.includes(g))return;const v=nb.guias.findIndex(x=>!x.trim());if(v>=0)nb.guias[v]=g;else nb.guias.push(g)});
+  if(!nb.items.length)nb.items.push(nbArt());
+  hoja.remove();renderNB(true);
+  toast(n?`Leí ${n} artículo${n>1?"s":""}${po?" y el número de pedido":""}. Ahora pon lo que cobras y de quién es cada uno.`:"No encontré artículos con precio. Prueba con capturas donde se vean el nombre y el precio.")}
 function hojaLeer(html){document.getElementById("upd")?.remove();const d=document.createElement("div");d.className="upd";d.id="upd";
-  d.innerHTML=`<div class="upd-bg" data-updx></div><div class="upd-sheet" role="dialog" aria-modal="true" aria-labelledby="ocr-t"><div class="upd-grab"></div><p class="upd-k">Leer captura de Temu</p><h2 id="ocr-t">Artículos de la captura</h2>${html}</div>`;
+  d.innerHTML=`<div class="upd-bg"></div><div class="upd-sheet" role="dialog" aria-modal="true" aria-labelledby="ocr-t"><div class="upd-grab"></div><p class="upd-k">Leer captura de Temu</p><h2 id="ocr-t">Leyendo tus capturas</h2>${html}</div>`;
   document.body.appendChild(d);return d}
-function abrirLeidos(aviso,po,gs){const k=nb?.clientes[leerPara],nom=k?.nombre.trim()||`el cliente ${leerPara+1}`,L=LEIDOS.map((x,i)=>({x,i})).filter(o=>!o.x.usado);
-  const extra=[po?`pedido <b class="mono">${esc(po)}</b>`:"",gs?.length?`guía <b class="mono">${esc([...new Set(gs)].join(", "))}</b>`:""].filter(Boolean);
-  hojaLeer(`${aviso?`<p class="ocr-av">${aviso}</p>`:""}
-    ${extra.length?`<p class="ocr-ok">También encontré el ${extra.join(" y la ")}. Ya lo puse arriba.</p>`:""}
-    ${L.length?`<p class="ocr-tip">Marca los artículos de <b>${esc(nom)}</b>. Si algo se leyó mal, corrígelo aquí.</p>
-    <div class="ocr-list">${L.map(({x,i})=>`<label class="ocr-it"><input type="checkbox" data-ldc="${i}" ${x.si?"checked":""} aria-label="Es de ${esc(nom)}">
-      <input data-ld="${i}|d" value="${esc(x.d)}" aria-label="Artículo"><input data-ld="${i}|costo" value="${x.costo.toFixed(2)}" inputmode="decimal" aria-label="Costo en Temu"></label>`).join("")}</div>
-    <div class="upd-btns"><button class="upd-btn" data-ldok>Agregar a ${esc(nom)}</button></div>`:""}
-    <div class="upd-btns"><button class="upd-btn sec" data-ldmas>${L.length?"Leer otra captura":"Elegir capturas"}</button>${LEIDOS.length?`<button class="upd-btn sec" data-ldborrar>Borrar lo leído</button>`:""}<button class="upd-btn sec" data-updx>Cerrar</button></div>`)}
-function agregarLeidos(){const k=nb?.clientes[leerPara];if(!k)return;const sel=LEIDOS.filter(x=>!x.usado&&x.si&&x.d.trim());
-  if(!sel.length)return toast("Marca al menos un artículo");
-  k.items=k.items.filter(x=>x.d.trim()||String(x.costo).trim()||String(x.precio).trim());
-  sel.forEach(x=>{k.items.push({d:x.d.trim(),costo:x.costo.toFixed(2),precio:""});x.usado=true});
-  LEIDOS.forEach(x=>{if(!x.usado)x.si=true});
-  document.getElementById("upd")?.remove();renderNB();
-  toast(`${sel.length} artículo${sel.length>1?"s":""} agregado${sel.length>1?"s":""}. Ahora pon lo que le cobras.`);
-  setTimeout(()=>document.querySelector(`[data-nb="${leerPara}|${k.items.length-sel.length}|precio"]`)?.focus(),250)}
 const ocrFile=document.createElement("input");ocrFile.type="file";ocrFile.accept="image/*";ocrFile.multiple=true;ocrFile.hidden=true;document.body.appendChild(ocrFile);
 ocrFile.addEventListener("change",()=>{const f=[...ocrFile.files];ocrFile.value="";leerCapturas(f)});
-document.addEventListener("click",e=>{const b=e.target.closest("[data-nbleer],[data-ldok],[data-ldmas],[data-ldborrar]");if(!b)return;const d=b.dataset;
-  if(d.nbleer!==undefined){leerPara=+d.nbleer;if(LEIDOS.some(x=>!x.usado))abrirLeidos();else ocrFile.click()}
-  else if("ldok" in d)agregarLeidos();
-  else if("ldmas" in d)ocrFile.click();
-  else if("ldborrar" in d){LEIDOS=[];abrirLeidos();renderNB()}});
-document.addEventListener("input",e=>{const t=e.target;if(t.dataset.ld){const[i,f]=t.dataset.ld.split("|");LEIDOS[+i][f]=f==="costo"?num(t.value):t.value}});
-document.addEventListener("change",e=>{const t=e.target;if(t.dataset.ldc!==undefined)LEIDOS[+t.dataset.ldc].si=t.checked});
+document.addEventListener("click",e=>{if(e.target.closest("[data-nbleer]"))ocrFile.click()});
 
 /* ---------- Registrar pedido de Temu (varios clientes, varios artículos) ---------- */
 let nb=null,regModo="temu";
 function nbNuevo(desdeCarrito){
-  nb={numero:"",fecha:hoyISO(),guias:[""],clientes:[]};
-  (desdeCarrito||[]).forEach(id=>{const o=find(id),c=cli(o);nb.clientes.push({nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",pago:num(o.abonado)?"adelanto":"nada",desde:o.id,items:[{d:o.nota||"",costo:"",precio:""}]})});
-  if(!nb.clientes.length)nb.clientes.push(nbCli());
+  nb={numero:"",fecha:hoyISO(),guias:[""],clientes:[],items:[]};
+  (desdeCarrito||[]).forEach(id=>{const o=find(id),c=cli(o);nb.clientes.push({nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",pago:num(o.abonado)?"adelanto":"nada",desde:o.id});
+    nb.items.push({d:o.nota||"",costo:"",precio:"",c:nb.clientes.length-1})});
+  if(!nb.items.length)nb.items.push(nbArt());
 }
-const nbCli=()=>({nombre:"",tel:"",quien:yo,ent:"local",prov:"Chiriquí",adel:"",pago:"nada",items:[{d:"",costo:"",precio:""}]});
+const nbArt=()=>({d:"",costo:"",precio:"",c:""});
+const nbCli=()=>({nombre:"",tel:"",quien:yo,ent:"local",prov:"Chiriquí",adel:"",pago:"nada"});
+const artsDe=ci=>nb.items.filter(x=>x.c===ci);
+const lleno=x=>x.d.trim()||num(x.costo)||num(x.precio);
 /* Lo que ya pagó un cliente al registrar: nada, un adelanto o el total completo */
-const nbPagado=k=>k.pago==="completo"?sumItems(k.items).precio:k.pago==="adelanto"?Math.min(num(k.adel),sumItems(k.items).precio||num(k.adel)):0;
-function nbTot(){let c=0,p=0;nb.clientes.forEach(k=>k.items.forEach(x=>{c+=num(x.costo);p+=num(x.precio)}));return{c,p}}
-function renderNB(){
+const nbPagado=(k,its)=>{const tot=sumItems(its).precio;return k.pago==="completo"?tot:k.pago==="adelanto"?Math.min(num(k.adel),tot||num(k.adel)):0};
+function nbTot(){let c=0,p=0;nb.items.forEach(x=>{c+=num(x.costo);p+=num(x.precio)});return{c,p}}
+function renderNB(entra){
   $$("#seg-reg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.reg===regModo));
   $("#nb").hidden=regModo!=="temu";$("#form").hidden=regModo!=="encargo"||!$("#done").hidden;
   if(regModo!=="temu")return;
@@ -1268,71 +1283,79 @@ function renderNB(){
      ${nb.guias.map((g,gi)=>`<label class="f">Número de guía ${nb.guias.length>1?gi+1:""}<span class="guia-row"><input class="mono" data-nbg="${gi}" value="${esc(g)}" list="dl-guias" placeholder="Opcional por ahora" autocomplete="off">${gi?`<button type="button" class="x" data-nbgdel="${gi}" aria-label="Quitar guía">×</button>`:""}</span></label>`).join("")}
    </div>
    <button type="button" class="btn sm" id="nb-addg" style="justify-self:start"><svg><use href="#i-plus"/></svg>Otra guía (Temu lo dividió)</button>
-   <div class="nb-step"><span class="nb-n">2</span><div><b>Clientes y lo que pidió cada uno</b><p class="note">Un bloque por cliente con todos sus artículos. Con <b>“Leer captura”</b> eliges las capturas del pedido de Temu y la app llena los artículos y sus costos sola; tú marcas cuáles son de este cliente y pones lo que le cobras.</p></div></div>
-   ${nb.clientes.map((k,ci)=>{const s=sumItems(k.items);return`<div class="nb-cli">
+   <div class="nb-step"><span class="nb-n">2</span><div><b>Artículos del pedido</b><p class="note">Toca <b>“Leer captura”</b> y elige todas las capturas del pedido: cada artículo sale con su costo. Después agrega los clientes y elige de quién es cada artículo.</p></div></div>
+   <div class="nb-bar"><button type="button" class="btn gold" data-nbleer><svg><use href="#i-cam"/></svg>Leer captura</button><button type="button" class="btn" data-nbaddcli><svg><use href="#i-users"/></svg>Agregar cliente</button></div>
+   <div class="arts">${nb.items.map((x,ii)=>`<div class="art ${x.c===""&&lleno(x)?"sin":""}" style="--i:${ii}">
+     <div class="art-top"><span class="art-n">${ii+1}</span><input data-ni="${ii}|d" value="${esc(x.d)}" placeholder="${ii?"Artículo "+(ii+1):"Ej. Funda iPhone 13"}" aria-label="Artículo ${ii+1}" enterkeyhint="next" autocomplete="off"><button type="button" class="x" data-nbix="${ii}" aria-label="Quitar artículo">×</button></div>
+     <div class="art-bot">
+       <label>Costo Temu<input data-ni="${ii}|costo" value="${esc(x.costo)}" inputmode="decimal" placeholder="0.00" enterkeyhint="next"></label>
+       <label>Le cobras<input data-ni="${ii}|precio" value="${esc(x.precio)}" inputmode="decimal" placeholder="0.00" enterkeyhint="next"></label>
+       <label class="art-de">¿De quién?<select data-nic="${ii}">${nb.clientes.length?`<option value="" ${x.c===""?"selected":""}>Elegir…</option>${nb.clientes.map((k,ci)=>`<option value="${ci}" ${x.c===ci?"selected":""}>${esc(k.nombre.trim()||"Cliente "+(ci+1))}</option>`).join("")}`:`<option value="">Agrega un cliente</option>`}</select></label>
+     </div></div>`).join("")}</div>
+   <button type="button" class="btn sm" data-nbadd style="justify-self:start"><svg><use href="#i-plus"/></svg>Artículo a mano</button>
+   <div class="nb-step"><span class="nb-n">3</span><div><b>Clientes de este pedido</b><p class="note">Agrega cada persona que pidió en esta compra. Sus artículos se juntan solos según lo que elijas en “¿De quién?”.</p></div></div>
+   ${nb.clientes.length?"":`<div class="empty">Todavía no hay clientes. Toca “Agregar cliente”.</div>`}
+   ${nb.clientes.map((k,ci)=>{const its=artsDe(ci),s=sumItems(its);return`<div class="nb-cli" style="--i:${ci}">
      <div class="nb-cli-h"><span class="nb-idx">${ci+1}</span>
        <input data-nb="${ci}|nombre" list="dl-clientes" value="${esc(k.nombre)}" placeholder="Nombre del cliente" aria-label="Cliente ${ci+1}" autocomplete="off">
-       ${nb.clientes.length>1?`<button type="button" class="btn sm red" data-nbdel="${ci}" aria-label="Quitar cliente">Quitar</button>`:""}</div>
+       <button type="button" class="btn sm red" data-nbdel="${ci}" aria-label="Quitar cliente">Quitar</button></div>
      <div class="nb-grid">
        <input data-nb="${ci}|tel" value="${esc(k.tel)}" placeholder="WhatsApp 6123-4567" inputmode="tel" aria-label="WhatsApp" autocomplete="off">
        <div class="seg sm"><button type="button" data-nbq="${ci}|diego" aria-pressed="${k.quien==="diego"}">Diego</button><button type="button" data-nbq="${ci}|cinthya" aria-pressed="${k.quien==="cinthya"}">Cinthya</button></div>
        <div class="seg sm"><button type="button" data-nbe="${ci}|local" aria-pressed="${k.ent==="local"}">Aguadulce</button><button type="button" data-nbe="${ci}|envio" aria-pressed="${k.ent==="envio"}">Otra prov.</button></div>
        ${k.ent==="envio"?`<select data-nb="${ci}|prov" aria-label="Provincia">${PROVINCIAS.map(p=>`<option ${p===k.prov?"selected":""}>${p}</option>`).join("")}</select>`:""}
      </div>
-     <div class="it-h"><span>Artículo</span><span>Costo Temu</span><span>Le cobras</span><span></span></div>
-     ${k.items.map((x,ii)=>`<div class="it-row">
-       <input data-nb="${ci}|${ii}|d" value="${esc(x.d)}" placeholder="${ii?"Artículo "+(ii+1):"Ej. Funda iPhone 13"}" aria-label="Artículo ${ii+1}" enterkeyhint="next">
-       <input data-nb="${ci}|${ii}|costo" value="${esc(x.costo)}" inputmode="decimal" placeholder="0.00" aria-label="Costo en Temu" enterkeyhint="next">
-       <input data-nb="${ci}|${ii}|precio" value="${esc(x.precio)}" inputmode="decimal" placeholder="0.00" aria-label="Le cobras" enterkeyhint="next">
-       <button type="button" class="x" data-nbix="${ci}|${ii}" aria-label="Quitar artículo" ${k.items.length<2?"disabled":""}>×</button></div>`).join("")}
-     <div class="nb-cli-f"><button type="button" class="btn sm" data-nbadd="${ci}"><svg><use href="#i-plus"/></svg>Artículo</button>
-       <button type="button" class="btn sm gold" data-nbleer="${ci}"><svg><use href="#i-cam"/></svg>Leer captura${LEIDOS.some(x=>!x.usado)?` · ${LEIDOS.filter(x=>!x.usado).length}`:""}</button>
-       <span class="nb-sub" id="nbs-${ci}">${llenos(k)} art. · <b>${$$m(s.precio)}</b></span></div>
+     <div class="cli-arts">${its.length?its.map(x=>`<span class="chip-a"><span>${esc(x.d.trim()||"Artículo")}</span><b>${$$m(num(x.precio))}</b></span>`).join(""):`<span class="note">Sin artículos todavía: elígelo arriba en “¿De quién?”.</span>`}</div>
+     <div class="nb-cli-f"><span class="nb-sub" id="nbs-${ci}">${its.length} art. · <b>${$$m(s.precio)}</b></span></div>
      <div class="pago"><span class="f-lab">¿Cómo pagó?</span>
        <div class="seg sm"><button type="button" data-nbpago="${ci}|nada" aria-pressed="${k.pago==="nada"}">Aún no</button><button type="button" data-nbpago="${ci}|adelanto" aria-pressed="${k.pago==="adelanto"}">Adelanto</button><button type="button" data-nbpago="${ci}|completo" aria-pressed="${k.pago==="completo"}">Completo</button></div>
        ${k.pago==="adelanto"?`<label class="adel">Adelanto recibido <input data-nb="${ci}|adel" value="${esc(k.adel)}" inputmode="decimal" placeholder="0.00" aria-label="Adelanto recibido"></label>`:""}
        <span class="pago-r" id="nbp-${ci}"></span></div>
    </div>`}).join("")}
-   <div class="o-actions"><button type="button" class="btn" id="nb-addcli"><svg><use href="#i-plus"/></svg>Otro cliente</button></div>
+   ${nb.clientes.length?`<div class="o-actions"><button type="button" class="btn" data-nbaddcli><svg><use href="#i-plus"/></svg>Agregar otro cliente</button></div>`:""}
    ${cart.length?`<div class="block"><span class="f-lab">O tráelos del carrito “Por comprar”</span><div class="hist">${cart.map(o=>`<div class="crow"><span class="who-av ${o.quien}">${EQUIPO[o.quien].nombre[0]}</span>
      <span style="min-width:0"><b>${esc(cli(o).nombre)}</b><span class="o-sub" style="display:block">${esc(o.nota||"")}</span></span><button type="button" class="btn sm" data-nbcart="${o.id}">Agregar</button></div>`).join("")}</div></div>`:""}
    <div class="grand" id="nb-grand"></div>
    <p class="err" id="nb-err" hidden></p>
    <div class="o-actions"><button type="button" class="btn gold" id="nb-save"><svg><use href="#i-check"/></svg>Registrar pedido de Temu</button></div>`;
   nbGrand();
+  if(entra){const n=$("#nb");n.classList.remove("entra");void n.offsetWidth;n.classList.add("entra");setTimeout(()=>n.classList.remove("entra"),1600)}
 }
-const llenos=k=>k.items.filter(x=>x.d.trim()||num(x.costo)||num(x.precio)).length;
-function nbGrand(){const t=nbTot(),cob=nb.clientes.reduce((a,k)=>a+nbPagado(k),0),arts=nb.clientes.reduce((a,k)=>a+llenos(k),0);
-  $("#nb-grand").innerHTML=`<div><span>Total de la compra en Temu</span><b>${$$m(t.c)}</b></div><div><span>Total a cobrar a clientes</span><b>${$$m(t.p)}</b></div><div><span>Ganancia del pedido</span><b class="ok">${$$m(t.p-t.c)}</b></div><div><span>Ya cobrado</span><b class="ok">${$$m(cob)}</b></div><div><span>Falta cobrar</span><b class="${t.p-cob>0?"due":"ok"}">${$$m(Math.max(0,t.p-cob))}</b></div><div><span>Clientes · artículos</span><b>${nb.clientes.length} · ${arts}</b></div>`;
-  nb.clientes.forEach((k,ci)=>{const el=$("#nbs-"+ci);if(el)el.innerHTML=`${llenos(k)} art. · <b>${$$m(sumItems(k.items).precio)}</b>`;
-    const pr=$("#nbp-"+ci),tot=sumItems(k.items).precio,pg=nbPagado(k);
+function nbGrand(){const t=nbTot(),cob=nb.clientes.reduce((a,k,ci)=>a+nbPagado(k,artsDe(ci)),0),arts=nb.items.filter(lleno).length,sin=nb.items.filter(x=>x.c===""&&lleno(x)).length;
+  $("#nb-grand").innerHTML=`<div><span>Total de la compra en Temu</span><b>${$$m(t.c)}</b></div><div><span>Total a cobrar a clientes</span><b>${$$m(t.p)}</b></div><div><span>Ganancia del pedido</span><b class="ok">${$$m(t.p-t.c)}</b></div><div><span>Ya cobrado</span><b class="ok">${$$m(cob)}</b></div><div><span>Falta cobrar</span><b class="${t.p-cob>0?"due":"ok"}">${$$m(Math.max(0,t.p-cob))}</b></div><div><span>Clientes · artículos</span><b>${nb.clientes.length} · ${arts}</b></div>${sin&&nb.clientes.length>1?`<div><span>Artículos sin cliente</span><b class="due">${sin}</b></div>`:""}`;
+  nb.clientes.forEach((k,ci)=>{const its=artsDe(ci),el=$("#nbs-"+ci);if(el)el.innerHTML=`${its.length} art. · <b>${$$m(sumItems(its).precio)}</b>`;
+    const pr=$("#nbp-"+ci),tot=sumItems(its).precio,pg=nbPagado(k,its);
     if(pr)pr.innerHTML=k.pago==="completo"?`<span class="paid">Pagó completo ${$$m(tot)}</span>`:k.pago==="adelanto"?(pg?`Queda debiendo <b>${$$m(Math.max(0,tot-pg))}</b>`:"Escribe cuánto dio de adelanto"):(tot?`Debe <b>${$$m(tot)}</b>`:"")})}
 function nbGuardar(){
   const err=$("#nb-err"),fail=t=>{err.textContent=t;err.hidden=false;err.scrollIntoView({block:"center"})};
   const numero=nb.numero.trim().toUpperCase(),guias=[...new Set(nb.guias.map(g=>g.trim().toUpperCase()).filter(Boolean))];
   if(!numero){$("#nb-num")?.focus();return fail("Falta el número de pedido de Temu.")}
+  nb.items=nb.items.filter(lleno);
+  if(!nb.items.length){nb.items.push(nbArt());renderNB();return fail("No hay artículos. Toca “Leer captura” o agrega uno a mano.")}
+  if(!nb.clientes.length)return fail("Agrega al menos un cliente con “Agregar cliente”.");
+  if(nb.clientes.length===1)nb.items.forEach(x=>{if(x.c==="")x.c=0});
+  const sinC=nb.items.find(x=>x.c==="");if(sinC){renderNB();return fail(`Elige de quién es “${sinC.d.trim()||"un artículo"}” en “¿De quién?”.`)}
+  if(nb.items.some(x=>!x.d.trim())){renderNB();return fail("A un artículo le falta el nombre.")}
   for(const [i,k] of nb.clientes.entries()){
     if(!k.nombre.trim())return fail(`Falta el nombre del cliente ${i+1}.`);
     if(k.pago==="adelanto"&&!num(k.adel))return fail(`Escribe el adelanto de ${k.nombre.trim()}, o elige “Aún no”.`);
     const ex=D.C.find(c=>c.nombre.toLowerCase()===k.nombre.trim().toLowerCase());
     if(!ex&&k.tel.replace(/\D/g,"").length<8)return fail(`Falta el WhatsApp de ${k.nombre}.`);
-    k.items=k.items.filter(x=>x.d.trim()||num(x.precio)||num(x.costo));
-    if(!k.items.length){renderNB();return fail(`${k.nombre} no tiene artículos.`)}
-    if(k.items.some(x=>!x.d.trim()))return fail(`A un artículo de ${k.nombre} le falta la descripción.`);
+    if(!artsDe(i).length){renderNB();return fail(`${k.nombre} no tiene artículos: elige sus artículos en “¿De quién?”, o quítalo.`)}
   }
   if(!numero)return fail("Falta el número de pedido de Temu.");
   if(D.P.some(o=>o.tpo===numero))return fail(`El número ${numero} ya está registrado. Cada pedido de Temu es único.`);
   err.hidden=true;const now=new Date().toISOString(),creados=[];
   const fechaPed=nb.fecha&&nb.fecha!==hoyISO()?new Date(nb.fecha+"T12:00:00").toISOString():now;
   const paqDe=()=>guias.map(g=>{const ex=D.P.flatMap(x=>x.paq).find(q=>q.g===g);return{g,h:ex?[...ex.h]:[now]}});
-  nb.clientes.forEach(k=>{
+  nb.clientes.forEach((k,ci)=>{
     const nombre=tc(k.nombre),tel=k.tel.replace(/\D/g,"");
     let c=D.C.find(x=>x.nombre.toLowerCase()===nombre.toLowerCase());
     if(!c){c={id:"c"+Date.now()+Math.random().toString(36).slice(2,6),nombre,tel,ent:k.ent,prov:k.ent==="envio"?k.prov:"",atiende:k.quien};D.C.push(c)}
     else Object.assign(c,{tel:tel||c.tel,ent:k.ent,prov:k.ent==="envio"?k.prov:""});
-    const items=k.items.map(x=>({d:x.d.trim(),costo:num(x.costo),precio:num(x.precio)}));
+    const items=artsDe(ci).map(x=>({d:x.d.trim(),costo:num(x.costo),precio:num(x.precio)}));
     let o=k.desde&&find(k.desde);
-    const abonado=nbPagado({...k,items});
+    const abonado=nbPagado(k,items);
     if(o){Object.assign(o,{items,tpo:numero,quien:k.quien,paq:paqDe(),abonado,pagos:pagoIni(abonado,fechaPed,k.quien),creado:fechaPed})}
     else{o={id:newCode(),cli:c.id,quien:k.quien,items,costo:0,precio:0,abonado,pagos:pagoIni(abonado,fechaPed,k.quien),nota:"",tpo:numero,creado:fechaPed,local:[],envio:null,avisado:-1,paq:paqDe()};D.P.unshift(o)}
     syncItems(o);creados.push(o)});
@@ -1573,13 +1596,14 @@ document.addEventListener("click",e=>{
   else if(d.reg){regModo=d.reg;$("#done").hidden=true;renderNB();renderRegistrar()}
   else if(d.nbq){const[ci,v]=d.nbq.split("|");nb.clientes[+ci].quien=v;renderNB()}
   else if(d.nbe){const[ci,v]=d.nbe.split("|");nb.clientes[+ci].ent=v;renderNB()}
-  else if(d.nbadd){const k=nb.clientes[+d.nbadd];k.items.push({d:"",costo:"",precio:""});renderNB();document.querySelector(`[data-nb="${d.nbadd}|${k.items.length-1}|d"]`)?.focus()}
-  else if(d.nbix){const[ci,ii]=d.nbix.split("|").map(Number);nb.clientes[ci].items.splice(ii,1);renderNB()}
-  else if(d.nbdel){nb.clientes.splice(+d.nbdel,1);renderNB()}
-  else if(t.id==="nb-addcli"){nb.clientes.push(nbCli());renderNB();document.querySelector(`[data-nb="${nb.clientes.length-1}|nombre"]`)?.focus()}
+  else if("nbadd" in d){nb.items.push(nbArt());renderNB();document.querySelector(`[data-ni="${nb.items.length-1}|d"]`)?.focus()}
+  else if(d.nbix!==undefined){nb.items.splice(+d.nbix,1);if(!nb.items.length)nb.items.push(nbArt());renderNB()}
+  else if(d.nbdel!==undefined){const ci=+d.nbdel;nb.clientes.splice(ci,1);nb.items.forEach(x=>{if(x.c===ci)x.c="";else if(x.c!==""&&x.c>ci)x.c--});renderNB()}
+  else if("nbaddcli" in d){nb.clientes.push(nbCli());const ci=nb.clientes.length-1;if(ci===0)nb.items.forEach(x=>{if(x.c==="")x.c=0});renderNB();
+    const el=document.querySelector(`[data-nb="${ci}|nombre"]`);if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.focus({preventScroll:true})}}
   else if(d.nbcart){const o=find(d.nbcart),c=cli(o);const blank=nb.clientes.length===1&&!nb.clientes[0].nombre;
-    const k={nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",pago:num(o.abonado)?"adelanto":"nada",desde:o.id,items:[{d:o.nota||"",costo:"",precio:""}]};
-    if(blank)nb.clientes[0]=k;else nb.clientes.push(k);renderNB()}
+    const k={nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",pago:num(o.abonado)?"adelanto":"nada",desde:o.id};
+    if(blank)nb.clientes[0]=k;else nb.clientes.push(k);nb.items=nb.items.filter(lleno);nb.items.push({d:o.nota||"",costo:"",precio:"",c:blank?0:nb.clientes.length-1});renderNB()}
   else if(t.id==="nb-addg"){nb.guias.push("");renderNB();document.querySelector(`[data-nbg="${nb.guias.length-1}"]`)?.focus()}
   else if(d.nbgdel){nb.guias.splice(+d.nbgdel,1);renderNB()}
   else if("logout" in d){if(confirm("¿Cerrar sesión en este teléfono?"))sb?.auth.signOut().finally(()=>location.reload())}
@@ -1626,8 +1650,9 @@ document.addEventListener("click",e=>{
 document.addEventListener("change",e=>{
   const t=e.target;
   if(t.id==="scope")return renderPedidos();
+  if(t.dataset.nic!==undefined&&nb){nb.items[+t.dataset.nic].c=t.value===""?"":+t.value;renderNB();return}
   if(t.dataset.nb&&t.dataset.nb.endsWith("|nombre")){const ci=+t.dataset.nb.split("|")[0],c=D.C.find(x=>x.nombre.toLowerCase()===t.value.trim().toLowerCase());
-    if(c){Object.assign(nb.clientes[ci],{nombre:c.nombre,tel:fmtTel(c.tel),quien:atiende(c),ent:c.ent,prov:c.prov||"Chiriquí"});renderNB();toast("Cliente conocido: datos cargados")}return}
+    if(c){Object.assign(nb.clientes[ci],{nombre:c.nombre,tel:fmtTel(c.tel),quien:atiende(c),ent:c.ent,prov:c.prov||"Chiriquí"});renderNB();toast("Cliente conocido: datos cargados")}else $$(`select[data-nic] option[value="${ci}"]`).forEach(op=>op.textContent=t.value.trim()||`Cliente ${ci+1}`);return}
   if(t.dataset.atiende){const c=D.C.find(x=>x.id===t.dataset.atiende);c.atiende=t.value;D.P.filter(o=>o.cli===c.id&&etapa(o)<9).forEach(o=>o.quien=t.value);save();refresh();toast(`${c.nombre.split(" ")[0]} ahora lo atiende ${EQUIPO[t.value].nombre}`);return}
   if(t.dataset.pkg){const[id,i]=t.dataset.pkg.split("|"),o=find(id),p=o.paq[+i],k=+t.value;
     const todos=D.P.filter(x=>x.paq.some(q=>q.g===p.g));
@@ -1639,16 +1664,18 @@ document.addEventListener("change",e=>{
 /* Enter en los artículos: pasa al siguiente campo; al final de la última fila agrega otro artículo. */
 document.addEventListener("keydown",e=>{const t=e.target;if(e.key!=="Enter"||!nb)return;
   if(t.id==="nb-num"){e.preventDefault();document.querySelector('[data-nbg="0"]')?.focus();return}
-  const a=(t.dataset.nb||"").split("|");if(a.length!==3)return;e.preventDefault();
-  const ci=+a[0],ii=+a[1],k=nb.clientes[ci],orden=["d","costo","precio"],f=orden.indexOf(a[2]);
-  if(f<2)return document.querySelector(`[data-nb="${ci}|${ii}|${orden[f+1]}"]`)?.focus();
-  if(ii===k.items.length-1){if(!k.items[ii].d.trim())return;k.items.push({d:"",costo:"",precio:""});renderNB()}
-  document.querySelector(`[data-nb="${ci}|${ii+1}|d"]`)?.focus()});
+  const a=(t.dataset.ni||"").split("|");if(a.length!==2)return;e.preventDefault();
+  const ii=+a[0],orden=["d","costo","precio"],f=orden.indexOf(a[1]);
+  if(f<2)return document.querySelector(`[data-ni="${ii}|${orden[f+1]}"]`)?.focus();
+  if(ii===nb.items.length-1){if(!nb.items[ii].d.trim())return;nb.items.push(nbArt());renderNB()}
+  document.querySelector(`[data-ni="${ii+1}|d"]`)?.focus()});
 $("#q").addEventListener("input",renderPedidos);
 $("#qc").addEventListener("input",renderCompras);
 document.addEventListener("input",e=>{const t=e.target;
   if(!nb)return;
-  if(t.dataset.nb){const a=t.dataset.nb.split("|");const k=nb.clientes[+a[0]];if(!k)return;if(a.length===2)k[a[1]]=t.value;else k.items[+a[1]][a[2]]=t.value;nbGrand()}
+  if(t.dataset.ni){const[i,f]=t.dataset.ni.split("|"),x=nb.items[+i];if(!x)return;x[f]=t.value;nbGrand();
+    if(f==="precio"&&x.c!==""){const ch=document.querySelectorAll(`.nb-cli`)[x.c];if(ch){const its=artsDe(x.c),j=its.indexOf(x),b=ch.querySelectorAll(".chip-a b")[j];if(b)b.textContent=$$m(num(t.value))}}}
+  else if(t.dataset.nb){const a=t.dataset.nb.split("|");const k=nb.clientes[+a[0]];if(!k)return;k[a[1]]=t.value;nbGrand()}
   else if(t.dataset.nbg!==undefined){nb.guias[+t.dataset.nbg]=t.value}
   else if(t.dataset.nbtop){nb[t.dataset.nbtop]=t.value}});
 document.addEventListener("toggle",e=>{if(e.target.open&&e.target.matches?.("details")){const x=e.target;x.classList.add("just");contar(x);setTimeout(()=>x.classList.toggle("just",false),500)}if(e.target.matches?.("details.cli")){e.target.open?cliAbiertos.add(e.target.dataset.cli):cliAbiertos.delete(e.target.dataset.cli);return}if(e.target.matches?.("details.order[data-compra]")){e.target.open?abiertasC.add(e.target.dataset.compra):abiertasC.delete(e.target.dataset.compra);return}if(e.target.matches?.("details.order")){e.target.open?abiertos.add(e.target.dataset.id):abiertos.delete(e.target.dataset.id)}},true);
@@ -1663,7 +1690,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=15;
+const APP="admin",APP_VERSION=16;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
