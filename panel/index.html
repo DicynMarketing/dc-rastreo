@@ -1216,30 +1216,40 @@ function renderCompras(){
 let ocrWorker=null;
 function cargarOCR(){return window.Tesseract?Promise.resolve():new Promise((ok,mal)=>{const x=document.createElement("script");
   x.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";x.onload=ok;x.onerror=()=>mal(new Error("sin conexión"));document.head.appendChild(x)})}
-const NO_ART=/total|env[ií]o|descuento|subtotal|impuesto|pago|ahorr|cup[oó]n|art[ií]culos|reembolso|carrito|comprar|entregado|enviar a|incluye|cr[eé]dito|precio|pedido/i;
+const NO_ART=/promoci|total|env[ií]o|descuento|subtotal|impuesto|pago|ahorr|cup[oó]n|art[ií]culos|reembolso|carrito|comprar|entregado|enviar a|incluye|cr[eé]dito|precio|pedido/i;
 const PRECIO=/^(.*?)[\s:]*(?:US)?[$S§]\s?(\d{1,4}[.,]\d{2})\s*$/;
 const PRECIO2=/^(.*?)(?:\.{2,}|…)\s*(?:US)?[$S§]?\s?(\d{1,4}[.,]\d{2})\s*$/;  // a veces el lector no ve el "$"
-const limpiar=d=>d.replace(/(\.{2,}|…)\s*$/,"").replace(/^(\S{1,2}\s+){1,3}(?=\S{3,})/,"").trim();  // quita letras sueltas de las fotos
+const limpiar=d=>d.replace(/(\.{2,}|…)\s*[—–-]?\s*$/,"").replace(/[\s.…—–-]+$/,"").replace(/^([^\s\d¡¿]{1,2}\s+){1,3}(?=\S{3,})/,"").trim();  // quita letras sueltas de las fotos
 const QTY=/(?:^|\s)[x×X]\s?(\d{1,3})\s*$/;
-const PRECIOS=/(?:US)?[$S§]\s?(\d{1,4}[.,]\d{2})/g;
+/* Cómo lee una captura de Temu (lista de artículos del pedido):
+   "Nombre del artículo…  $0.91"            ← línea del título: el precio de lista (lo que cobras)
+   "Después de aplicadas las promociones:"
+   "$0.56"                                 ← lo que pagaste en Temu (costo)
+   "Blanco                    ×1"          ← variante y cantidad (×2 = dos artículos)
+   Si solo hay un precio, ese es el costo. */
+const SOLO_PRECIO=/^\W{0,3}(?:US)?[$S§]?\s?(\d{1,4}[.,]\d{1,2})\s*$/;
+const PRECIO_FIN=/(?:US)?[$S§]\s?(\d{1,4}[.,]\d{1,2})\s*$/;
+const aNum=t=>+String(t).replace(",",".");
+function esTitulo(l){const m=l.match(PRECIO)||l.match(PRECIO2);if(!m)return null;const d=limpiar(m[1]);
+  return d.length>=3&&/[a-záéíóúñ]{3}/i.test(d)&&!NO_ART.test(d)?{d,p:aNum(m[2])}:null}
 function parseTemu(txt){
   const L=txt.split(/\n/).map(x=>x.replace(/[|]/g," ").replace(/\s+/g," ").trim()).filter(Boolean),out=[];
   const plano=txt.replace(/\s+/g,"");
   const mpo=plano.match(/PO[-–—]?(\d{3})[-–—]?(\d{10,20})/i),po=mpo?`PO-${mpo[1]}-${mpo[2]}`:"";
   const guias=[...new Set((plano.match(/PRSPTY\d{8,14}/gi)||[]).map(g=>g.toUpperCase()))];
-  const precios=l=>[...l.matchAll(PRECIOS)].map(m=>+m[1].replace(",","."));
-  for(let i=0;i<L.length;i++){const m=L[i].match(PRECIO)||L[i].match(PRECIO2);if(!m)continue;
-    let d=limpiar(m[1].replace(PRECIOS,""));
-    if(d.length<3){const pr=L[i-1]||"";if(PRECIO.test(pr)||PRECIO2.test(pr)||NO_ART.test(pr))continue;d=limpiar(pr)}
-    if(d.length<3||NO_ART.test(d)||!/[a-záéíóúñ]{3}/i.test(d))continue;
-    // todos los precios de la línea y, si la siguiente solo trae otro precio (el tachado), también ese
-    let ps=precios(L[i]);if(!ps.length)ps=[+m[2].replace(",",".")];
-    const sig=L[i+1]||"";if(/^[^a-záéíóúñ]*[$S§]\s?\d/i.test(sig)&&!QTY.test(sig))ps.push(...precios(sig));
-    let q=1;
-    for(let j=i+1;j<Math.min(L.length,i+3);j++){const l=L[j];if(j>i+1&&PRECIO.test(l))break;const mq=l.match(QTY);if(mq){q=+mq[1];break}}
-    const costo=Math.min(...ps),venta=ps.length>1?Math.max(...ps):0;
-    out.push({d:d.slice(0,90),costo,precio:venta>costo?venta:0,q:Math.min(q,20)})}
+  for(let i=0;i<L.length;i++){const t=esTitulo(L[i]);if(!t)continue;
+    const ps=[t.p];let q=1;
+    for(let j=i+1;j<Math.min(L.length,i+5);j++){const l=L[j];
+      if(/promoci/i.test(l)){const m=l.match(PRECIO_FIN);if(m)ps.push(aNum(m[1]));continue}
+      if(esTitulo(l))break;
+      const mp=l.match(SOLO_PRECIO);if(mp){ps.push(aNum(mp[1]));continue}
+      const mq=l.match(QTY);if(mq){q=+mq[1];break}}
+    const costo=Math.min(...ps),venta=Math.max(...ps);
+    out.push({d:t.d.slice(0,90),costo,precio:venta>costo?venta:0,q:Math.min(q,20)})}
   return{items:out,po,guias}}
+/* Las fotos de los productos (a la izquierda) confunden al lector: los artículos se leen sin ese tercio. */
+async function sinFotos(file){try{const bm=await createImageBitmap(file),x=Math.round(bm.width*.28),c=document.createElement("canvas");
+  c.width=bm.width-x;c.height=bm.height;c.getContext("2d").drawImage(bm,x,0,c.width,c.height,0,0,c.width,c.height);return c}catch(e){return file}}
 async function leerCapturas(files){
   if(!files.length||!nb)return;
   const hoja=hojaLeer(`<p class="ocr-st"><span class="cg-bar"><i></i></span><span id="ocr-msg">Preparando el lector…</span></p>`);
@@ -1249,7 +1259,9 @@ async function leerCapturas(files){
   // Cada captura por separado. Si el mismo artículo sale en dos capturas (porque se repiten al deslizar), cuenta una vez.
   const lect=Date.now(),cuenta={},datos={};let po="",gs=[];
   for(let i=0;i<files.length;i++){const msg=document.getElementById("ocr-msg");if(msg)msg.textContent=`Leyendo captura ${i+1} de ${files.length}…`;
-    try{const{data:{text}}=await ocrWorker.recognize(files[i]);const r=parseTemu(text),aqui={};
+    try{const{data:{text}}=await ocrWorker.recognize(await sinFotos(files[i]));const r=parseTemu(text),aqui={};
+      if(!r.items.length||(/PO[-\s]?\d{3}|PRS|PTY|pedido/i.test(text)&&!r.po&&!r.guias.length)){const{data:{text:todo}}=await ocrWorker.recognize(files[i]);const r2=parseTemu(todo);
+        if(!r.items.length)r.items=r2.items;r.po=r.po||r2.po;r.guias=[...r.guias,...r2.guias]}
       r.items.forEach(x=>{const k=x.d.toLowerCase()+"|"+x.costo;aqui[k]=(aqui[k]||0)+x.q;datos[k]=x});
       Object.entries(aqui).forEach(([k,v])=>cuenta[k]=Math.max(cuenta[k]||0,v));
       po=po||r.po;gs.push(...r.guias)}catch(e){}}
@@ -1720,7 +1732,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=18;
+const APP="admin",APP_VERSION=19;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
