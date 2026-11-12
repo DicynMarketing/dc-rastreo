@@ -1,7 +1,18 @@
 {
   "admin": 28,
-  "cliente": 9,
+  "cliente": 10,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 28,
+      "cliente": 10,
+      "titulo": "Modo oscuro e idiomas",
+      "admin_items": [],
+      "cliente_items": [
+        "La app ahora viene en modo oscuro. Si prefieres el modo claro, cámbialo en Ajustes → Tema.",
+        "Elige tu idioma: español, inglés, portugués o francés (en Ajustes o al entrar)."
+      ]
+    },
     {
       "fecha": "2026-11-12",
       "admin": 28,
