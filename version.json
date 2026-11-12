@@ -1,7 +1,19 @@
 {
-  "admin": 25,
+  "admin": 26,
   "cliente": 7,
   "notas": [
+    {
+      "fecha": "2026-11-12",
+      "admin": 26,
+      "cliente": 7,
+      "titulo": "Los encargos ya no cuentan como deuda",
+      "admin_items": [
+        "Un encargo por comprar ya no sale como deuda, saldo, venta ni ganancia. Solo aparece en “Por comprar” con su total estimado.",
+        "Cuenta como cobro solo cuando lo compras y lo registras como pedido de Temu.",
+        "El “Total estimado para el cliente” se llena solo con la suma de los precios de las capturas, y se actualiza si quitas artículos. Lo puedes cambiar a mano."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 25,
