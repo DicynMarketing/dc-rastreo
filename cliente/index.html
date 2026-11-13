@@ -553,8 +553,8 @@ function bienvenida(){
     </div>
     <form class="w-form" id="wf" novalidate>
       ${INV?`<div class="invite">${quienN?`${quienN} te mandó este link.`:"Te mandaron este link."} Revisa que tu nombre esté bien escrito.</div>`:""}
-      <label class="fld">Nombre<input id="wn" autocomplete="given-name" autocapitalize="words" placeholder="Ej. Dimas" value="${esc(full[0]||"")}"></label>
-      <label class="fld">Apellido<input id="wa" autocomplete="family-name" autocapitalize="words" placeholder="Ej. Rodríguez" value="${esc(full.slice(1).join(" "))}"></label>
+      <label class="fld">Nombre<input id="wn" autocomplete="given-name" autocapitalize="words" value="${esc(full[0]||"")}"></label>
+      <label class="fld">Apellido<input id="wa" autocomplete="family-name" autocapitalize="words" value="${esc(full.slice(1).join(" "))}"></label>
       <p class="err" id="werr" hidden></p>
       <button class="go-btn" type="submit">Iniciar ${IC.arrow}</button>
       <p class="w-alt">¿Solo tienes un código de pedido? <a href="#codigo">Búscalo aquí</a></p>
@@ -953,7 +953,7 @@ setInterval(()=>{if(document.visibilityState==="visible"&&vistaActual==="inicio"
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="cliente",APP_VERSION=14;
+const APP="cliente",APP_VERSION=15;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
