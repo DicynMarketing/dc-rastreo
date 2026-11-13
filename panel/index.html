@@ -793,6 +793,11 @@ function linkApp(c){if(!c.invita){c.invita=Math.random().toString(36).slice(2,8)
    La app del cliente no lee estas tablas: usa funciones que devuelven solo el seguimiento ("vista"). */
 const SB_URL="https://jmfyzohwffylzrwkbtwl.supabase.co",SB_KEY="sb_publishable_uHHIQNP0Loat3fEnfhXyIA_yIbHZ43_";
 const sb=window.supabase?window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,storageKey:"dc-sesion"}}):null;
+/* Al poner una guía nueva, consulta PRS enseguida (sin esperar la revisión de cada hora). Espera a que se guarde el pedido. */
+let _rastreoYa;
+function rastrearYa(){if(!sb)return;clearTimeout(_rastreoYa);_rastreoYa=setTimeout(async()=>{try{const{data}=await sb.auth.getSession();const tk=data?.session?.access_token;if(!tk)return;
+  const r=await fetch(SB_URL+"/functions/v1/rastrear-guias?forzar=1",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+tk,apikey:SB_KEY},body:"{}"});
+  const j=await r.json().catch(()=>({}));if(j.actualizados)toast("Guía rastreada: ya está al día")}catch(e){}},6000)}
 const est=x=>JSON.stringify(x,(k,v)=>v&&typeof v==="object"&&!Array.isArray(v)?Object.keys(v).sort().reduce((a,k)=>(a[k]=v[k],a),{}):v);
 const SNAP={c:{},p:{},r:{}};let subiendo=false;
 /* Lo que puede ver el cliente de un pedido: etapas y fechas, nunca artículos ni precios */
@@ -1595,7 +1600,7 @@ function nbGuardar(){
     if(envio)o.envio=envio;
     if(nb.entregado){o.paq.forEach(p=>{while(p.h.length<7)p.h.push(fechaPed)});if(!o.paq.length)o.rec=fechaPed;o.local=[fechaPed,fechaPed];o.avisado=9}
     syncItems(o);creados.push(o)});
-  save();nb=null;renderAll();
+  save();if(guias.length)rastrearYa();nb=null;renderAll();
   $("#nb").hidden=true;const d=$("#done");d.hidden=false;const t=creados.reduce((a,o)=>a+num(o.costo),0);
   d.innerHTML=`<h2 style="color:var(--ok)">Pedido de Temu registrado</h2><div class="mono" style="font-size:16px;font-weight:700">${esc(numero)}${cp(numero,"número de pedido")}</div>
     <p class="note">${creados.length} clientes · total en Temu ${$$m(t)}${guias.length?"":" · falta la guía"}. Envía a cada cliente su código de seguimiento:</p>
@@ -1864,7 +1869,7 @@ document.addEventListener("click",e=>{
   else if(t.id==="nb-save"){nbGuardar()}
   else if(d.tguia){const key=d.tguia,inp=document.getElementById("tg-"+key),g=inp.value.trim().toUpperCase();if(!g)return toast("Escribe el número de guía");
     const c=compras().find(x=>x.key===key),now=new Date().toISOString(),ex=D.P.flatMap(x=>x.paq).find(q=>q.g===g);
-    c.os.forEach(o=>{if(!o.paq.some(p=>p.g===g))o.paq.push({g,h:ex?[...ex.h]:[now]})});save();refresh();toast(`Guía agregada a ${c.os.length} clientes`)}
+    c.os.forEach(o=>{if(!o.paq.some(p=>p.g===g))o.paq.push({g,h:ex?[...ex.h]:[now]})});save();rastrearYa();refresh();toast(`Guía agregada a ${c.os.length} clientes`)}
   else if(d.verped){e.preventDefault();if(d.edit){EDIT.add(d.verped);const o=find(d.verped);if(o&&!o.items?.length)o.items=[{d:o.nota||"Pedido",costo:num(o.costo),precio:num(o.precio)}]}location.hash="pedidos";modo="cliente";filtro="todos";$("#scope").value="todos";$("#q").value=d.verped;abiertos=new Set([d.verped]);renderCompras();renderPedidos();scrollTo({top:0})}
   else if(d.p){pick=d.p;renderRegistrar()}
   else if(d.ent){fEnt=d.ent;renderRegistrar()}
@@ -1889,7 +1894,7 @@ document.addEventListener("click",e=>{
   else if(d.eborrar){const o=find(d.eborrar);if(!confirm(`¿Borrar el pedido ${o.id} de ${cli(o).nombre}? No se puede deshacer.`))return;
     D.P=D.P.filter(x=>x!==o);EDIT.delete(o.id);sb?.from("pedidos").delete().eq("id",o.id).then(({error})=>{if(!error)delete SNAP.p[o.id]});refresh();toast("Pedido borrado")}
   else if(d.settpo){const o=find(d.settpo),v=$(`#tp-${o.id}`).value.trim().toUpperCase();if(!v)return toast("Escribe el número de pedido");o.tpo=v;save();refresh();toast("Número de pedido guardado")}
-  else if(d.addg){const o=find(d.addg),g=$(`#g-${o.id}`).value.trim().toUpperCase();if(!g)return;o.paq.push({g,h:[new Date().toISOString()]});save();refresh();toast("Guía agregada")}
+  else if(d.addg){const o=find(d.addg),g=$(`#g-${o.id}`).value.trim().toUpperCase();if(!g)return;o.paq.push({g,h:[new Date().toISOString()]});save();rastrearYa();refresh();toast("Guía agregada")}
   else if(d.despachar){const o=find(d.despachar),tf=num($(`#tf-${o.id}`).value);o.envio={t:$(`#t-${o.id}`).value,tarifa:tf};if(!o.local.length)o.local=[new Date().toISOString()];save();refresh();toast(`Despachado por ${o.envio.t}. Avísale al cliente`)}
   else if(d.coord){const o=find(d.coord);o.local=[new Date().toISOString()];o.avisado=8;save();refresh();toast("Entrega coordinada")}
   else if(d.entregar){const o=find(d.entregar);if(o.local.length<1)o.local.push(new Date().toISOString());o.local[1]=new Date().toISOString();save();refresh();toast(saldo(o)?`Entregado. Aún debe ${$$m(saldo(o))}`:"Entregado y pagado")}
@@ -1968,7 +1973,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=34;
+const APP="admin",APP_VERSION=35;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

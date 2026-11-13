@@ -1,7 +1,17 @@
 {
-  "admin": 34,
+  "admin": 35,
   "cliente": 14,
   "notas": [
+    {
+      "fecha": "2026-11-13",
+      "admin": 35,
+      "cliente": 14,
+      "titulo": "La guía se rastrea al instante",
+      "admin_items": [
+        "Cuando registras un pedido o agregas una guía, el panel la consulta en PRS en ese momento y la pone en la etapa correcta. Ya no hay que esperar la revisión de cada hora."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-12",
       "admin": 34,
