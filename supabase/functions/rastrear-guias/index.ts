@@ -9,7 +9,9 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const PRS = "https://sealcargotrack.cloud/api/v2/prod/tracking";
-const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), { status, headers: { "Content-Type": "application/json" } });
+// CORS: el panel (GitHub Pages) llama a esta función al registrar una guía
+const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info", "Access-Control-Allow-Methods": "POST, OPTIONS" };
+const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), { status, headers: { "Content-Type": "application/json", ...CORS } });
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
@@ -85,6 +87,7 @@ function vista(o: Any, c: Any) {
 const igual = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const forzar = new URL(req.url).searchParams.get("forzar") === "1";
 
