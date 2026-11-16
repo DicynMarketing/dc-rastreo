@@ -114,7 +114,7 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 
 ## Estado actual del panel (prototipo)
 
-- **Inicio**: debajo del saludo, **"Seguimiento"** desplegable (`#segbox`, abierto/cerrado en `localStorage` `dc-seg-abierto`) con avisos de etapa, atascados y "PRS ya lo entregó". **"Por hacer"** queda solo para lo **por comprar** (siempre visible) y los registros de la app. Luego KPIs del equipo, una tarjeta por persona, "Por hacer" de la persona elegida y un tablero de etapas. El tablero de ruta se desliza con impulso (sin `scroll-snap`). Tocar un KPI o una etapa abre Pedidos en la vista "Por cliente" ya filtrada.
+- **Inicio**: debajo del saludo, **"Seguimiento"** desplegable (`#segbox`, abierto/cerrado en `localStorage` `dc-seg-abierto`) con avisos de etapa, atascados, "PRS ya lo entregó" y **"Falta la guía"** (`sinGuia`: pedidos de Temu en etapa 1 con 2 días o más sin guía, uno por `tpo`; "Poner guía" `data-ponguia` abre Pedidos de Temu con el campo de guía enfocado). Temu da la guía 1–4 días después de comprar. **"Por hacer"** queda solo para lo **por comprar** (siempre visible) y los registros de la app. Luego KPIs del equipo, una tarjeta por persona, "Por hacer" de la persona elegida y un tablero de etapas. El tablero de ruta se desliza con impulso (sin `scroll-snap`). Tocar un KPI o una etapa abre Pedidos en la vista "Por cliente" ya filtrada.
 - **Pedidos**:
   - Vista "Pedidos de Temu": cada cliente con su color (`CLI_COL`, `--cc`), iniciales y quién lo atiende. Uno por número de pedido, con sus guías y sus clientes desplegables (artículos con costo y cobro), el % de cada cliente y el total de la compra.
   - Vista "Por cliente": lista con filtros.
