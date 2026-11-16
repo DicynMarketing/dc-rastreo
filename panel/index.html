@@ -581,6 +581,23 @@ body.hay-act .toast{bottom:calc(152px + env(safe-area-inset-bottom,0px))}
 details.reg-list summary{cursor:pointer;color:var(--muted);font-weight:700;font-size:13px;padding:4px 0}
 .lrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:inherit;font:inherit;text-align:left;width:100%;cursor:pointer;margin-top:6px}
 .lrow:hover{border-color:var(--gold)}
+details.reg-list{background:linear-gradient(120deg,rgba(215,169,91,.09),transparent 60%);border:1px solid rgba(215,169,91,.28);border-radius:14px;margin-top:4px}
+details.reg-list summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 14px;color:var(--ink);font-size:14px}
+details.reg-list summary::-webkit-details-marker{display:none}
+.rl-ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:rgba(215,169,91,.16);font-size:15px}
+.rl-t{font-weight:700}.rl-n{background:var(--gold);color:var(--gold-ink);font:800 11px var(--f-body);border-radius:999px;min-width:22px;height:22px;display:grid;place-items:center;padding:0 7px}
+details.reg-list .chev{margin-left:auto;width:16px;height:16px;color:var(--muted);transition:transform .3s}
+details.reg-list[open] .chev{transform:rotate(180deg)}
+.rl-body{display:grid;gap:6px;padding:0 10px 10px}
+.rl-body .lrow{grid-template-columns:auto minmax(0,1fr) auto}
+.rl-av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--panel-2);border:1px solid rgba(215,169,91,.45);color:var(--gold);font:800 11px var(--f-display)}
+@media (prefers-reduced-motion:no-preference){details.reg-list[open] .rl-body>*{animation:up .35s cubic-bezier(.2,.8,.2,1) both}}
+.rk.abierta,.lrow.abierta{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset;border-bottom-left-radius:4px;border-bottom-right-radius:4px}
+.rk.abierta+.ficha,.lrow.abierta+.ficha{margin-top:-4px;border-top-left-radius:4px;border-top-right-radius:4px;border-color:var(--gold);animation:fichaIn .35s cubic-bezier(.2,.8,.2,1) both}
+@keyframes fichaIn{from{opacity:0;transform:translateY(-8px)}}
+.art-foto.vacia{background:var(--panel-2);border:1.5px dashed var(--line);color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.art-foto.vacia svg{width:16px;height:16px}
+.fotos-btn{margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -1223,7 +1240,7 @@ function detalle(o){
       <label for="tff-${o.id}">Flete (opcional)<input id="tff-${o.id}" inputmode="decimal" placeholder="0.00" value="${o.envio?tarifa(o)||"":""}"></label>
       <button class="btn sm gold" data-flete="${o.id}">${o.envio?"Guardar":"Agregar flete"}</button></div><p class="note">Opcional: si lo cobras, se suma a lo que paga el cliente y no cuenta como ganancia.</p></div>`;
   if(EDIT.has(o.id))h+=editorPedido(o);
-  else if(o.items&&o.items.length)h+=`<div class="block"><p class="block-t">Lo que pidió ${o.tpo?`· pedido <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}`:""}</p><div class="items">${o.items.map(x=>`<div class="item"><span class="it-d">${fotoArt(x)}<span>${esc(x.d)}</span></span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}</div></div>`;
+  else if(o.items&&o.items.length)h+=`<div class="block"><p class="block-t">Lo que pidió ${o.tpo?`· pedido <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}`:""}</p>${o.items.some(x=>!x.img)?`<button type="button" class="btn sm fotos-btn" data-fotos="${o.id}">📷 Poner fotos desde la captura de Temu</button>`:""}<div class="items">${o.items.map(x=>`<div class="item"><span class="it-d">${fotoArt(x,o)}<span>${esc(x.d)}</span></span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}</div></div>`;
   const ro=o.items&&o.items.length?'readonly title="Se calcula de los artículos"':"";
   // dinero (un encargo solo tiene un total estimado: no es deuda ni venta todavía)
   if(e===0)h+=`<div class="block"><p class="block-t">Total estimado</p><div class="sum"><span>Para el cliente <b>${$$m(o.precio)}</b></span><span class="note">No es deuda: se cobra cuando lo compres y lo registres.</span></div></div>`;
@@ -1313,7 +1330,7 @@ function renderCompras(){
               <span style="min-width:0"><b>${esc(cli(o).nombre)}</b><span class="o-sub" style="display:flex"><span class="cli-quien">${EQUIPO[o.quien].nombre}</span><span>${it.length} art.</span><span class="mono">${o.id}${cp(o.id)}</span>${saldo(o)?`<span style="color:var(--gold)">debe ${$$m(saldo(o))}</span>`:num(o.precio)?`<span style="color:var(--ok)">pagado</span>`:""}</span>
                 <span class="pct"><i style="width:${pct}%"></i></span></span>
               <button class="cli-ed" data-verped="${o.id}" data-edit="1" aria-label="Editar pedido de ${esc(cli(o).nombre)}">✏️</button><span class="cli-tot"><b>${$$m(total(o))}</b><small>${pct}% del pedido</small></span></summary>
-              <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${it.map(x=>`<div class="item"><span class="it-d">${fotoArt(x)}<span>${esc(x.d)}</span></span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
+              <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${it.map(x=>`<div class="item"><span class="it-d">${fotoArt(x,o)}<span>${esc(x.d)}</span></span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
                 <div class="item head"><span>Total de ${esc(cli(o).nombre.split(" ")[0])}</span><span class="c">${$$m(o.costo)}</span><span class="p">${$$m(o.precio)}</span></div>
                 ${o.envio?`<div class="item"><span>Envío ${esc(o.envio.t)}</span><span class="c"></span><span class="p">${$$m(tarifa(o))}</span></div>`:""}
                 <div class="o-actions" style="margin-top:6px"><button class="btn sm" data-verped="${o.id}">Abrir pedido</button><button class="btn sm" data-verped="${o.id}" data-edit="1">✏️ Editar</button><a class="btn sm wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar</a></div></div></details>`}).join("")}</div>
@@ -1397,7 +1414,25 @@ function ponerFotos(items,lineas,bm){if(!bm||!lineas?.length)return;const W=bm.w
   items.forEach(x=>{if(x.img)return;const k=normT(x.d).slice(0,12);if(k.length<4)return;const l=lineas.find(l=>normT(l.text).includes(k));if(!l?.bbox)return;
     const y=Math.max(0,Math.min(bm.height-lado,l.bbox.y0-Math.round(W*.025))),c=document.createElement("canvas");c.width=c.height=200;
     try{c.getContext("2d").drawImage(bm,Math.round(W*.01),y,lado,lado,0,0,200,200);x.img=c.toDataURL("image/jpeg",.72)}catch(e){}})}
-const fotoArt=x=>x&&x.img?`<button type="button" class="art-foto" data-zoom aria-label="Ver foto de ${esc(x.d||"artículo")}"><img src="${x.img}" alt=""></button>`:"";
+const fotoArt=(x,o)=>x&&x.img?`<button type="button" class="art-foto" data-zoom aria-label="Ver foto de ${esc(x.d||"artículo")}"><img src="${x.img}" alt=""></button>`
+  :o?`<button type="button" class="art-foto vacia" data-fotos="${o.id}" aria-label="Agregar fotos desde la captura"><svg><use href="#i-plus"/></svg></button>`:"";
+/* Poner fotos a un pedido ya guardado: se lee otra vez su captura y cada foto va al artículo con el mismo nombre (en todos los clientes del mismo pedido de Temu). */
+const fotosFile=document.createElement("input");fotosFile.type="file";fotosFile.accept="image/*";fotosFile.multiple=true;fotosFile.hidden=true;document.body.appendChild(fotosFile);
+let fotosPara=null;
+document.addEventListener("click",e=>{const b=e.target.closest("[data-fotos]");if(!b)return;e.preventDefault();e.stopPropagation();fotosPara=b.dataset.fotos;fotosFile.value="";fotosFile.click()},true);
+fotosFile.addEventListener("change",async()=>{const o=find(fotosPara),files=[...fotosFile.files];if(!o||!files.length)return;
+  const hoja=hojaLeer(`<p class="ocr-st"><span class="cg-bar"><i></i></span><span id="ocr-msg">Preparando el lector…</span></p>`);
+  try{await cargarOCR();if(!ocrWorker)ocrWorker=await Tesseract.createWorker("spa")}catch(e){const m=document.getElementById("ocr-msg");if(m)m.textContent="No se pudo cargar el lector. Revisa tu internet e intenta de nuevo.";return}
+  const leidos=[];
+  for(let i=0;i<files.length;i++){const msg=document.getElementById("ocr-msg");if(msg)msg.textContent=`Buscando fotos en la captura ${i+1} de ${files.length}…`;
+    try{const bm=await createImageBitmap(files[i]);const{data:d1}=await ocrWorker.recognize(await sinFotos(files[i]),{},{text:true,blocks:true});let r=parseTemu(d1.text);ponerFotos(r.items,lineasDe(d1),bm);
+      if(!r.items.length){const{data:d2}=await ocrWorker.recognize(files[i],{},{text:true,blocks:true});r=parseTemu(d2.text);ponerFotos(r.items,lineasDe(d2),bm)}
+      leidos.push(...r.items.filter(x=>x.img))}catch(e){}}
+  const destinos=o.tpo?D.P.filter(x=>x.tpo===o.tpo):[o];let n=0;
+  destinos.forEach(d=>(d.items||[]).forEach(it=>{if(it.img)return;const a=normT(it.d);if(a.length<4)return;
+    const m=leidos.find(x=>{const b=normT(x.d);return a.startsWith(b.slice(0,14))||b.startsWith(a.slice(0,14))});if(m){it.img=m.img;n++}}));
+  hoja.remove();if(n){save();refresh()}
+  toast(n?`Listo: puse ${n} foto${n>1?"s":""}. Tócala para verla en grande.`:"No encontré fotos que coincidan. Usa la captura de este pedido donde se vean los artículos con su nombre.")});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-zoom]");if(!b)return;e.preventDefault();e.stopPropagation();
   const img=b.querySelector("img");if(!img)return;const nom=b.getAttribute("aria-label").replace(/^Ver foto de /,"");
   const d=document.createElement("div");d.className="zoom";d.innerHTML=`<figure><img src="${img.src}" alt=""><figcaption>${esc(nom)}</figcaption></figure><button type="button" class="zoom-x" aria-label="Cerrar">×</button>`;
@@ -1721,10 +1756,11 @@ $("#form").addEventListener("submit",e=>{
 });
 
 /* ---------- Clientes ---------- */
-let rankBy="pedidos",fichaId=null,cFiltro="todos";
+let rankBy="pedidos",fichaId=null,cFiltro="todos",fichaAncla="rank",vincAbierto=false;
 function statsCliente(c){const ps=D.P.filter(o=>o.cli===c.id&&etapa(o)>0);return{ps,n:ps.length,gasto:ps.reduce((a,o)=>a+total(o),0),debe:ps.reduce((a,o)=>a+saldo(o),0),
   ultimo:ps.length?ps.map(o=>o.creado).sort().at(-1):null}}
 function renderClientes(){
+  { const f=$("#ficha");if(f&&!f.parentElement.matches("section[data-view=clientes]"))$("#app-regs").after(f) }  // vuelve a su lugar antes de redibujar
   const S=D.C.filter(c=>cFiltro==="todos"||atiende(c)===cFiltro).map(c=>({c,...statsCliente(c)}));
   $$("#seg-cli button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.cf===cFiltro));
   const mes=new Date().getMonth(),activos=new Set(D.P.filter(o=>new Date(o.creado).getMonth()===mes).map(o=>o.cli)).size;
@@ -1760,11 +1796,14 @@ function renderAppRegs(){
          <option value="nuevo">+ Cliente nuevo: ${esc(regNombre(r))}</option></select>
          <button class="btn gold" data-vincular="${r.id}"><svg><use href="#i-check"/></svg>Vincular</button></div></div>`}).join("")}
    ${!P.length?`<div class="empty">${V.length?"No hay registros nuevos.":"Cuando un cliente abra la app y escriba su nombre, aparece aquí para que lo vincules."} Para que entre ya vinculado, mándale su link desde su ficha.</div>`:""}
-   ${V.length?`<details class="reg-list"><summary>Ya vinculados (${V.length})</summary>${V.map(r=>{const c=D.C.find(x=>x.id===r.cliente);
-     return`<button class="lrow" data-ficha="${r.cliente}"><span style="min-width:0"><b>${esc(regNombre(r))}</b><span class="o-sub" style="display:block">es ${esc(c?.nombre||"?")} en tu lista</span></span><span class="note">${haceTxt(r.fecha)}</span></button>`}).join("")}</details>`:""}`;
+   ${V.length?`<details class="reg-list" ${vincAbierto?"open":""}><summary><span class="rl-ico">📱</span><span class="rl-t">Ya vinculados</span><span class="rl-n">${V.length}</span><svg class="chev"><use href="#i-chev"/></svg></summary><div class="rl-body">${V.map(r=>{const c=D.C.find(x=>x.id===r.cliente);
+     return`<button class="lrow" data-ficha="${r.cliente}"><span class="rl-av">${esc(iniciales(c?.nombre||regNombre(r)))}</span><span style="min-width:0"><b>${esc(regNombre(r))}</b><span class="o-sub" style="display:block">es ${esc(c?.nombre||"?")} en tu lista</span></span><span class="note">${haceTxt(r.fecha)}</span></button>`}).join("")}</div></details>`:""}`;
   P.forEach(r=>{const par=parecidos(r);if(par.length===1)$(`#vs-${r.id}`).value=par[0].id});
 }
-function renderFicha(){const f=$("#ficha"),c=D.C.find(x=>x.id===fichaId);if(!c){f.hidden=true;return}
+function renderFicha(){const f=$("#ficha"),c=D.C.find(x=>x.id===fichaId);$$(".rk.abierta,.lrow.abierta").forEach(x=>x.classList.remove("abierta"));if(!c){f.hidden=true;return}
+  // la ficha se abre justo debajo del cliente que se tocó (no arriba)
+  const ancla=(fichaAncla==="vinc"&&document.querySelector(`#app-regs .lrow[data-ficha="${fichaId}"]`))||document.querySelector(`#rank .rk[data-ficha="${fichaId}"]`);
+  if(ancla){ancla.after(f);ancla.classList.add("abierta")}
   const s=statsCliente(c);f.hidden=false;
   const ap=regs().filter(r=>r.cliente===c.id),link=linkApp(c);
   const msgApp=`Hola ${c.nombre.split(" ")[0]}, te comparto la app de DC Marketing para seguir tus pedidos de Temu:\n${link}\n\n1. Ábrela y agrégala a tu pantalla de inicio.\n2. Entra, revisa que tu nombre esté bien y toca *Iniciar*.\n— ${EQUIPO[atiende(c)].nombre}, DC Marketing`;
@@ -1779,11 +1818,11 @@ function renderFicha(){const f=$("#ficha"),c=D.C.find(x=>x.id===fichaId);if(!c){
      <div class="o-actions"><a class="btn sm wa" href="${waTel(c.tel,msgApp)}" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Enviar link de la app</a><button class="btn sm" data-copiar="${esc(link)}">Copiar link</button></div></div>
    <div class="block"><span class="f-lab">Todo lo que ha pedido · ${s.ps.reduce((a,o)=>a+itemsDe(o).length,0)} artículos</span>
    <div class="hist2">${s.ps.sort((a,b)=>new Date(b.creado)-new Date(a.creado)).map(o=>`<details class="hd"><summary><span class="mono">${o.id}${cp(o.id)}</span><span style="min-width:0">${etNombre(o)} · ${new Date(o.creado).toLocaleDateString("es-PA",{day:"numeric",month:"short",year:"2-digit"})}${o.tpo?`<span class="o-sub" style="display:block">Pedido ${esc(o.tpo)}</span>`:""}</span><b>${$$m(total(o))}</b></summary>
-     <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${itemsDe(o).map(x=>`<div class="item"><span class="it-d">${fotoArt(x)}<span>${esc(x.d)}</span></span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
+     <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${itemsDe(o).map(x=>`<div class="item"><span class="it-d">${fotoArt(x,o)}<span>${esc(x.d)}</span></span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
        ${o.envio?`<div class="item"><span>Envío ${esc(o.envio.t)}</span><span class="c"></span><span class="p">${$$m(tarifa(o))}</span></div>`:""}
        <div class="item head"><span>${saldo(o)?`Debe ${$$m(saldo(o))}`:"Pagado"}</span><span class="c">${$$m(o.costo)}</span><span class="p">${$$m(total(o))}</span></div>
        <div class="o-actions" style="margin-top:6px"><button class="btn sm" data-verped="${o.id}">Abrir pedido</button><button class="btn sm" data-verped="${o.id}" data-edit="1">✏️ Editar</button></div></div></details>`).join("")||`<p class="note">Todavía no tiene pedidos.</p>`}</div></div>`;
-  $("#cerrar-ficha").onclick=()=>{fichaId=null;renderFicha()};
+  $("#cerrar-ficha").onclick=()=>{const a=document.querySelector(".abierta");fichaId=null;renderFicha();a?.scrollIntoView({behavior:"smooth",block:"nearest"})};
 }
 
 /* ---------- Pagos: lista por fecha, por cliente y deudas ---------- */
@@ -1924,7 +1963,9 @@ document.addEventListener("click",e=>{
   else if(d.cmp){fCmp=d.cmp;renderRegistrar()}
   else if(d.rk){rankBy=d.rk;renderClientes();animar(seccion())}
   else if(d.cf){cFiltro=d.cf;renderClientes();animar(seccion())}
-  else if(d.ficha){fichaId=d.ficha;location.hash="clientes";renderClientes();setTimeout(()=>$("#ficha").scrollIntoView({behavior:"smooth",block:"start"}),50)}
+  else if(d.ficha){const enVinc=!!t.closest(".reg-list"),ya=fichaId===d.ficha&&location.hash==="#clientes";
+    fichaId=ya?null:d.ficha;fichaAncla=enVinc?"vinc":"rank";location.hash="clientes";renderClientes();
+    setTimeout(()=>{const f=$("#ficha");if(!f.hidden)f.scrollIntoView({behavior:"smooth",block:"nearest"})},80)}
   else if(d.open){startBuilder([d.open])}
   else if(d.compre){const o=find(d.compre);if(!o)return;
     if(t.dataset.arma!=="1"){t.dataset.arma="1";t.classList.add("confirma");t.innerHTML=`<svg><use href="#i-check"/></svg>Toca otra vez para confirmar`;
@@ -2009,7 +2050,7 @@ document.addEventListener("input",e=>{const t=e.target;
   else if(t.dataset.nbg!==undefined){const gi=+t.dataset.nbg;nb.guias[gi]=t.value;$$(`select[data-nig] option[data-gi="${gi}"]`).forEach(op=>op.textContent=gLabel(t.value,gi))}
   else if(t.dataset.nbtop){nb[t.dataset.nbtop]=t.value}
   else if(t.id==="nb-ent"){nb.entregado=t.checked}});
-document.addEventListener("toggle",e=>{if(e.target.open&&e.target.matches?.("details")){const x=e.target;x.classList.add("just");contar(x);setTimeout(()=>x.classList.toggle("just",false),500)}if(e.target.matches?.("details.cli")){e.target.open?cliAbiertos.add(e.target.dataset.cli):cliAbiertos.delete(e.target.dataset.cli);return}if(e.target.matches?.("details.order[data-compra]")){e.target.open?abiertasC.add(e.target.dataset.compra):abiertasC.delete(e.target.dataset.compra);return}if(e.target.matches?.("details.order")){e.target.open?abiertos.add(e.target.dataset.id):abiertos.delete(e.target.dataset.id)}},true);
+document.addEventListener("toggle",e=>{if(e.target.matches?.("details.reg-list"))vincAbierto=e.target.open;if(e.target.open&&e.target.matches?.("details")){const x=e.target;x.classList.add("just");contar(x);setTimeout(()=>x.classList.toggle("just",false),500)}if(e.target.matches?.("details.cli")){e.target.open?cliAbiertos.add(e.target.dataset.cli):cliAbiertos.delete(e.target.dataset.cli);return}if(e.target.matches?.("details.order[data-compra]")){e.target.open?abiertasC.add(e.target.dataset.compra):abiertasC.delete(e.target.dataset.compra);return}if(e.target.matches?.("details.order")){e.target.open?abiertos.add(e.target.dataset.id):abiertos.delete(e.target.dataset.id)}},true);
 
 // Si en otra pestaña de este navegador alguien se registra en la app del cliente, se ve aquí al momento.
 
@@ -2021,7 +2062,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=37;
+const APP="admin",APP_VERSION=38;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
