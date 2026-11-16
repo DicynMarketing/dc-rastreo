@@ -1,7 +1,18 @@
 {
-  "admin": 39,
+  "admin": 40,
   "cliente": 15,
   "notas": [
+    {
+      "fecha": "2026-11-16",
+      "admin": 40,
+      "cliente": 15,
+      "titulo": "Cada guía dice qué empresa la entrega",
+      "admin_items": [
+        "Debajo de cada guía sale la empresa que la entrega: PRS Delivery (se rastrea sola) o J&T Express (se pasa de etapa a mano, con botón \"Ver en J&T Express\" que copia la guía y abre su página).",
+        "El lector de capturas también reconoce guías de J&T (JPA…)."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-16",
       "admin": 39,
