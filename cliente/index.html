@@ -126,6 +126,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 /* Mis pedidos */
 .olist{display:grid;gap:10px}
+.aviso{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;padding:14px;border-radius:18px;margin-bottom:10px;background:linear-gradient(120deg,rgba(215,169,91,.22),rgba(215,169,91,.06));border:1px solid rgba(215,169,91,.5);animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
+.aviso b{display:block;font-size:15px;color:var(--ink)}.av-x{display:block;font-size:14px;color:var(--ink);opacity:.85;margin-top:3px;white-space:pre-line}.aviso small{display:block;color:var(--muted);font-size:11.5px;margin-top:4px}
+.av-ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--signal);font-size:18px}
 .eta{display:block;font-size:12.5px;font-weight:600;color:var(--signal);margin:6px 0 2px}.eta.tarde{color:#E58F8F}
 .eta.g{font-size:15px;padding:12px 14px;border-radius:14px;background:rgba(215,169,91,.12);border:1px solid rgba(215,169,91,.35);margin:0 0 6px}.eta.g.tarde{background:rgba(229,143,143,.1);border-color:rgba(229,143,143,.35)}
 .pedir{display:grid;gap:8px;margin:4px 0 14px}
@@ -495,8 +498,14 @@ const rpc=async(f,a)=>{if(!sb)throw new Error("sin conexión");const{data,error}
 const azar=n=>[...crypto.getRandomValues(new Uint8Array(n))].map(b=>b.toString(16).padStart(2,"0")).join("");
 /* Este teléfono recuerda su registro: id + clave secreta (sin cuenta ni contraseña) */
 function miRegistro(){const y=leer(K_YO,null);return y&&typeof y==="object"&&y.id&&y.token?y:null}
-let MIS=null,MIS_T=0;   // última respuesta de "mis pedidos"
+let MIS=null,MIS_T=0,AVISOS=[];
+/* Avisos del equipo (abrimos pedidos, día de entregas…): tarjetas arriba; se cierran con × y no vuelven a salir */
+const K_AVX="dc-cli-avx";
+function avisosHTML(){const vistos=leer(K_AVX,[]);const L=AVISOS.filter(a=>!vistos.includes(a.id)).slice(0,3);
+  return L.map(a=>`<div class="aviso"><span class="av-ico">📣</span><span style="min-width:0"><b data-notr>${esc(a.t)}</b><span class="av-x" data-notr>${esc(a.x)}</span><small>${dia(a.f)}</small></span><button type="button" class="tx" data-avx="${a.id}" aria-label="Cerrar">×</button></div>`).join("")}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-avx]");if(!b)return;const v=leer(K_AVX,[]);v.push(+b.dataset.avx);escribir(K_AVX,v.slice(-50));b.closest(".aviso").remove()});   // última respuesta de "mis pedidos"
 async function cargarMis(){const r=miRegistro();if(!r)return null;
+  rpc("app_avisos",{p_id:r.id,p_token:r.token}).then(a=>{AVISOS=Array.isArray(a)?a:[]}).catch(()=>{});
   try{const m=await rpc("app_mis_pedidos",{p_id:r.id,p_token:r.token});MIS_T=Date.now();
     if(m===null){try{localStorage.removeItem(K_YO)}catch(e){}MIS=null;return null}MIS=m;MIS.error=false}
   catch(e){if(MIS)MIS.error=true;else MIS={error:true,pedidos:[],encargos:0}}
@@ -833,6 +842,7 @@ function inicio(anim){
     ${act.length?`<div class="rutas">${act.map((v,k)=>`<a class="mruta" href="#${v.code}" style="--k:${k}"><span class="mr-h"><span class="mono">${v.code}</span><span class="mr-e">${CORTO[v.i]}</span></span>${rutaSVG(v.i,"-"+k,true)}</a>`).join("")}</div>`:""}
   </header>
   <main class="sheet pad">
+    ${avisosHTML()}
     ${tipHTML()||tipAvisos()}
     ${encargos?`<div class="encargo">${IC.cart}<span>Tienes ${encargos===1?"un encargo anotado":`${encargos} encargos anotados`}. Te avisamos en cuanto lo compremos.</span></div>`:""}
     <div class="pedir">${contactos.map(k=>`<a class="pedir-btn" href="${waLink(k,`Hola ${EQUIPO[k].nombre} 👋, soy ${r.nombre} ${r.apellido}. Quiero hacer un pedido de Temu 🛍️\nTe mando las capturas o los links de lo que quiero:`)}" target="_blank" rel="noopener"><span class="pedir-ico">🛍️</span><span><b>${contactos.length>1?`Hacer pedido con ${EQUIPO[k].nombre}`:"Hacer un pedido"}</b><small>Mándanos tus capturas o links por WhatsApp</small></span><span class="pedir-go">›</span></a>`).join("")}</div>
@@ -988,7 +998,7 @@ setInterval(()=>{if(document.visibilityState==="visible"&&vistaActual==="inicio"
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="cliente",APP_VERSION=17;
+const APP="cliente",APP_VERSION=18;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

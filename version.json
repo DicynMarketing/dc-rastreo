@@ -1,7 +1,19 @@
 {
-  "admin": 43,
-  "cliente": 17,
+  "admin": 44,
+  "cliente": 18,
   "notas": [
+    {
+      "fecha": "2026-11-16",
+      "admin": 44,
+      "cliente": 18,
+      "titulo": "Avisos a clientes",
+      "admin_items": [
+        "Nuevo botón 📣 arriba: manda avisos a tus clientes (abrimos pedidos, día de entregas, ofertas…). Les llega como notificación al teléfono y como tarjeta en su app. Tiene 11 ideas listas y eliges a quién: todos, tus clientes, los de tu compañero, los que tienen pedido en camino o los que deben."
+      ],
+      "cliente_items": [
+        "Ahora te llegan los avisos de Dicyn Marketing (pedidos grupales, entregas, ofertas) arriba en tu app y como notificación."
+      ]
+    },
     {
       "fecha": "2026-11-16",
       "admin": 43,
