@@ -1,7 +1,17 @@
 {
-  "admin": 42,
+  "admin": 43,
   "cliente": 16,
   "notas": [
+    {
+      "fecha": "2026-11-16",
+      "admin": 43,
+      "cliente": 16,
+      "titulo": "Cada sección con su propio estilo",
+      "admin_items": [
+        "Inicio, Pedidos, Nuevo, Clientes y Pagos ahora se ven distintos, siempre en azul, beige y dorado: Inicio con luz dorada, Pedidos como bitácora de ruta, Nuevo como hoja de registro beige, Clientes con círculos y azul suave, y Pagos como libro de caja con borde de recibo."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-16",
       "admin": 42,
