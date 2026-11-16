@@ -268,6 +268,10 @@ details.cli .items{border-top:1px dashed color-mix(in srgb,var(--cc) 35%,transpa
 .zoom-x{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:22px}
 .zoom.sale{opacity:0;transition:opacity .2s}
 @keyframes zin{from{opacity:0}}@keyframes zpop{from{transform:scale(.6);opacity:0}}
+.agencia{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin-top:4px}
+.ag-n{font-weight:700;font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:rgba(232,220,196,.1);color:var(--beige)}
+.ag-n.auto{background:rgba(52,199,123,.14);color:var(--ok)}
+.ag-l{color:var(--gold);font-weight:700;text-decoration:none}
 .ei-art{display:grid;gap:6px;padding:8px;border-radius:12px;background:var(--panel-2)}
 .ei-de{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}.ei-de select{flex:1;min-width:0}
 details.cli summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}
@@ -1079,6 +1083,10 @@ const pkgSt=p=>p.h.length; // 1..7
 function etapa(o){if(!o.paq.length)return o.rec?7+o.local.length:o.tpo||o.comprado?1:0;const m=Math.min(...o.paq.map(pkgSt));return m<7?m:7+o.local.length}
 function enDCcuenta(o){return o.paq.filter(p=>pkgSt(p)>=7).length}
 function ultimo(o){const t=[o.creado,...o.paq.flatMap(p=>p.h),...o.local].filter(Boolean).map(x=>+new Date(x));return new Date(Math.max(...t)).toISOString()}
+/* Empresa que entrega cada guía en Panamá (se reconoce por cómo empieza el número).
+   PRS se rastrea solo; las demás se pasan de etapa a mano y tienen botón para abrir su página. */
+const AGENCIAS=[{re:/^PRSPTY/i,n:"PRS Delivery",auto:true},{re:/^JPA/i,n:"J&T Express",url:"https://www.jtexpress.pa/"}];
+const agencia=g=>AGENCIAS.find(a=>a.re.test(String(g||"").trim()))||{n:"Otra agencia"};
 /* Último movimiento de una guía: la última etapa o el último aviso de PRS (p.prs, lo pone el rastreo automático) */
 const ultMov=p=>{const t=[p.h[p.h.length-1],p.prs?.f].filter(Boolean).map(x=>+new Date(x));return new Date(Math.max(...t)).toISOString()};
 const prsEntrego=o=>etapa(o)>=1&&etapa(o)<7&&o.paq.length>0&&o.paq.every(p=>pkgSt(p)>=7||p.prs?.ent);
@@ -1212,10 +1220,11 @@ function detalle(o){
      <div class="o-actions"><button class="btn gold" data-compre="${o.id}"><svg><use href="#i-check"/></svg>Ya lo compré</button><button class="btn sm" data-open="${o.id}">Registrarlo en un pedido de Temu</button></div></div>`}
   else if(!o.paq.length){h+=`<div class="block"><p class="block-t">Pedido Temu <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}</p><div class="sum">${o.rec?`Recibido sin guía · ${new Date(o.rec).toLocaleDateString("es-PA",{day:"numeric",month:"short"})}`:"Realizado. Agrega el número de pedido y la guía cuando los tengas."}</div>
      ${o.rec?"":`${o.tpo?"":`<div class="guia-row"><input id="tp-${o.id}" class="mono" placeholder="Número de pedido PO-…" aria-label="Número de pedido de Temu" autocomplete="off"><button class="btn sm" data-settpo="${o.id}">Guardar</button></div>`}
-       <div class="guia-row"><input id="g-${o.id}" class="mono" placeholder="Guía PRSPTY…" aria-label="Agregar guía" autocomplete="off"><button class="btn sm" data-addg="${o.id}"><svg><use href="#i-plus"/></svg>Agregar</button></div>`}
+       <div class="guia-row"><input id="g-${o.id}" class="mono" placeholder="Guía PRSPTY… o JPA…" aria-label="Agregar guía" autocomplete="off"><button class="btn sm" data-addg="${o.id}"><svg><use href="#i-plus"/></svg>Agregar</button></div>`}
      ${o.rec&&e===7?`<button class="btn sm" style="justify-self:start" data-norec="${o.id}">Deshacer “Recibido”</button>`:""}</div>`}
   else{h+=`<div class="block"><p class="block-t">Guías de Temu ${o.paq.length>1?`· ${enDCcuenta(o)} de ${o.paq.length} en DC`:""}</p><div class="pkgs">${o.paq.map((p,i)=>`
      <div class="pkg"><div style="min-width:0"><span class="mono">${esc(p.g)}</span>${cp(p.g,"guía")}<div class="o-sub">${ET[pkgSt(p)]} · ${dias(p.h[p.h.length-1])===0?"hoy":`hace ${dias(p.h[p.h.length-1])} d`}</div>
+       ${(a=>`<div class="o-sub agencia"><span class="ag-n ${a.auto?"auto":""}">${esc(a.n)}</span>${a.auto?"<span>se rastrea sola</span>":`<span>pásala de etapa a mano</span>${a.url?`<a class="ag-l" href="${a.url}" target="_blank" rel="noopener" data-cp="${esc(p.g)}" data-agl>Ver en ${esc(a.n)} ↗</a>`:""}`}</div>`)(agencia(p.g))}
        ${p.prs?`<div class="o-sub prs ${p.prs.ent?"ok":""}">PRS: ${esc(p.prs.t)} · ${fechaC(p.prs.f)}</div>`:""}
        ${comparten(p.g,o.id).length?`<div class="shared">Misma compra con ${comparten(p.g,o.id).map(x=>`<b>${esc(cli(x).nombre.split(" ")[0])}</b> (${EQUIPO[x.quien].nombre})`).join(", ")}</div>`:""}</div>
        <select data-pkg="${o.id}|${i}" aria-label="Corregir etapa de la guía">${ET.slice(1,8).map((x,k)=>`<option value="${k+1}" ${k+1===pkgSt(p)?"selected":""}>${x}</option>`).join("")}</select>
@@ -1388,7 +1397,7 @@ function parseTemu(txt){
   const L=txt.split(/\n/).map(x=>x.replace(/[|]/g," ").replace(/\s+/g," ").trim()).filter(Boolean),out=[];
   const plano=txt.replace(/\s+/g,"");
   const mpo=plano.match(/PO[-–—]?(\d{3})[-–—]?(\d{10,20})/i),po=mpo?`PO-${mpo[1]}-${mpo[2]}`:"";
-  const guias=[...new Set((plano.match(/PRSPTY\d{8,14}/gi)||[]).map(g=>g.toUpperCase()))];
+  const guias=[...new Set((plano.match(/PRSPTY\d{8,14}|JPA\d{9,15}/gi)||[]).map(g=>g.toUpperCase()))];
   if(/enviado por temu/i.test(txt)){const c=parseCarrito(txt);if(c.length)return{items:c,po,guias,total:0}}
   const cand=[];
   for(let i=0;i<L.length;i++){const t=esTitulo(L[i]);if(!t)continue;
@@ -1944,6 +1953,7 @@ $("#who").addEventListener("click",e=>{const b=e.target.closest("[data-who]");if
 const find=id=>D.P.find(o=>o.id===id);
 document.addEventListener("click",e=>{
   const t=e.target.closest("button,a");if(!t)return;const d=t.dataset;
+  if(d.cp&&"agl" in d){copiar(d.cp);toast("Guía copiada: pégala en la página de J&T");return}
   if(d.cp){e.preventDefault();e.stopPropagation();return copiar(d.cp,t)}
   if(d.avisar){const o=find(d.avisar);o.avisado=etapa(o);save();setTimeout(refresh,400)}
   else if(d.yo){pedirCambio(d.yo)}
@@ -2085,7 +2095,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=39;
+const APP="admin",APP_VERSION=40;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
