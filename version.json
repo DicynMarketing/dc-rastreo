@@ -1,7 +1,19 @@
 {
-  "admin": 44,
+  "admin": 45,
   "cliente": 18,
   "notas": [
+    {
+      "fecha": "2026-11-16",
+      "admin": 45,
+      "cliente": 18,
+      "titulo": "Mensajes a clientes ajustados y avisos programados",
+      "admin_items": [
+        "WhatsApp: solo se avisa cuando anotas un encargo, cuando ya compraste en Temu, cuando el pedido está en despacho (con el saldo en negrita si debe) y cuando ya va en camino por transporte (solo si ya pagó). Se quitaron \"va avanzando\", \"entregado\" y \"recordar saldo\".",
+        "Clientes → \"Sin la app · mandar link\": la lista de tus clientes que todavía no tienen la app, con el botón para mandarles el link. El mensaje dice Dicyn Marketing.",
+        "Avisos: \"Abrimos pedidos\" con el último día para pedir (3 días hábiles, lo puedes cambiar) y programa solo \"Hoy cerramos pedidos\" para ese día a las 9 a.m. Puedes programar cualquier aviso para otro día y hora, y cancelarlo. Nuevo grupo: con pedido en camino y sin deuda."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-16",
       "admin": 44,

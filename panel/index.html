@@ -282,7 +282,8 @@ details.cli .items{border-top:1px dashed color-mix(in srgb,var(--cc) 35%,transpa
 .pl:active{transform:scale(.96)}.pl span{font-size:15px}
 #hoja textarea{width:100%;box-sizing:border-box;font:16px var(--f-body)}
 #hoja label.f{display:grid;gap:6px}#hoja label.f input,#hoja label.f select{width:100%;box-sizing:border-box}
-.av-h{display:grid;gap:6px}.avh{display:grid;gap:2px;padding:10px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--line)}.avh span{font-size:14px;color:var(--ink);opacity:.85}.avh small{color:var(--muted);font-size:12px}
+.av-h{display:grid;gap:6px}.avh{display:grid;gap:2px;padding:10px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--line)}.avh span{font-size:14px;color:var(--ink);opacity:.85}.avh small{color:var(--muted);font-size:12px}.avh.prog{border-style:dashed;border-color:var(--gold)}.avh .btn{justify-self:start;margin-top:4px}
+.av-cierre{display:grid;gap:8px;padding:12px;border-radius:14px;border:1px dashed var(--gold)}
 .hoja{position:fixed;inset:0;z-index:250;background:rgba(5,7,12,.7);backdrop-filter:blur(3px);display:flex;justify-content:center;align-items:flex-end;animation:zin .2s ease both}
 .hoja-in{background:var(--bg);width:min(760px,100%);max-height:94vh;border-radius:22px 22px 0 0;display:flex;flex-direction:column;overflow:hidden;animation:subeH .3s cubic-bezier(.2,.8,.2,1) both}
 @keyframes subeH{from{transform:translateY(40px);opacity:.4}}
@@ -936,6 +937,7 @@ const haceTxt=iso=>{const d=dias(iso);return d===0?"hoy":d===1?"ayer":`hace ${d}
 function parecidos(r){const t=norm(regNombre(r)).split(/\s+/);
   return D.C.map(c=>{const cn=norm(c.nombre).split(/\s+/);let s=cn[0]===t[0]?3:0;t.forEach(x=>{if(x.length>2&&cn.includes(x))s+=2});return{c,s}})
     .filter(x=>x.s>0).sort((a,b)=>b.s-a.s).map(x=>x.c)}
+const msgLinkApp=c=>`Hola ${c.nombre.split(" ")[0]} 👋, te comparto la app de *Dicyn Marketing* para seguir tus pedidos de Temu 📦\n${linkApp(c)}\n\n1. Ábrela y agrégala a tu pantalla de inicio.\n2. Revisa que tu nombre esté bien y toca *Iniciar*.\n3. Activa los avisos 🔔 para saber cuándo se mueve tu pedido.\n— ${EQUIPO[atiende(c)].nombre}, Dicyn Marketing`;
 function linkApp(c){if(!c.invita){c.invita=Math.random().toString(36).slice(2,8);save()}
   return`${APP_URL}?i=${c.invita}&n=${encodeURIComponent(c.nombre)}&q=${atiende(c)}`}
 
@@ -1196,6 +1198,10 @@ function ultimo(o){const t=[o.creado,...o.paq.flatMap(p=>p.h),...o.local].filter
    PRS se rastrea solo; las demás se pasan de etapa a mano y tienen botón para abrir su página. */
 const AGENCIAS=[{re:/^PRSPTY/i,n:"PRS Delivery",auto:true},{re:/^JPA/i,n:"J&T Express",url:"https://www.jtexpress.pa/"}];
 const agencia=g=>AGENCIAS.find(a=>a.re.test(String(g||"").trim()))||{n:"Otra agencia"};
+const necesitaAviso=o=>{const e=etapa(o),nuevo=dias(o.creado)<=3;
+  if(e===0||e===1)return nuevo&&o.avisado!==e;
+  if(e===8)return o.avisado!==8||(entrega(o)==="envio"&&o.envio&&saldo(o)<=0&&!o.avisoEnv);
+  return false};
 /* Último movimiento de una guía: la última etapa o el último aviso de PRS (p.prs, lo pone el rastreo automático) */
 const ultMov=p=>{const t=[p.h[p.h.length-1],p.prs?.f].filter(Boolean).map(x=>+new Date(x));return new Date(Math.max(...t)).toISOString()};
 const prsEntrego=o=>etapa(o)>=1&&etapa(o)<7&&o.paq.length>0&&o.paq.every(p=>pkgSt(p)>=7||p.prs?.ent);
@@ -1222,17 +1228,17 @@ function resumenPaq(o){const n=o.paq.length;if(n<2)return"";const e=Math.min(...
 
 /* ---------- Mensajes ---------- */
 /* Mensajes de WhatsApp. Solo se avisa al despachar (con el saldo en negrita) y al entregar; el resto lo ve el cliente en su app. */
-function msg(o,tipo){const c=cli(o),n=c.nombre.split(" ")[0],e=etapa(o),yoN=EQUIPO[o.quien].nombre,sal=saldo(o),
-    hola=`Hola ${n} 👋\n`,app=`\n\nNo olvides revisar en tu app el estado de tus paquetes 📲`,firma=`\n— ${yoN}, Dicyn Marketing`;
-  if(tipo==="cobro")return`${hola}Te escribo para recordarte que de tu pedido *${o.id}* queda un saldo de *${$$m(sal)}* 💳\nCuando puedas, me avisas. ¡Gracias!\n\nPuedes ver tus pagos en tu app 📲${firma}`;
+/* Mensajes de WhatsApp al cliente (decisión del dueño): solo 1) encargo anotado, 2) ya compramos, 3) en despacho
+   (con el saldo en negrita si debe, o "ya está pagado" si no) y 4) ya va en camino por transporte (solo si ya pagó). Nada más. */
+function msg(o){const c=cli(o),n=c.nombre.split(" ")[0],e=etapa(o),yoN=EQUIPO[o.quien].nombre,sal=saldo(o),
+    hola=`Hola ${n} 👋\n`,app=`\n\nNo olvides revisar en tu app el estado de tus paquetes 📲`,firma=`\n— ${yoN}, Dicyn Marketing`,
+    pagado=`\n\n*Tu pedido ya está pagado* ✅ ¡Gracias por gestionar tus pedidos con *Dicyn Marketing*! 💛`;
   if(e===0)return`${hola}Ya anotamos tu pedido 📝 En cuanto hagamos la compra en Temu te avisamos.${app}${firma}`;
-  if(e===1)return`${hola}¡Buenas noticias! Ya hicimos la compra de tu pedido en Temu 🛍️\nTu código de seguimiento es *${o.id}*.${app}${firma}`;
-  if(e===7||e===8){const env=entrega(o)==="envio",cuenta=sal>0?`\n\n*Para proceder con la entrega, recuerda cancelar tu saldo pendiente de ${$$m(sal)}* 💳`:`\n\n*Tu pedido ya está pagado* ✅ ¡Gracias!`;
-    if(env&&o.envio)return`${hola}¡Tu pedido *${o.id}* ya está en despacho! 📦\nVa hacia *${c.prov}* por *${o.envio.t}* 🚚${tarifa(o)?`\nFlete: ${$$m(tarifa(o))}`:""}${cuenta}${app}${firma}`;
-    if(env)return`${hola}¡Tu pedido *${o.id}* ya está en despacho! 📦\nLo estamos preparando para enviártelo a *${c.prov}*.${cuenta}${app}${firma}`;
-    return`${hola}¡Tu pedido *${o.id}* ya está en despacho! 📦\nCoordinamos contigo el día y la hora de la entrega.${cuenta}${app}${firma}`}
-  if(e===9)return`${hola}¡Tu pedido *${o.id}* ya fue entregado! ✅\nGracias por hacer tu pedido con *Dicyn Marketing*. Esperamos que lo disfrutes 💛\n\nNo olvides revisar en tu app tus paquetes y tus pedidos guardados 📲${firma}`;
-  const r=resumenPaq(o);return`${hola}Tu pedido *${o.id}* va avanzando: *${(r||ET[e]).toLowerCase()}* ✈️${app}${firma}`}
+  if(e<=6)return`${hola}¡Buenas noticias! Ya hicimos la compra de tu pedido en Temu 🛍️\nTu código de seguimiento es *${o.id}*.${app}${firma}`;
+  const env=entrega(o)==="envio",cuenta=sal>0?`\n\n*Para proceder con ${env?"el envío":"la entrega"}, recuerda cancelar tu saldo pendiente de ${$$m(sal)}* 💳`:pagado;
+  if(env&&o.envio&&sal<=0)return`${hola}¡Tu pedido *${o.id}* ya va en camino! 🚚\nVa hacia *${c.prov}* por *${o.envio.t}*.${tarifa(o)?`\nFlete: ${$$m(tarifa(o))}`:""}${pagado}${app}${firma}`;
+  if(env)return`${hola}¡Tu pedido *${o.id}* ya está en despacho! 📦\nLo estamos preparando para enviártelo a *${c.prov}*.${cuenta}${app}${firma}`;
+  return`${hola}¡Tu pedido *${o.id}* ya está en despacho! 📦\nCoordinamos contigo el día y la hora de la entrega.${cuenta}${app}${firma}`}
 function waTel(tel,text){let n=String(tel||"").replace(/\D/g,"");if(n.length===8)n="507"+n;return`https://wa.me/${n}?text=${encodeURIComponent(text)}`}
 function wa(o,tipo){return waTel(cli(o).tel,msg(o,tipo))}
 /* Copiar al portapapeles con el botón de la esquina (el texto no se puede seleccionar a mano). */
@@ -1253,7 +1259,7 @@ const mineOrAll=()=>D.P.filter(o=>o.quien===yo);
 
 /* ---------- Inicio ---------- */
 function renderInicio(){
-  const mios=mineOrAll(),llegaron=mios.filter(prsEntrego),avisos=mios.filter(o=>etapa(o)>=8&&etapa(o)!==o.avisado),stuck=mios.filter(atascado),buy=mios.filter(o=>etapa(o)===0);
+  const mios=mineOrAll(),llegaron=mios.filter(prsEntrego),avisos=mios.filter(necesitaAviso),stuck=mios.filter(atascado),buy=mios.filter(o=>etapa(o)===0);
   const T=D.P,deuda=T.reduce((a,o)=>a+saldo(o),0),enCamino=T.filter(o=>etapa(o)>=1&&etapa(o)<9).length;
   const listos=T.filter(o=>etapa(o)===7||etapa(o)===8).length,tBuy=T.filter(o=>etapa(o)===0),tStuck=T.filter(atascado);
   $("#hello").innerHTML=`${saludo()}, <span>${EQUIPO[yo].nombre}</span>`;
@@ -1285,7 +1291,7 @@ function renderInicio(){
    ...llegaron.map(o=>`<div class="notif"><div class="stage">7</div><p><b>${esc(cli(o).nombre)}</b> · PRS ya lo entregó<br><small>${o.tpo?`Pedido ${esc(o.tpo)} · `:""}Cuando lo tengas en tus manos, márcalo Recibido.</small></p>
      <button class="btn gold" data-recibi="${o.id}"><svg><use href="#i-check"/></svg>Ya lo recibí</button></div>`),
    ...stuck.map(o=>{const a=atascado(o);return`<div class="notif red"><div class="stage">${a.d}d</div><p><b>${esc(cli(o).nombre)}</b> · ${a.et}<br><small>Guía ${esc(a.g)} sin movimiento hace ${a.d} días. Avísale antes de que pregunte.</small></p>
-     <a class="btn" href="${wa(o)}" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Escribirle</a></div>`}),
+     <button class="btn" data-verped="${o.id}">Ver pedido</button></div>`}),
    ...avisos.map(o=>`<div class="notif"><div class="stage">${etapa(o)}</div><p><b>${esc(cli(o).nombre)}</b> · ${etNombre(o)}<br><small>${resumenPaq(o)||`Avisar desde tu WhatsApp (${fmtTel(EQUIPO[yo].tel)})`}</small></p>
      <a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar</a></div>`),
    ];
@@ -1378,9 +1384,9 @@ function detalle(o){
        <span class="${saldo(o)?"due":"paid"}">${saldo(o)?`Saldo <b>${$$m(saldo(o))}</b>`:"Pagado completo"}</span></div>
      ${pagosDe(o).length?`<div class="pagos-mini">${pagosDe(o).map((x,i)=>`<div><span>${fechaC(x.f)}</span><b>${$$m(x.m)}</b><button type="button" class="x" data-delpago="${o.id}|${i}" aria-label="Borrar este pago">×</button></div>`).join("")}</div>`:""}
      ${saldo(o)?`<div class="guia-row"><input id="pg-${o.id}" inputmode="decimal" placeholder="Monto del pago o abono" aria-label="Monto del pago"><button class="btn sm gold" data-pagar="${o.id}|pg">Registrar pago</button></div>`:""}
-     ${saldo(o)?`<div class="o-actions"><button class="btn sm" data-pagado="${o.id}"><svg><use href="#i-check"/></svg>Marcar pagado</button><a class="btn sm" href="${wa(o,"cobro")}" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Recordar saldo</a></div>`:""}</div>`;
+     ${saldo(o)?`<div class="o-actions"><button class="btn sm" data-pagado="${o.id}"><svg><use href="#i-check"/></svg>Marcar pagado</button></div>`:""}</div>`;
   }
-  h+=`<div class="o-actions">${e>0&&e<9&&e!==7&&!(e===8&&!o.envio&&c.ent!=="envio")?`<a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar etapa</a>`:""}
+  h+=`<div class="o-actions">${e===1||e===8?`<a class="btn wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar etapa</a>`:""}
      ${e>0?`<a class="btn" href="${CLIENTE_URL}#${o.id}" target="_blank" rel="noopener"><svg><use href="#i-eye"/></svg>Ver como cliente</a>`:""}
      <button class="btn sm" data-ficha="${o.cli}">Ficha del cliente</button>
 </div>`;
@@ -1474,45 +1480,65 @@ function abrirCierre(k){k=k||new Date().toISOString().slice(0,7);const d=cierreD
 
 /* 5) Avisos a los clientes: notificación al teléfono + tarjeta en su app (función enviar-aviso) */
 const PLANTILLAS=[
- ["🛍️","Abrimos pedido grupal","¡Abrimos pedidos de Temu! Mándanos tus capturas o links hasta el viernes.","todos"],
- ["⏰","Último día para pedir","Hoy cerramos el pedido grupal a las 8 pm. ¡Última oportunidad!","todos"],
- ["📦","Llegó el pedido grupal","¡Llegaron los paquetes! Estamos preparando las entregas.","camino"],
- ["🚚","Día de entregas","Mañana entregamos en Aguadulce. Escríbenos para coordinar tu hora.","camino"],
- ["🚛","Envíos a provincias","Hoy despachamos por Servientrega y Ferguson. Revisa tu app.","camino"],
+ ["🛍️","Abrimos pedidos","¡Abrimos pedidos de Temu! 🛍️ Mándanos tus capturas o links hasta el {cierre} a las 11 p.m.","todos","abrir"],
+ ["⏰","Hoy cerramos pedidos","Hoy es el último día para pedir: cerramos a las 11 p.m. Después de esa hora no recibimos más pedidos.","todos"],
+ ["📦","Llegaron los paquetes","¡Llegaron los paquetes! Estamos preparando las entregas.","camino"],
+ ["🚚","Día de entregas","Mañana entregamos en Aguadulce. Escríbenos para coordinar tu hora.","listos"],
  ["💳","Recordatorio de pago","Recuerda completar tu pago para poder entregarte tu pedido.","deben"],
  ["🔥","Ofertas de Temu","Temu tiene grandes descuentos esta semana. ¡Aprovecha y haz tu pedido!","todos"],
  ["🎄","Pedidos de Navidad","Pide tus regalos de Navidad a tiempo. Último pedido: 1 de diciembre.","todos"],
  ["⚠️","Retrasos en aduana","Esta semana la aduana va lenta. Tu pedido sigue en camino, te avisamos cuando llegue.","camino"],
  ["⭐","Califícanos","¿Te gustó tu pedido? Califícalo en la app, nos ayuda mucho.","todos"],
  ["🕐","Pausa","Esta semana no hacemos pedidos. Volvemos el lunes.","todos"]];
+/* 3 días hábiles desde hoy (sin sábado ni domingo) */
+function habiles(n,d=new Date()){d=new Date(d);while(n>0){d.setDate(d.getDate()+1);if(d.getDay()%6)n--}return d}
+const isoDia=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const diaLargo=iso=>new Date(iso+"T12:00").toLocaleDateString("es-PA",{weekday:"long",day:"numeric",month:"long"});
 function publico(para){const otro=Object.keys(EQUIPO).find(k=>k!==yo);
   if(para==="todos")return null;if(para==="mios")return D.C.filter(c=>atiende(c)===yo).map(c=>c.id);if(para==="otro")return D.C.filter(c=>atiende(c)===otro).map(c=>c.id);
   if(para==="camino")return[...new Set(D.P.filter(o=>{const e=etapa(o);return e>=1&&e<=8}).map(o=>o.cli))];
-  if(para==="deben")return[...new Set(D.P.filter(o=>saldo(o)>0).map(o=>o.cli))];return null}
+  if(para==="deben")return[...new Set(D.P.filter(o=>saldo(o)>0).map(o=>o.cli))];
+  if(para==="listos"){const deben=new Set(D.P.filter(o=>saldo(o)>0).map(o=>o.cli));return[...new Set(D.P.filter(o=>{const e=etapa(o);return e>=1&&e<=8}).map(o=>o.cli))].filter(c=>!deben.has(c))}
+  return null}
 function cuantosApp(para){const ids=publico(para),R=REGS.filter(r=>r.cliente);return ids?R.filter(r=>ids.includes(r.cliente)).length:R.length}
 function abrirAvisos(){const otro=EQUIPO[Object.keys(EQUIPO).find(k=>k!==yo)].nombre;
   const html=`<p class="note">Le llega como <b>notificación</b> a quien tiene los avisos activados, y como tarjeta arriba en su app. Toca una idea para usarla.</p>
     <div class="plant">${PLANTILLAS.map((x,i)=>`<button type="button" class="pl" data-plant="${i}"><span>${x[0]}</span>${esc(x[1])}</button>`).join("")}</div>
     <label class="f">Título<input id="av-t" maxlength="80" placeholder="Ej. ¡Abrimos pedido grupal!"></label>
     <label class="f">Mensaje<textarea id="av-x" maxlength="400" rows="3" placeholder="Escribe el aviso para tus clientes"></textarea></label>
-    <label class="f">¿A quién?<select id="av-p"><option value="todos">Todos los clientes</option><option value="mios">Solo mis clientes</option><option value="otro">Solo los clientes de ${otro}</option><option value="camino">Los que tienen un pedido en camino</option><option value="deben">Los que deben</option></select></label>
+    <label class="f">¿A quién?<select id="av-p"><option value="todos">Todos los clientes</option><option value="mios">Solo mis clientes</option><option value="otro">Solo los clientes de ${otro}</option><option value="camino">Los que tienen un pedido en camino</option><option value="listos">Con pedido en camino y sin deuda</option><option value="deben">Los que deben</option></select></label>
+    <div id="av-cierre" class="av-cierre" hidden><label class="f">Último día para pedir<input type="date" id="av-dia"></label>
+      <label class="ya-ent"><input type="checkbox" id="av-auto" checked> <span>Programar también <b>"Hoy cerramos pedidos"</b> para ese día a las 9:00 a.m.</span></label></div>
+    <label class="f">¿Cuándo?<select id="av-cuando"><option value="ya">Enviar ahora</option><option value="prog">Programar para otro día y hora</option></select></label>
+    <label class="f" id="av-prog-l" hidden>Fecha y hora<input type="datetime-local" id="av-prog"></label>
     <p class="note" id="av-n"></p>
     <button type="button" class="btn gold" data-avenviar>📣 Enviar aviso</button>
     <p class="bt">Avisos enviados</p><div id="av-h" class="av-h"><p class="note">Cargando…</p></div>`;
-  hoja("Avisos a clientes",html);const sel=$("#av-p"),cnt=()=>{const n=cuantosApp(sel.value);$("#av-n").textContent=`${n} cliente${n===1?"":"s"} con la app en este grupo.`};sel.onchange=cnt;cnt();
-  sb.from("avisos").select("id,titulo,texto,para,por,enviados,fecha").order("fecha",{ascending:false}).limit(15).then(({data})=>{const h=$("#av-h");if(!h)return;
-    h.innerHTML=(data||[]).map(a=>`<div class="avh"><b>${esc(a.titulo)}</b><span>${esc(a.texto)}</span><small>${fechaC(a.fecha)} · ${esc(a.por||"")} · ${({todos:"todos",mios:"sus clientes",otro:"clientes del otro",camino:"pedido en camino",deben:"los que deben"})[a.para]||a.para} · 🔔 ${a.enviados} teléfono${a.enviados===1?"":"s"}</small></div>`).join("")||`<p class="note">Todavía no has enviado avisos.</p>`})}
-async function enviarAviso(btn){const t=$("#av-t").value.trim(),x=$("#av-x").value.trim(),para=$("#av-p").value;
+  hoja("Avisos a clientes",html);
+  $("#av-cuando").onchange=e=>{$("#av-prog-l").hidden=e.target.value!=="prog"};
+  $("#av-dia").onchange=()=>{const t=$("#av-x"),pl=PLANTILLAS[0];if($("#av-dia").value)t.value=pl[2].replace("{cierre}",diaLargo($("#av-dia").value))};
+  const sel=$("#av-p"),cnt=()=>{const n=cuantosApp(sel.value);$("#av-n").textContent=`${n} cliente${n===1?"":"s"} con la app en este grupo.`};sel.onchange=cnt;cnt();
+  sb.from("avisos").select("id,titulo,texto,para,por,enviados,fecha,programado,enviado").order("fecha",{ascending:false}).limit(20).then(({data})=>{const h=$("#av-h");if(!h)return;
+    const grupo={todos:"todos",mios:"sus clientes",otro:"clientes del otro",camino:"pedido en camino",listos:"en camino sin deuda",deben:"los que deben"};
+    h.innerHTML=(data||[]).map(a=>`<div class="avh ${a.enviado?"":"prog"}"><b>${esc(a.titulo)}</b><span>${esc(a.texto)}</span><small>${a.enviado?`${fechaC(a.enviado)} · 🔔 ${a.enviados} teléfono${a.enviados===1?"":"s"}`:`⏰ Programado: ${new Date(a.programado).toLocaleString("es-PA",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})}`} · ${esc(a.por||"")} · ${grupo[a.para]||a.para}</small>${a.enviado?"":`<button class="btn sm red" data-avcancel="${a.id}">Cancelar</button>`}</div>`).join("")||`<p class="note">Todavía no has enviado avisos.</p>`})}
+async function llamarAviso(cuerpo){const{data}=await sb.auth.getSession();const tk=data?.session?.access_token;if(!tk)throw new Error("sin sesión");
+  const r=await fetch(SB_URL+"/functions/v1/enviar-aviso",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+tk,apikey:SB_KEY},body:JSON.stringify(cuerpo)});
+  const j=await r.json();if(!j.ok)throw new Error(j.error||"error");return j}
+async function enviarAviso(btn){const t=$("#av-t").value.trim(),x=$("#av-x").value.trim(),para=$("#av-p").value,prog=$("#av-cuando").value==="prog"?$("#av-prog").value:"";
   if(!t||!x){toast("Escribe el título y el mensaje");return}
-  if(!confirm(`¿Enviar este aviso a ${$("#av-p").selectedOptions[0].text.toLowerCase()}?\n\n${t}\n${x}`))return;
+  if(x.includes("{cierre}")){toast("Elige el último día para pedir");return}
+  if($("#av-cuando").value==="prog"&&(!prog||+new Date(prog)<Date.now()+60e3)){toast("Elige una fecha y hora que todavía no pase");return}
+  const autoCierre=!$("#av-cierre").hidden&&$("#av-auto").checked&&$("#av-dia").value;
+  if(!confirm(`¿${prog?"Programar":"Enviar"} este aviso a ${$("#av-p").selectedOptions[0].text.toLowerCase()}?\n\n${t}\n${x}${autoCierre?`\n\nY se programa "Hoy cerramos pedidos" para el ${diaLargo($("#av-dia").value)} a las 9:00 a.m.`:""}`))return;
   btn.disabled=true;btn.textContent="Enviando…";
-  try{const{data}=await sb.auth.getSession();const tk=data?.session?.access_token;if(!tk)throw new Error("sin sesión");
-    const r=await fetch(SB_URL+"/functions/v1/enviar-aviso",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+tk,apikey:SB_KEY},body:JSON.stringify({titulo:t,texto:x,clientes:publico(para),para,por:EQUIPO[yo].nombre})});
-    const j=await r.json();if(!j.ok)throw new Error(j.error||"error");
-    toast(`Aviso enviado · llegó a ${j.enviados} teléfono${j.enviados===1?"":"s"}`);abrirAvisos()}
+  try{const j=await llamarAviso({titulo:t,texto:x,clientes:publico(para),para,por:EQUIPO[yo].nombre,programado:prog?new Date(prog).toISOString():null});
+    if(autoCierre){const c=PLANTILLAS[1];await llamarAviso({titulo:c[1],texto:c[2],clientes:publico(para),para,por:EQUIPO[yo].nombre,programado:new Date($("#av-dia").value+"T09:00").toISOString()})}
+    toast(j.programado?"Aviso programado ⏰":`Aviso enviado · llegó a ${j.enviados} teléfono${j.enviados===1?"":"s"}`);abrirAvisos()}
   catch(e){btn.disabled=false;btn.textContent="📣 Enviar aviso";toast("No se pudo enviar. Revisa tu internet e intenta de nuevo.")}}
-document.addEventListener("click",e=>{const b=e.target.closest("[data-avisos],[data-plant],[data-avenviar]");if(!b)return;
-  if("avisos" in b.dataset)abrirAvisos();else if(b.dataset.plant){const x=PLANTILLAS[+b.dataset.plant];$("#av-t").value=x[1];$("#av-x").value=x[2];$("#av-p").value=x[3];$("#av-p").onchange()}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-avisos],[data-plant],[data-avenviar],[data-avcancel]");if(!b)return;
+  if("avisos" in b.dataset)abrirAvisos();else if(b.dataset.avcancel){if(!confirm("¿Cancelar este aviso programado?"))return;sb.from("avisos").delete().eq("id",+b.dataset.avcancel).is("enviado",null).then(()=>{toast("Aviso cancelado");abrirAvisos()})}
+  else if(b.dataset.plant){const x=PLANTILLAS[+b.dataset.plant];$("#av-t").value=x[1];$("#av-p").value=x[3];$("#av-p").onchange();
+    const ab=x[4]==="abrir";$("#av-cierre").hidden=!ab;if(ab){$("#av-dia").value=isoDia(habiles(3));$("#av-dia").onchange()}else $("#av-x").value=x[2]}
   else enviarAviso(b)});
 
 /* 4) Buscador general: clientes, pedidos, guías y artículos */
@@ -2070,6 +2096,8 @@ function renderAppRegs(){
          ${par.length?`<optgroup label="Se parecen">${par.map(opt).join("")}</optgroup>`:""}<optgroup label="Todos los clientes">${resto.map(opt).join("")}</optgroup>
          <option value="nuevo">+ Cliente nuevo: ${esc(regNombre(r))}</option></select>
          <button class="btn gold" data-vincular="${r.id}"><svg><use href="#i-check"/></svg>Vincular</button></div></div>`}).join("")}
+   ${(()=>{const conApp=new Set(regs().map(r=>r.cliente).filter(Boolean)),S=D.C.filter(c=>!conApp.has(c.id)&&c.tel&&(cFiltro==="todos"||atiende(c)===cFiltro)).sort((a,b)=>a.nombre.localeCompare(b.nombre));
+     return S.length?`<details class="reg-list sin-app"><summary><span class="rl-ico">✉️</span><span class="rl-t">Sin la app · mandar link</span><span class="rl-n">${S.length}</span><svg class="chev"><use href="#i-chev"/></svg></summary><div class="rl-body">${S.map(c=>`<div class="lrow"><span class="rl-av">${esc(iniciales(c.nombre))}</span><span style="min-width:0"><b>${esc(c.nombre)}</b><span class="o-sub" style="display:block">${c.linkEnv?`link enviado ${haceTxt(c.linkEnv)}`:"todavía no le mandas el link"}</span></span><a class="btn sm wa" href="${waTel(c.tel,msgLinkApp(c))}" target="_blank" rel="noopener" data-lnk="${c.id}">Enviar link</a></div>`).join("")}</div></details>`:""})()}
    ${!P.length?`<div class="empty">${V.length?"No hay registros nuevos.":"Cuando un cliente abra la app y escriba su nombre, aparece aquí para que lo vincules."} Para que entre ya vinculado, mándale su link desde su ficha.</div>`:""}
    ${V.length?`<details class="reg-list" ${vincAbierto?"open":""}><summary><span class="rl-ico">📱</span><span class="rl-t">Ya vinculados</span><span class="rl-n">${V.length}</span><svg class="chev"><use href="#i-chev"/></svg></summary><div class="rl-body">${V.map(r=>{const c=D.C.find(x=>x.id===r.cliente);
      return`<button class="lrow" data-ficha="${r.cliente}"><span class="rl-av">${esc(iniciales(c?.nombre||regNombre(r)))}</span><span style="min-width:0"><b>${esc(regNombre(r))}</b><span class="o-sub" style="display:block">es ${esc(c?.nombre||"?")} en tu lista</span></span><span class="note">${haceTxt(r.fecha)}</span></button>`}).join("")}</div></details>`:""}`;
@@ -2081,7 +2109,7 @@ function renderFicha(){const f=$("#ficha"),c=D.C.find(x=>x.id===fichaId);$$(".rk
   if(ancla){ancla.after(f);ancla.classList.add("abierta")}
   const s=statsCliente(c);f.hidden=false;
   const ap=regs().filter(r=>r.cliente===c.id),link=linkApp(c);
-  const msgApp=`Hola ${c.nombre.split(" ")[0]}, te comparto la app de DC Marketing para seguir tus pedidos de Temu:\n${link}\n\n1. Ábrela y agrégala a tu pantalla de inicio.\n2. Entra, revisa que tu nombre esté bien y toca *Iniciar*.\n— ${EQUIPO[atiende(c)].nombre}, DC Marketing`;
+  const msgApp=msgLinkApp(c);
   f.innerHTML=`<div class="ficha-h"><div class="av">${esc(c.nombre[0])}</div><div style="min-width:0"><h2 style="color:var(--ink);text-transform:none;letter-spacing:0;font-size:18px">${esc(c.nombre)}</h2>
      <div class="o-sub"><span>${c.tel?fmtTel(c.tel)+cp(c.tel,"WhatsApp"):"Sin WhatsApp"}</span><span>${c.ent==="envio"?"Envío a "+esc(c.prov):"Entrega en Aguadulce"}</span></div>
      <label class="o-sub" for="at-${c.id}" style="align-items:center;margin-top:6px">Lo atiende <select id="at-${c.id}" data-atiende="${c.id}" style="padding:5px 8px;font-size:16px">${Object.keys(EQUIPO).map(k=>`<option value="${k}" ${atiende(c)===k?"selected":""}>${EQUIPO[k].nombre}</option>`).join("")}</select></label></div>
@@ -2136,7 +2164,7 @@ function renderPagos(){
           :`${ps.map(x=>`<div class="sum"><span>Abonado <b>${$$m(x.m)}</b></span><span>${fechaC(x.f)}</span></div>`).join("")||`<div class="sum"><span class="due">Sin pagos todavía</span></div>`}
             <div class="sum"><span class="due">Debe <b>${$$m(sal)}</b></span></div>
             <div class="guia-row"><input id="pgd-${o.id}" inputmode="decimal" placeholder="Monto que pagó" aria-label="Monto del pago"><button class="btn sm gold" data-pagar="${o.id}|pgd">Registrar pago</button></div>`}</div>`}).join("")}
-        ${debe&&c.tel?`<div class="o-actions"><a class="btn sm wa" href="${waTel(c.tel,`Hola ${c.nombre.split(" ")[0]}, te recuerdo que tienes un saldo pendiente de *${$$m(debe)}* con DC Marketing.\n— ${EQUIPO[atiende(c)].nombre}, DC Marketing`)}" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Recordar saldo</a></div>`:""}</div></details>`).join("")}</div>`
+        </div></details>`).join("")}</div>`
       :`<div class="empty">${soloDeuda?(q?"Nadie coincide.":"Nadie debe. ¡Todo cobrado!"):(q?"Ningún cliente coincide.":"Todavía no hay pagos.")}</div>`}
   $("#pg-list").innerHTML=h}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-pg]");if(b){pgModo=b.dataset.pg;renderPagos();animar(seccion())}});
@@ -2198,7 +2226,8 @@ document.addEventListener("click",e=>{
   const t=e.target.closest("button,a");if(!t)return;const d=t.dataset;
   if(d.cp&&"agl" in d){copiar(d.cp);toast("Guía copiada: pégala en la página de J&T");return}
   if(d.cp){e.preventDefault();e.stopPropagation();return copiar(d.cp,t)}
-  if(d.avisar){const o=find(d.avisar);o.avisado=etapa(o);save();setTimeout(refresh,400)}
+  if(d.lnk){const c=D.C.find(x=>x.id===d.lnk);if(c){c.linkEnv=new Date().toISOString();save();setTimeout(refresh,600)}}
+  if(d.avisar){const o=find(d.avisar);o.avisado=etapa(o);if(etapa(o)===8&&o.envio&&saldo(o)<=0)o.avisoEnv=1;save();setTimeout(refresh,400)}
   else if(d.yo){pedirCambio(d.yo)}
   else if(d.jump){filtro=d.jump;modo="cliente";$("#scope").value="todos";location.hash="pedidos";renderCompras();renderPedidos()}
   else if(d.etapa!==undefined){const k=+d.etapa;filtro="todos";modo="cliente";$("#scope").value="todos";location.hash="pedidos";$("#q").value="";
@@ -2340,7 +2369,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=44;
+const APP="admin",APP_VERSION=45;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
