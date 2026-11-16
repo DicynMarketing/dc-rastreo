@@ -182,6 +182,11 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 - **Calificaciones**: tabla `calificaciones(pedido, estrellas 1–5, comentario)` (RLS equipo). El cliente califica en Guardados (`califHTML()`, RPC `app_calificar`, solo pedidos suyos entregados); `app_mis_pedidos` devuelve `calif` dentro de cada vista. El panel las carga en `CAL` y las muestra en el detalle y en el cierre.
 - App del cliente: botón **"Hacer un pedido"** (`.pedir-btn`) abre el WhatsApp de quien lo atiende (o uno por persona si no está vinculado) con mensaje listo. Los pagos siguen por WhatsApp (decisión del dueño). Sin programa de puntos (el dueño no cobra comisiones extra).
 
+## Avisos generales a clientes (decisión tomada)
+
+- Panel: botón **📣** arriba (`abrirAvisos()`): 11 plantillas (`PLANTILLAS`), título, mensaje y "¿A quién?" (`publico(para)`: todos, mis clientes, los del otro, con pedido en camino 1–8, los que deben). Envía con la sesión del equipo a la Edge Function **`enviar-aviso`** (`verify_jwt` true; revisa `es_equipo()` con el token del usuario): guarda en la tabla **`avisos`** (`regs` = registros destinatarios o null = todos) y manda push a sus `push_subs`. Abajo, historial con cuántos teléfonos recibieron.
+- Cliente: `app_avisos(id,token)` (últimos 30 días, máx. 10) se pide junto con mis pedidos; tarjetas 📣 arriba del inicio (`avisosHTML()`), se cierran con × (`localStorage` `dc-cli-avx`). El texto del aviso no se traduce.
+
 ## Cambio de persona en el panel
 
 - El selector Diego / Cinthya (y las tarjetas del equipo en Inicio) piden **confirmar con PIN o Face ID / huella** para ver la vista de la otra persona (`pedirCambio()`); volver a la propia cuenta (`CUENTA`) es libre. Sin PIN configurado, se confirma con un mensaje.

@@ -277,6 +277,12 @@ details.cli .items{border-top:1px dashed color-mix(in srgb,var(--cc) 35%,transpa
 .atajos button span{font-size:20px}.atajos button:active{transform:scale(.96)}.atajos button:hover{border-color:var(--gold)}
 .buscar-top{margin-left:auto;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--ink);display:grid;place-items:center;cursor:pointer;flex:none}
 .buscar-top svg{width:20px;height:20px}
+.avisos-top{font-size:18px;margin-left:auto}.avisos-top+.buscar-top{margin-left:8px}
+.plant{display:flex;flex-wrap:wrap;gap:6px}.pl{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:8px 12px;font:600 13px var(--f-body);cursor:pointer}
+.pl:active{transform:scale(.96)}.pl span{font-size:15px}
+#hoja textarea{width:100%;box-sizing:border-box;font:16px var(--f-body)}
+#hoja label.f{display:grid;gap:6px}#hoja label.f input,#hoja label.f select{width:100%;box-sizing:border-box}
+.av-h{display:grid;gap:6px}.avh{display:grid;gap:2px;padding:10px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--line)}.avh span{font-size:14px;color:var(--ink);opacity:.85}.avh small{color:var(--muted);font-size:12px}
 .hoja{position:fixed;inset:0;z-index:250;background:rgba(5,7,12,.7);backdrop-filter:blur(3px);display:flex;justify-content:center;align-items:flex-end;animation:zin .2s ease both}
 .hoja-in{background:var(--bg);width:min(760px,100%);max-height:94vh;border-radius:22px 22px 0 0;display:flex;flex-direction:column;overflow:hidden;animation:subeH .3s cubic-bezier(.2,.8,.2,1) both}
 @keyframes subeH{from{transform:translateY(40px);opacity:.4}}
@@ -761,6 +767,7 @@ details.reg-list[open] .chev{transform:rotate(180deg)}
           <button data-who="diego" aria-pressed="true"><span class="av">D</span>Diego</button>
           <button data-who="cinthya" aria-pressed="false"><span class="av">C</span>Cinthya</button>
         </div>
+        <button type="button" class="buscar-top avisos-top" data-avisos aria-label="Avisos a clientes">📣</button>
         <button type="button" class="buscar-top" data-buscar aria-label="Buscar"><svg><use href="#i-search"/></svg></button>
       </div>
 
@@ -1464,6 +1471,49 @@ function abrirCierre(k){k=k||new Date().toISOString().slice(0,7);const d=cierreD
   hoja("Cierre del mes",html,`<button class="btn gold" data-imprimir>🖨️ Imprimir o guardar PDF</button><button class="btn" data-comptxt="cierre">Compartir</button>`);
   document.getElementById("hoja").dataset.txt=cierreTxt(k,d);
   document.getElementById("cierre-mes").onchange=e=>abrirCierre(e.target.value)}
+
+/* 5) Avisos a los clientes: notificación al teléfono + tarjeta en su app (función enviar-aviso) */
+const PLANTILLAS=[
+ ["🛍️","Abrimos pedido grupal","¡Abrimos pedidos de Temu! Mándanos tus capturas o links hasta el viernes.","todos"],
+ ["⏰","Último día para pedir","Hoy cerramos el pedido grupal a las 8 pm. ¡Última oportunidad!","todos"],
+ ["📦","Llegó el pedido grupal","¡Llegaron los paquetes! Estamos preparando las entregas.","camino"],
+ ["🚚","Día de entregas","Mañana entregamos en Aguadulce. Escríbenos para coordinar tu hora.","camino"],
+ ["🚛","Envíos a provincias","Hoy despachamos por Servientrega y Ferguson. Revisa tu app.","camino"],
+ ["💳","Recordatorio de pago","Recuerda completar tu pago para poder entregarte tu pedido.","deben"],
+ ["🔥","Ofertas de Temu","Temu tiene grandes descuentos esta semana. ¡Aprovecha y haz tu pedido!","todos"],
+ ["🎄","Pedidos de Navidad","Pide tus regalos de Navidad a tiempo. Último pedido: 1 de diciembre.","todos"],
+ ["⚠️","Retrasos en aduana","Esta semana la aduana va lenta. Tu pedido sigue en camino, te avisamos cuando llegue.","camino"],
+ ["⭐","Califícanos","¿Te gustó tu pedido? Califícalo en la app, nos ayuda mucho.","todos"],
+ ["🕐","Pausa","Esta semana no hacemos pedidos. Volvemos el lunes.","todos"]];
+function publico(para){const otro=Object.keys(EQUIPO).find(k=>k!==yo);
+  if(para==="todos")return null;if(para==="mios")return D.C.filter(c=>atiende(c)===yo).map(c=>c.id);if(para==="otro")return D.C.filter(c=>atiende(c)===otro).map(c=>c.id);
+  if(para==="camino")return[...new Set(D.P.filter(o=>{const e=etapa(o);return e>=1&&e<=8}).map(o=>o.cli))];
+  if(para==="deben")return[...new Set(D.P.filter(o=>saldo(o)>0).map(o=>o.cli))];return null}
+function cuantosApp(para){const ids=publico(para),R=REGS.filter(r=>r.cliente);return ids?R.filter(r=>ids.includes(r.cliente)).length:R.length}
+function abrirAvisos(){const otro=EQUIPO[Object.keys(EQUIPO).find(k=>k!==yo)].nombre;
+  const html=`<p class="note">Le llega como <b>notificación</b> a quien tiene los avisos activados, y como tarjeta arriba en su app. Toca una idea para usarla.</p>
+    <div class="plant">${PLANTILLAS.map((x,i)=>`<button type="button" class="pl" data-plant="${i}"><span>${x[0]}</span>${esc(x[1])}</button>`).join("")}</div>
+    <label class="f">Título<input id="av-t" maxlength="80" placeholder="Ej. ¡Abrimos pedido grupal!"></label>
+    <label class="f">Mensaje<textarea id="av-x" maxlength="400" rows="3" placeholder="Escribe el aviso para tus clientes"></textarea></label>
+    <label class="f">¿A quién?<select id="av-p"><option value="todos">Todos los clientes</option><option value="mios">Solo mis clientes</option><option value="otro">Solo los clientes de ${otro}</option><option value="camino">Los que tienen un pedido en camino</option><option value="deben">Los que deben</option></select></label>
+    <p class="note" id="av-n"></p>
+    <button type="button" class="btn gold" data-avenviar>📣 Enviar aviso</button>
+    <p class="bt">Avisos enviados</p><div id="av-h" class="av-h"><p class="note">Cargando…</p></div>`;
+  hoja("Avisos a clientes",html);const sel=$("#av-p"),cnt=()=>{const n=cuantosApp(sel.value);$("#av-n").textContent=`${n} cliente${n===1?"":"s"} con la app en este grupo.`};sel.onchange=cnt;cnt();
+  sb.from("avisos").select("id,titulo,texto,para,por,enviados,fecha").order("fecha",{ascending:false}).limit(15).then(({data})=>{const h=$("#av-h");if(!h)return;
+    h.innerHTML=(data||[]).map(a=>`<div class="avh"><b>${esc(a.titulo)}</b><span>${esc(a.texto)}</span><small>${fechaC(a.fecha)} · ${esc(a.por||"")} · ${({todos:"todos",mios:"sus clientes",otro:"clientes del otro",camino:"pedido en camino",deben:"los que deben"})[a.para]||a.para} · 🔔 ${a.enviados} teléfono${a.enviados===1?"":"s"}</small></div>`).join("")||`<p class="note">Todavía no has enviado avisos.</p>`})}
+async function enviarAviso(btn){const t=$("#av-t").value.trim(),x=$("#av-x").value.trim(),para=$("#av-p").value;
+  if(!t||!x){toast("Escribe el título y el mensaje");return}
+  if(!confirm(`¿Enviar este aviso a ${$("#av-p").selectedOptions[0].text.toLowerCase()}?\n\n${t}\n${x}`))return;
+  btn.disabled=true;btn.textContent="Enviando…";
+  try{const{data}=await sb.auth.getSession();const tk=data?.session?.access_token;if(!tk)throw new Error("sin sesión");
+    const r=await fetch(SB_URL+"/functions/v1/enviar-aviso",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+tk,apikey:SB_KEY},body:JSON.stringify({titulo:t,texto:x,clientes:publico(para),para,por:EQUIPO[yo].nombre})});
+    const j=await r.json();if(!j.ok)throw new Error(j.error||"error");
+    toast(`Aviso enviado · llegó a ${j.enviados} teléfono${j.enviados===1?"":"s"}`);abrirAvisos()}
+  catch(e){btn.disabled=false;btn.textContent="📣 Enviar aviso";toast("No se pudo enviar. Revisa tu internet e intenta de nuevo.")}}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-avisos],[data-plant],[data-avenviar]");if(!b)return;
+  if("avisos" in b.dataset)abrirAvisos();else if(b.dataset.plant){const x=PLANTILLAS[+b.dataset.plant];$("#av-t").value=x[1];$("#av-x").value=x[2];$("#av-p").value=x[3];$("#av-p").onchange()}
+  else enviarAviso(b)});
 
 /* 4) Buscador general: clientes, pedidos, guías y artículos */
 function abrirBuscar(){hoja("Buscar",`<input id="bq" class="bq" type="search" placeholder="Cliente, artículo, DC-…, PO-… o guía" autocomplete="off"><div id="bres" class="bres"><p class="note">Escribe al menos 2 letras.</p></div>`);
@@ -2290,7 +2340,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=43;
+const APP="admin",APP_VERSION=44;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
