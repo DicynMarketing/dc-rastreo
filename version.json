@@ -1,7 +1,19 @@
 {
   "admin": 43,
-  "cliente": 16,
+  "cliente": 17,
   "notas": [
+    {
+      "fecha": "2026-11-16",
+      "admin": 43,
+      "cliente": 17,
+      "titulo": "Fecha estimada de llegada",
+      "admin_items": [
+        "Los clientes ven cuándo llega aproximadamente su pedido: de 15 a 25 días desde que se hizo."
+      ],
+      "cliente_items": [
+        "Ahora ves cuándo llega aproximadamente tu pedido (de 15 a 25 días desde que se hizo)."
+      ]
+    },
     {
       "fecha": "2026-11-16",
       "admin": 43,
