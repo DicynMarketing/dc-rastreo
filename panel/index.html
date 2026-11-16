@@ -272,6 +272,48 @@ details.cli .items{border-top:1px dashed color-mix(in srgb,var(--cc) 35%,transpa
 .ag-n{font-weight:700;font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:rgba(232,220,196,.1);color:var(--beige)}
 .ag-n.auto{background:rgba(52,199,123,.14);color:var(--ok)}
 .ag-l{color:var(--gold);font-weight:700;text-decoration:none}
+.atajos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.atajos button{display:grid;justify-items:center;gap:4px;padding:12px 6px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:700 12.5px var(--f-body);cursor:pointer;transition:transform .15s,border-color .2s}
+.atajos button span{font-size:20px}.atajos button:active{transform:scale(.96)}.atajos button:hover{border-color:var(--gold)}
+.buscar-top{margin-left:auto;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--ink);display:grid;place-items:center;cursor:pointer;flex:none}
+.buscar-top svg{width:20px;height:20px}
+.hoja{position:fixed;inset:0;z-index:250;background:rgba(5,7,12,.7);backdrop-filter:blur(3px);display:flex;justify-content:center;align-items:flex-end;animation:zin .2s ease both}
+.hoja-in{background:var(--bg);width:min(760px,100%);max-height:94vh;border-radius:22px 22px 0 0;display:flex;flex-direction:column;overflow:hidden;animation:subeH .3s cubic-bezier(.2,.8,.2,1) both}
+@keyframes subeH{from{transform:translateY(40px);opacity:.4}}
+.hoja-top{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 8px;font:800 15px var(--f-display);letter-spacing:.04em;text-transform:uppercase}
+.hoja-x{width:38px;height:38px;border-radius:50%;border:0;background:var(--panel-2);color:var(--ink);font-size:22px;cursor:pointer}
+.hoja-acc{display:flex;gap:8px;flex-wrap:wrap;padding:0 18px 10px}
+.hoja-body{overflow:auto;padding:4px 18px 28px;display:grid;gap:10px}
+.impr-sub{color:var(--muted);font-size:13px;margin:0}.impr-h{margin:6px 0 0;font:800 20px var(--f-display);text-transform:none;letter-spacing:0;color:var(--ink)}.impr-h3{margin:8px 0 0;font:800 13px var(--f-display);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.dsp{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:8px;break-inside:avoid;background:var(--panel)}
+.dsp-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.dsp-h small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.dsp-l{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(232,220,196,.1);white-space:nowrap}.dsp-l.prov{background:rgba(215,169,91,.18);color:var(--gold)}
+.dsp-its{display:grid;gap:6px}.dsp-it{display:grid;grid-template-columns:40px minmax(0,1fr) 20px;gap:10px;align-items:center;font-size:14px}
+.dsp-it img,.dsp-noimg{width:40px;height:40px;border-radius:8px;object-fit:cover;background:var(--panel-2);display:block}
+.dsp-chk{width:18px;height:18px;border:2px solid var(--muted);border-radius:5px}
+.dsp-f{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}.dsp-f b{color:var(--ink)}
+.cks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ck{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:2px}.ck span{font-size:12px;color:var(--muted)}.ck b{font:800 18px var(--f-display)}.ck b.ok{color:var(--ok)}.ck b.due{color:var(--gold)}
+.ctab{display:grid;gap:4px}.ctab div{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3,auto);gap:10px;font-size:14px;padding:8px 10px;border-radius:10px;background:var(--panel)}
+.cal-st{color:var(--gold);letter-spacing:2px;font-size:18px}.cal-ver{display:grid;gap:4px}.cal-com{color:var(--muted);font-style:italic;font-size:14px}
+.bq{width:100%;box-sizing:border-box;font-size:17px;padding:14px 16px;border-radius:14px}
+.bres{display:grid;gap:6px}.bt{margin:8px 0 0;font:800 11px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.bitem{display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;align-items:center;text-align:left;width:100%;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:12px;padding:8px 10px;font:inherit;cursor:pointer}
+.bitem small{display:block;color:var(--muted);font-size:12px;margin-top:2px}.bitem b{font-size:14px}
+.bav{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--panel-2);font:800 12px var(--f-display);color:var(--gold)}.bimg{width:40px;height:40px;border-radius:8px;object-fit:cover}
+.solo-impr{display:none}
+@media print{
+  .solo-impr{display:block}
+  #hoja .dsp-noimg{background:#eee}
+  body.con-hoja>*:not(#hoja){display:none!important}
+  body.con-hoja{background:#fff!important}
+  #hoja{position:static;background:#fff;backdrop-filter:none;display:block}
+  #hoja .hoja-in{max-height:none;width:100%;border-radius:0;background:#fff;color:#111;animation:none}
+  #hoja .hoja-top,#hoja .hoja-acc,#hoja .no-impr{display:none!important}
+  #hoja .hoja-body{overflow:visible;padding:0}
+  #hoja .dsp,#hoja .ck,#hoja .ctab div{background:#fff;border-color:#bbb;color:#111}
+  #hoja .impr-h,#hoja b,#hoja .ck b{color:#111}
+  #hoja .dsp-l.prov,#hoja .cal-st{color:#8a6420}
+}
 .ei-art{display:grid;gap:6px;padding:8px;border-radius:12px;background:var(--panel-2)}
 .ei-de{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}.ei-de select{flex:1;min-width:0}
 details.cli summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}
@@ -664,10 +706,12 @@ details.reg-list[open] .chev{transform:rotate(180deg)}
           <button data-who="diego" aria-pressed="true"><span class="av">D</span>Diego</button>
           <button data-who="cinthya" aria-pressed="false"><span class="av">C</span>Cinthya</button>
         </div>
+        <button type="button" class="buscar-top" data-buscar aria-label="Buscar"><svg><use href="#i-search"/></svg></button>
       </div>
 
       <section data-view="inicio">
         <div><p class="fecha" id="fecha"></p><h1 id="hello">Buenas, <span>Diego</span></h1><p class="lead" id="lead"></p></div>
+        <div class="atajos"><button type="button" data-resumen><span>📲</span>Mi resumen</button><button type="button" data-despacho><span>📦</span>Lista de despacho</button><button type="button" data-cierre><span>📊</span>Cierre del mes</button></div>
         <details class="segbox" id="segbox"><summary><span class="sb-t">Seguimiento</span><span class="sb-n" id="sb-n"></span><svg class="chev"><use href="#i-chev"/></svg></summary><div class="inbox" id="inbox-seg"></div></details>
         <div><div class="h2row"><h2 id="h-tareas">Por hacer</h2></div><div class="inbox" id="inbox"></div></div>
         <div class="block"><div class="h2row" style="margin:0"><h2>Equipo DC</h2><span class="note">Números de los dos</span></div><div class="kpis" id="kpis"></div><div class="teamrow" id="team"></div></div>
@@ -875,7 +919,10 @@ async function cargar(){
   const vistas=Object.fromEntries(p.data.map(x=>[x.id,x.vista??null]));
   for(const k in SNAP)SNAP[k]={};
   D.C.forEach(x=>SNAP.c[x.id]=est(x));D.P.forEach(o=>SNAP.p[o.id]=est([o,vistas[o.id]]));REGS.forEach(x=>SNAP.r[x.id]=est(x));
+  sb.from("calificaciones").select("pedido,estrellas,comentario,fecha").then(({data})=>{if(data){CAL=Object.fromEntries(data.map(x=>[x.pedido,x]));refresh()}});
 }
+let CAL={};
+const estrellasTxt=n=>"★".repeat(n)+"☆".repeat(5-n);
 /* Lo que guardó el otro llega aquí; se redibuja sin interrumpir si estás escribiendo */
 let refT=null;
 function refrescarRemoto(){clearTimeout(refT);refT=setTimeout(()=>{const a=document.activeElement;
@@ -1252,6 +1299,7 @@ function detalle(o){
       <label for="tt-${o.id}">Transporte<select id="tt-${o.id}">${TRANSPORTE.map(t=>`<option ${o.envio?.t===t?"selected":""}>${t}</option>`).join("")}</select></label>
       <label for="tff-${o.id}">Flete (opcional)<input id="tff-${o.id}" inputmode="decimal" placeholder="0.00" value="${o.envio?tarifa(o)||"":""}"></label>
       <button class="btn sm gold" data-flete="${o.id}">${o.envio?"Guardar":"Agregar flete"}</button></div><p class="note">Opcional: si lo cobras, se suma a lo que paga el cliente y no cuenta como ganancia.</p></div>`;
+  if(CAL[o.id]){const k=CAL[o.id];h+=`<div class="block"><p class="block-t">Calificación del cliente</p><div class="cal-ver"><span class="cal-st">${estrellasTxt(k.estrellas)}</span>${k.comentario?`<span class="cal-com">“${esc(k.comentario)}”</span>`:""}</div></div>`}
   if(EDIT.has(o.id))h+=editorPedido(o);
   else if(o.items&&o.items.length)h+=`<div class="block"><p class="block-t">Lo que pidió ${o.tpo?`· pedido <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}`:""}</p>${o.items.some(x=>!x.img)?`<button type="button" class="btn sm fotos-btn" data-fotos="${o.id}">📷 Poner fotos desde la captura de Temu</button>`:""}<div class="items">${o.items.map(x=>`<div class="item"><span class="it-d">${fotoArt(x,o)}<span>${esc(x.d)}</span></span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}</div></div>`;
   const ro=o.items&&o.items.length?'readonly title="Se calcula de los artículos"':"";
@@ -1294,6 +1342,92 @@ document.addEventListener("change",e=>{const t=e.target;if(!t.dataset?.emov)retu
 /* Cada cliente dentro de un pedido de Temu tiene su color, para distinguirlos */
 const CLI_COL=["#D7A95B","#6FA8DC","#7BC8A4","#E58F8F","#B39DDB","#F0B27A","#5FC4C9","#E8A0C8"];
 const iniciales=n=>String(n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+
+/* ---------- Hoja grande (despacho, cierre, buscador). Se imprime o se guarda como PDF con el botón del navegador. ---------- */
+function hoja(titulo,html,acciones=""){cerrarHoja();const d=document.createElement("div");d.className="hoja";d.id="hoja";
+  d.innerHTML=`<div class="hoja-in"><div class="hoja-top"><b>${titulo}</b><button type="button" class="hoja-x" data-hojax aria-label="Cerrar">×</button></div>${acciones?`<div class="hoja-acc">${acciones}</div>`:""}<div class="hoja-body" id="hoja-body">${html}</div></div>`;
+  document.body.appendChild(d);document.body.classList.add("con-hoja");return d}
+function cerrarHoja(){document.getElementById("hoja")?.remove();document.body.classList.remove("con-hoja")}
+const compartirTxt=async(t,titulo)=>{try{if(navigator.share){await navigator.share({title:titulo,text:t});return}}catch(e){if(e&&e.name==="AbortError")return}
+  window.open(waTel(EQUIPO[yo].tel,t),"_blank")};
+const hoyLargo=()=>new Date().toLocaleDateString("es-PA",{weekday:"long",day:"numeric",month:"long"});
+const porDespachar=()=>mineOrAll().filter(o=>{const e=etapa(o);return e===7||e===8});
+const lugar=o=>{const c=cli(o);return c.ent==="envio"?`${c.prov||"otra provincia"}${o.envio?` · ${o.envio.t}`:""}`:"Aguadulce"};
+
+/* 1) Resumen del día a mi propio WhatsApp */
+function resumenDia(){const yoN=EQUIPO[yo].nombre,M=mineOrAll(),desp=porDespachar(),rec=desp.filter(o=>etapa(o)===7),prep=desp.filter(o=>etapa(o)===8);
+  const camino=M.filter(o=>{const e=etapa(o);return e>=1&&e<=6}),llego=M.filter(prsEntrego),stuck=M.filter(atascado),buy=M.filter(o=>etapa(o)===0),sinG=M.filter(o=>etapa(o)===1&&o.tpo&&!o.paq.length&&!o.rec);
+  const deben=M.filter(o=>saldo(o)>0),totDeb=deben.reduce((a,o)=>a+saldo(o),0);
+  const fila=o=>`• ${cli(o).nombre} — ${o.id} · ${lugar(o)}${saldo(o)>0?` · debe ${$$m(saldo(o))}`:" · pagado ✅"}`;
+  let t=`📋 *Resumen del día*\n${hoyLargo()} · ${yoN}\n`;
+  t+=`\n📦 *Por despachar (${desp.length})*\n`+(desp.length?[...rec.map(o=>fila(o)+" · recibido"),...prep.map(o=>fila(o)+" · preparando")].join("\n"):"Nada por despachar hoy");
+  if(llego.length)t+=`\n\n🛬 *PRS ya lo entregó, márcalo recibido (${llego.length})*\n`+llego.map(o=>`• ${cli(o).nombre} — ${o.id}`).join("\n");
+  t+=`\n\n🚚 *En camino:* ${camino.length} pedido${camino.length===1?"":"s"}`;
+  if(stuck.length)t+=`\n⚠️ *Atascados:* `+stuck.map(o=>`${cli(o).nombre} (${atascado(o).d} días)`).join(", ");
+  if(sinG.length)t+=`\n🔎 *Sin guía todavía:* ${[...new Set(sinG.map(o=>o.tpo))].length} pedido(s) de Temu`;
+  if(buy.length)t+=`\n🛒 *Por comprar:* `+buy.map(o=>cli(o).nombre).join(", ");
+  t+=`\n\n💰 *Te deben:* ${$$m(totDeb)}${deben.length?` (${[...new Set(deben.map(o=>cli(o).nombre))].join(", ")})`:""}`;
+  t+=`\n\n— Panel DC Marketing`;
+  window.open(waTel(EQUIPO[yo].tel,t),"_blank")}
+
+/* 2) Lista de despacho para imprimir, guardar en PDF o compartir */
+function despachoTxt(L){return`📦 *Lista de despacho* · ${hoyLargo()}\n`+L.map(o=>`\n*${cli(o).nombre}* (${o.id}) · ${lugar(o)}\n`+itemsDe(o).map(x=>`  - ${x.d}`).join("\n")+`\n  Total ${$$m(total(o))} · ${saldo(o)>0?`debe ${$$m(saldo(o))}`:"pagado ✅"}`).join("\n")}
+function abrirDespacho(){const L=porDespachar().sort((a,b)=>lugar(a).localeCompare(lugar(b))||cli(a).nombre.localeCompare(cli(b).nombre));
+  const html=L.length?`<h2 class="impr-h solo-impr">Lista de despacho · DC Marketing</h2><p class="impr-sub">${hoyLargo()} · ${L.length} pedido${L.length===1?"":"s"} · ${EQUIPO[yo].nombre}</p>`+L.map(o=>{const c=cli(o),its=itemsDe(o);
+    return`<div class="dsp"><div class="dsp-h"><span><b>${esc(c.nombre)}</b><small>${o.id}${o.tpo?` · ${esc(o.tpo)}`:""} · ${c.tel?fmtTel(c.tel):""}</small></span><span class="dsp-l ${c.ent==="envio"?"prov":""}">${esc(lugar(o))}</span></div>
+      <div class="dsp-its">${its.map(x=>`<div class="dsp-it">${x.img?`<img src="${x.img}" alt="">`:`<span class="dsp-noimg"></span>`}<span>${esc(x.d)}</span><span class="dsp-chk"></span></div>`).join("")}</div>
+      <div class="dsp-f"><span>${its.length} artículo${its.length===1?"":"s"}</span><span>Total <b>${$$m(total(o))}</b></span><span class="${saldo(o)>0?"due":"paid"}">${saldo(o)>0?`Debe ${$$m(saldo(o))}`:"Pagado ✅"}</span></div></div>`}).join("")
+    :`<div class="empty">No hay pedidos por despachar. Aquí salen los pedidos en "Recibido" y "Preparando despacho".</div>`;
+  hoja("Lista de despacho",html,L.length?`<button class="btn gold" data-imprimir>🖨️ Imprimir o guardar PDF</button><button class="btn" data-comptxt="despacho">Compartir</button>`:"");
+  document.getElementById("hoja").dataset.txt=despachoTxt(L)}
+
+/* 3) Cierre del mes */
+function mesesDisp(){const set=new Set(D.P.filter(o=>etapa(o)>0).map(o=>o.creado.slice(0,7)));set.add(new Date().toISOString().slice(0,7));return[...set].sort().reverse()}
+const nomMes=k=>new Date(k+"-15").toLocaleDateString("es-PA",{month:"long",year:"numeric"});
+function cierreDatos(k){const P=D.P.filter(o=>etapa(o)>0&&o.creado.slice(0,7)===k);
+  const vend=P.reduce((a,o)=>a+cobra(o),0),cost=P.reduce((a,o)=>a+num(o.costo),0),gan=P.reduce((a,o)=>a+ganancia(o),0),flete=P.reduce((a,o)=>a+tarifa(o),0);
+  const cobrado=D.P.flatMap(o=>pagosDe(o)).filter(x=>String(x.f||"").slice(0,7)===k).reduce((a,x)=>a+num(x.m),0);
+  const porCobrar=P.reduce((a,o)=>a+saldo(o),0),arts=P.reduce((a,o)=>a+itemsDe(o).length,0),tpos=new Set(P.map(o=>o.tpo).filter(Boolean)).size;
+  const porCli={};P.forEach(o=>{const n=cli(o).nombre;(porCli[n]=porCli[n]||{n,v:0,p:0}).v+=total(o);porCli[n].p++});
+  const top=Object.values(porCli).sort((a,b)=>b.v-a.v).slice(0,5);
+  const per=Object.keys(EQUIPO).map(q=>{const X=P.filter(o=>o.quien===q);return{q,n:X.length,v:X.reduce((a,o)=>a+cobra(o),0),g:X.reduce((a,o)=>a+ganancia(o),0)}});
+  const cals=P.map(o=>CAL[o.id]).filter(Boolean),prom=cals.length?cals.reduce((a,c)=>a+c.estrellas,0)/cals.length:0;
+  return{P,vend,cost,gan,flete,cobrado,porCobrar,arts,tpos,clientes:Object.keys(porCli).length,top,per,cals,prom}}
+function cierreTxt(k,d){return`📊 *Cierre de ${nomMes(k)}* · DC Marketing\n\n🛍️ Pedidos de Temu: ${d.tpos} · Pedidos de clientes: ${d.P.length} · Artículos: ${d.arts}\n👥 Clientes: ${d.clientes}\n\n💵 Vendido: ${$$m(d.vend)}\n🧾 Costo Temu: ${$$m(d.cost)}\n✅ *Ganancia: ${$$m(d.gan)}*\n🚚 Fletes cobrados: ${$$m(d.flete)}\n💰 Cobrado en el mes: ${$$m(d.cobrado)}\n⏳ Falta por cobrar: ${$$m(d.porCobrar)}`
+  +`\n\n`+d.per.map(x=>`${EQUIPO[x.q].nombre}: ${x.n} pedidos · vendió ${$$m(x.v)} · ganancia ${$$m(x.g)}`).join("\n")
+  +(d.top.length?`\n\n🏆 *Mejores clientes*\n`+d.top.map((c,i)=>`${i+1}. ${c.n} — ${$$m(c.v)} (${c.p})`).join("\n"):"")
+  +(d.cals.length?`\n\n⭐ Calificación: ${d.prom.toFixed(1)} de 5 (${d.cals.length})`:"")}
+function abrirCierre(k){k=k||new Date().toISOString().slice(0,7);const d=cierreDatos(k);
+  const kpi=(t,v,c="")=>`<div class="ck"><span>${t}</span><b class="${c}">${v}</b></div>`;
+  const html=`<label class="f no-impr">Mes<select id="cierre-mes">${mesesDisp().map(m=>`<option value="${m}" ${m===k?"selected":""}>${nomMes(m)}</option>`).join("")}</select></label>
+    <h2 class="impr-h">Cierre de ${nomMes(k)}</h2><p class="impr-sub">DC Marketing · ${d.tpos} pedido${d.tpos===1?"":"s"} de Temu · ${d.P.length} pedidos de clientes · ${d.arts} artículos · ${d.clientes} clientes</p>
+    <div class="cks">${kpi("Vendido",$$m(d.vend))}${kpi("Costo Temu",$$m(d.cost))}${kpi("Ganancia",$$m(d.gan),"ok")}${kpi("Fletes",$$m(d.flete))}${kpi("Cobrado en el mes",$$m(d.cobrado))}${kpi("Falta por cobrar",$$m(d.porCobrar),d.porCobrar>0?"due":"")}</div>
+    <h3 class="impr-h3">Por persona</h3><div class="ctab">${d.per.map(x=>`<div><span>${EQUIPO[x.q].nombre}</span><span>${x.n} pedidos</span><span>${$$m(x.v)}</span><b>${$$m(x.g)}</b></div>`).join("")}</div>
+    ${d.top.length?`<h3 class="impr-h3">Mejores clientes</h3><div class="ctab">${d.top.map((c,i)=>`<div><span>${i+1}. ${esc(c.n)}</span><span>${c.p} pedido${c.p===1?"":"s"}</span><b>${$$m(c.v)}</b></div>`).join("")}</div>`:""}
+    ${d.cals.length?`<h3 class="impr-h3">Calificaciones</h3><p class="impr-sub"><span class="cal-st">${estrellasTxt(Math.round(d.prom))}</span> ${d.prom.toFixed(1)} de 5 · ${d.cals.length} calificación${d.cals.length===1?"":"es"}</p>`:""}
+    ${!d.P.length?`<div class="empty">No hay pedidos registrados en ${nomMes(k)}.</div>`:""}`;
+  hoja("Cierre del mes",html,`<button class="btn gold" data-imprimir>🖨️ Imprimir o guardar PDF</button><button class="btn" data-comptxt="cierre">Compartir</button>`);
+  document.getElementById("hoja").dataset.txt=cierreTxt(k,d);
+  document.getElementById("cierre-mes").onchange=e=>abrirCierre(e.target.value)}
+
+/* 4) Buscador general: clientes, pedidos, guías y artículos */
+function abrirBuscar(){hoja("Buscar",`<input id="bq" class="bq" type="search" placeholder="Cliente, artículo, DC-…, PO-… o guía" autocomplete="off"><div id="bres" class="bres"><p class="note">Escribe al menos 2 letras.</p></div>`);
+  const i=document.getElementById("bq");i.focus();i.oninput=()=>buscar(i.value)}
+function buscar(q){const n=normT(q),r=document.getElementById("bres");if(n.length<2){r.innerHTML=`<p class="note">Escribe al menos 2 letras.</p>`;return}
+  const C=D.C.filter(c=>normT(c.nombre).includes(n)||String(c.tel||"").includes(q.replace(/\D/g,"")||"~")).slice(0,8);
+  const P=D.P.filter(o=>normT(o.id+(o.tpo||"")+o.paq.map(p=>p.g).join("")).includes(n)).slice(0,8);
+  const A=[];D.P.forEach(o=>itemsDe(o).forEach(x=>{if(A.length<20&&normT(x.d).includes(n))A.push([o,x])}));
+  r.innerHTML=(C.length?`<p class="bt">Clientes</p>`+C.map(c=>`<button class="bitem" data-ficha="${c.id}"><span class="bav">${esc(iniciales(c.nombre))}</span><span><b>${esc(c.nombre)}</b><small>${c.tel?fmtTel(c.tel):""} · atiende ${EQUIPO[atiende(c)].nombre}</small></span></button>`).join(""):"")
+    +(P.length?`<p class="bt">Pedidos</p>`+P.map(o=>`<button class="bitem" data-verped="${o.id}"><span class="bav">📦</span><span><b>${o.id} · ${esc(cli(o).nombre)}</b><small>${o.tpo?esc(o.tpo)+" · ":""}${etNombre(o)}</small></span></button>`).join(""):"")
+    +(A.length?`<p class="bt">Artículos</p>`+A.map(([o,x])=>`<button class="bitem" data-verped="${o.id}">${x.img?`<img class="bimg" src="${x.img}" alt="">`:`<span class="bav">🛍️</span>`}<span><b>${esc(x.d)}</b><small>${esc(cli(o).nombre)} · ${o.id} · ${$$m(x.precio)}</small></span></button>`).join(""):"")
+    ||`<p class="note">No encontré nada con “${esc(q)}”.</p>`}
+
+document.addEventListener("click",e=>{const b=e.target.closest("[data-resumen],[data-despacho],[data-cierre],[data-buscar],[data-hojax],[data-imprimir],[data-comptxt],.hoja .bitem");if(!b)return;
+  if("resumen" in b.dataset)resumenDia();else if("despacho" in b.dataset)abrirDespacho();else if("cierre" in b.dataset)abrirCierre();else if("buscar" in b.dataset)abrirBuscar();
+  else if("hojax" in b.dataset)cerrarHoja();else if("imprimir" in b.dataset)window.print();
+  else if(b.dataset.comptxt)compartirTxt(document.getElementById("hoja")?.dataset.txt||"",b.dataset.comptxt==="cierre"?"Cierre del mes":"Lista de despacho");
+  else if(b.classList.contains("bitem"))setTimeout(cerrarHoja,0)});
+addEventListener("keydown",e=>{if(e.key==="Escape")cerrarHoja()});
 
 /* ---------- Pedidos de Temu: el número de pedido es la base ---------- */
 let modo="compra",abiertasC=new Set(),cliAbiertos=new Set();
@@ -2101,7 +2235,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=41;
+const APP="admin",APP_VERSION=42;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

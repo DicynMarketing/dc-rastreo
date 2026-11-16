@@ -1,7 +1,22 @@
 {
-  "admin": 41,
-  "cliente": 15,
+  "admin": 42,
+  "cliente": 16,
   "notas": [
+    {
+      "fecha": "2026-11-16",
+      "admin": 42,
+      "cliente": 16,
+      "titulo": "Resumen del día, despacho, cierre del mes, buscador y calificaciones",
+      "admin_items": [
+        "Inicio tiene 3 botones nuevos: 📲 Mi resumen (te manda a tu WhatsApp lo que hay que despachar, lo que llegó, quién debe y más), 📦 Lista de despacho (con fotos, para imprimir, guardar en PDF o compartir) y 📊 Cierre del mes (ventas, ganancia, cobros, mejores clientes; para imprimir o compartir).",
+        "Lupa 🔍 arriba: busca clientes, pedidos, guías y artículos (con su foto).",
+        "Las calificaciones de los clientes salen en el pedido y en el cierre del mes."
+      ],
+      "cliente_items": [
+        "Nuevo botón \"Hacer un pedido\": te lleva directo a nuestro WhatsApp para mandar tus capturas o links.",
+        "En Guardados puedes calificar con estrellas cada pedido que ya recibiste."
+      ]
+    },
     {
       "fecha": "2026-11-16",
       "admin": 41,
