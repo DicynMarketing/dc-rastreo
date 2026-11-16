@@ -257,6 +257,17 @@ details.cli .item.head{color:var(--cc)}
 details.cli .items{border-top:1px dashed color-mix(in srgb,var(--cc) 35%,transparent);padding-top:6px}
 .edit-box .it-h{padding:0 8px}
 .cli-ed{width:32px;height:32px;font-size:14px}
+.it-d{display:flex;align-items:center;gap:10px;min-width:0}.it-d>span{min-width:0}
+.art-foto{flex:none;width:40px;height:40px;padding:0;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#fff;cursor:zoom-in;transition:transform .15s}
+.art-foto:active{transform:scale(.92)}.art-foto img{width:100%;height:100%;object-fit:cover;display:block}
+.art-top .art-foto{width:44px;height:44px}
+.zoom{position:fixed;inset:0;z-index:300;background:rgba(5,7,12,.86);display:grid;place-items:center;padding:24px;animation:zin .22s ease both;backdrop-filter:blur(4px)}
+.zoom figure{margin:0;max-width:min(92vw,420px);text-align:center}
+.zoom img{width:100%;border-radius:18px;background:#fff;box-shadow:0 24px 60px rgba(0,0,0,.5);animation:zpop .3s cubic-bezier(.3,1.3,.5,1) both}
+.zoom figcaption{color:#fff;margin-top:12px;font-size:15px;line-height:1.35}
+.zoom-x{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:22px}
+.zoom.sale{opacity:0;transition:opacity .2s}
+@keyframes zin{from{opacity:0}}@keyframes zpop{from{transform:scale(.6);opacity:0}}
 .ei-art{display:grid;gap:6px;padding:8px;border-radius:12px;background:var(--panel-2)}
 .ei-de{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}.ei-de select{flex:1;min-width:0}
 details.cli summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}
@@ -1212,7 +1223,7 @@ function detalle(o){
       <label for="tff-${o.id}">Flete (opcional)<input id="tff-${o.id}" inputmode="decimal" placeholder="0.00" value="${o.envio?tarifa(o)||"":""}"></label>
       <button class="btn sm gold" data-flete="${o.id}">${o.envio?"Guardar":"Agregar flete"}</button></div><p class="note">Opcional: si lo cobras, se suma a lo que paga el cliente y no cuenta como ganancia.</p></div>`;
   if(EDIT.has(o.id))h+=editorPedido(o);
-  else if(o.items&&o.items.length)h+=`<div class="block"><p class="block-t">Lo que pidió ${o.tpo?`· pedido <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}`:""}</p><div class="items">${o.items.map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}</div></div>`;
+  else if(o.items&&o.items.length)h+=`<div class="block"><p class="block-t">Lo que pidió ${o.tpo?`· pedido <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}`:""}</p><div class="items">${o.items.map(x=>`<div class="item"><span class="it-d">${fotoArt(x)}<span>${esc(x.d)}</span></span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}</div></div>`;
   const ro=o.items&&o.items.length?'readonly title="Se calcula de los artículos"':"";
   // dinero (un encargo solo tiene un total estimado: no es deuda ni venta todavía)
   if(e===0)h+=`<div class="block"><p class="block-t">Total estimado</p><div class="sum"><span>Para el cliente <b>${$$m(o.precio)}</b></span><span class="note">No es deuda: se cobra cuando lo compres y lo registres.</span></div></div>`;
@@ -1302,7 +1313,7 @@ function renderCompras(){
               <span style="min-width:0"><b>${esc(cli(o).nombre)}</b><span class="o-sub" style="display:flex"><span class="cli-quien">${EQUIPO[o.quien].nombre}</span><span>${it.length} art.</span><span class="mono">${o.id}${cp(o.id)}</span>${saldo(o)?`<span style="color:var(--gold)">debe ${$$m(saldo(o))}</span>`:num(o.precio)?`<span style="color:var(--ok)">pagado</span>`:""}</span>
                 <span class="pct"><i style="width:${pct}%"></i></span></span>
               <button class="cli-ed" data-verped="${o.id}" data-edit="1" aria-label="Editar pedido de ${esc(cli(o).nombre)}">✏️</button><span class="cli-tot"><b>${$$m(total(o))}</b><small>${pct}% del pedido</small></span></summary>
-              <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${it.map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
+              <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${it.map(x=>`<div class="item"><span class="it-d">${fotoArt(x)}<span>${esc(x.d)}</span></span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
                 <div class="item head"><span>Total de ${esc(cli(o).nombre.split(" ")[0])}</span><span class="c">${$$m(o.costo)}</span><span class="p">${$$m(o.precio)}</span></div>
                 ${o.envio?`<div class="item"><span>Envío ${esc(o.envio.t)}</span><span class="c"></span><span class="p">${$$m(tarifa(o))}</span></div>`:""}
                 <div class="o-actions" style="margin-top:6px"><button class="btn sm" data-verped="${o.id}">Abrir pedido</button><button class="btn sm" data-verped="${o.id}" data-edit="1">✏️ Editar</button><a class="btn sm wa" href="${wa(o)}" target="_blank" rel="noopener" data-avisar="${o.id}"><svg><use href="#i-wa"/></svg>Avisar</a></div></div></details>`}).join("")}</div>
@@ -1379,6 +1390,18 @@ function parseTemu(txt){
 /* Las fotos de los productos (a la izquierda) confunden al lector: los artículos se leen sin ese tercio. */
 async function sinFotos(file){try{const bm=await createImageBitmap(file),x=Math.round(bm.width*.28),c=document.createElement("canvas");
   c.width=bm.width-x;c.height=bm.height;c.getContext("2d").drawImage(bm,x,0,c.width,c.height,0,0,c.width,c.height);return c}catch(e){return file}}
+/* Foto de cada artículo: Temu la pone a la izquierda del título. Con la posición de la línea del título (Tesseract) se recorta ese cuadrito. */
+const normT=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g,"");
+const lineasDe=d=>d.lines||(d.blocks||[]).flatMap(b=>(b.paragraphs||[]).flatMap(p=>p.lines||[]));
+function ponerFotos(items,lineas,bm){if(!bm||!lineas?.length)return;const W=bm.width,lado=Math.round(W*.27);
+  items.forEach(x=>{if(x.img)return;const k=normT(x.d).slice(0,12);if(k.length<4)return;const l=lineas.find(l=>normT(l.text).includes(k));if(!l?.bbox)return;
+    const y=Math.max(0,Math.min(bm.height-lado,l.bbox.y0-Math.round(W*.025))),c=document.createElement("canvas");c.width=c.height=200;
+    try{c.getContext("2d").drawImage(bm,Math.round(W*.01),y,lado,lado,0,0,200,200);x.img=c.toDataURL("image/jpeg",.72)}catch(e){}})}
+const fotoArt=x=>x&&x.img?`<button type="button" class="art-foto" data-zoom aria-label="Ver foto de ${esc(x.d||"artículo")}"><img src="${x.img}" alt=""></button>`:"";
+document.addEventListener("click",e=>{const b=e.target.closest("[data-zoom]");if(!b)return;e.preventDefault();e.stopPropagation();
+  const img=b.querySelector("img");if(!img)return;const nom=b.getAttribute("aria-label").replace(/^Ver foto de /,"");
+  const d=document.createElement("div");d.className="zoom";d.innerHTML=`<figure><img src="${img.src}" alt=""><figcaption>${esc(nom)}</figcaption></figure><button type="button" class="zoom-x" aria-label="Cerrar">×</button>`;
+  d.onclick=()=>{d.classList.add("sale");setTimeout(()=>d.remove(),200)};document.body.appendChild(d)},true);
 async function leerCapturas(files){
   if(!files.length||!nb)return;
   const hoja=hojaLeer(`<p class="ocr-st"><span class="cg-bar"><i></i></span><span id="ocr-msg">Preparando el lector…</span></p>`);
@@ -1388,15 +1411,16 @@ async function leerCapturas(files){
   // Cada captura por separado. Si el mismo artículo sale en dos capturas (porque se repiten al deslizar), cuenta una vez.
   const lect=Date.now(),cuenta={},datos={};let po="",gs=[],totalTemu=0;
   for(let i=0;i<files.length;i++){const msg=document.getElementById("ocr-msg");if(msg)msg.textContent=`Leyendo captura ${i+1} de ${files.length}…`;
-    try{const{data:{text}}=await ocrWorker.recognize(await sinFotos(files[i]));const r=parseTemu(text),aqui={};
-      if(!r.items.length||(/PO[-\s]?\d{3}|PRS|PTY|pedido/i.test(text)&&!r.po&&!r.guias.length)){const{data:{text:todo}}=await ocrWorker.recognize(files[i]);const r2=parseTemu(todo);
-        if(!r.items.length)r.items=r2.items;r.po=r.po||r2.po;r.guias=[...r.guias,...r2.guias]}
-      r.items.forEach(x=>{const k=x.d.toLowerCase()+"|"+x.costo;aqui[k]=(aqui[k]||0)+x.q;datos[k]=x});
+    try{const bm=await createImageBitmap(files[i]).catch(()=>null);
+      const{data:d1}=await ocrWorker.recognize(await sinFotos(files[i]),{},{text:true,blocks:true});const text=d1.text,r=parseTemu(text),aqui={};ponerFotos(r.items,lineasDe(d1),bm);
+      if(!r.items.length||(/PO[-\s]?\d{3}|PRS|PTY|pedido/i.test(text)&&!r.po&&!r.guias.length)){const{data:d2}=await ocrWorker.recognize(files[i],{},{text:true,blocks:true});const r2=parseTemu(d2.text);
+        if(!r.items.length){r.items=r2.items;ponerFotos(r.items,lineasDe(d2),bm)}r.po=r.po||r2.po;r.guias=[...r.guias,...r2.guias]}
+      r.items.forEach(x=>{const k=x.d.toLowerCase()+"|"+x.costo;aqui[k]=(aqui[k]||0)+x.q;if(!datos[k]||!datos[k].img)datos[k]=x});
       Object.entries(aqui).forEach(([k,v])=>cuenta[k]=Math.max(cuenta[k]||0,v));
       po=po||r.po;gs.push(...r.guias);totalTemu=Math.max(totalTemu,r.total||0)}catch(e){}}
   let n=0;
   Object.entries(cuenta).forEach(([k,v])=>{const x=datos[k],ya=nb.items.filter(y=>(y.d.toLowerCase()+"|"+num(y.costo))===k).length;
-    for(let j=ya;j<v;j++){nb.items.push({d:x.d,costo:x.costo.toFixed(2),precio:x.precio?x.precio.toFixed(2):"",c:"",g:"",l:lect});n++}});
+    for(let j=ya;j<v;j++){nb.items.push({d:x.d,costo:x.costo.toFixed(2),precio:x.precio?x.precio.toFixed(2):"",c:"",g:"",l:lect,...(x.img?{img:x.img}:{})});n++}});
   nb.lect=n?{id:lect,n,caps:files.length}:nb.lect;
   if(po&&!nb.numero.trim())nb.numero=po;
   [...new Set(gs)].forEach(g=>{if(nb.guias.includes(g))return;const v=nb.guias.findIndex(x=>!x.trim());if(v>=0)nb.guias[v]=g;else nb.guias.push(g)});
@@ -1543,7 +1567,7 @@ function renderNB(entra){
      <div class="lect-btns"><button type="button" class="btn sm" data-lectdes>Deshacer lectura</button><button type="button" class="btn sm" data-lectotra>Volver a leer</button></div></div>`:""}
    ${nb.items.filter(lleno).length>1?`<div class="arts-h"><span class="note">${nb.items.filter(lleno).length} artículos · toca × para quitar uno</span><button type="button" class="linkbtn red" data-artsborrar>Borrar todos</button></div>`:""}
    <div class="arts">${nb.items.map((x,ii)=>`<div class="art ${x.c===""&&lleno(x)?"sin":""}" style="--i:${ii}">
-     <div class="art-top"><span class="art-n">${ii+1}</span><input data-ni="${ii}|d" value="${esc(x.d)}" placeholder="${ii?"Artículo "+(ii+1):"Ej. Funda iPhone 13"}" aria-label="Artículo ${ii+1}" enterkeyhint="next" autocomplete="off"><button type="button" class="x" data-nbix="${ii}" aria-label="Quitar artículo">×</button></div>
+     <div class="art-top">${x.img?fotoArt(x):`<span class="art-n">${ii+1}</span>`}<input data-ni="${ii}|d" value="${esc(x.d)}" placeholder="${ii?"Artículo "+(ii+1):"Ej. Funda iPhone 13"}" aria-label="Artículo ${ii+1}" enterkeyhint="next" autocomplete="off"><button type="button" class="x" data-nbix="${ii}" aria-label="Quitar artículo">×</button></div>
      <div class="art-bot ${nb.guias.length>1?"con-g":""}">
        <label>Costo Temu<input data-ni="${ii}|costo" value="${esc(x.costo)}" inputmode="decimal" placeholder="0.00" enterkeyhint="next"></label>
        <label>Le cobras<input data-ni="${ii}|precio" value="${esc(x.precio)}" inputmode="decimal" placeholder="0.00" enterkeyhint="next"></label>
@@ -1615,7 +1639,7 @@ function nbGuardar(){
     let c=D.C.find(x=>x.nombre.toLowerCase()===nombre.toLowerCase());
     if(!c){c={id:"c"+Date.now()+Math.random().toString(36).slice(2,6),nombre,tel,ent:k.ent,prov:k.ent==="envio"?k.prov:"",atiende:k.quien};D.C.push(c)}
     else Object.assign(c,{tel:tel||c.tel,ent:k.ent,prov:k.ent==="envio"?k.prov:""});
-    const items=artsDe(ci).map(x=>({d:x.d.trim(),costo:num(x.costo),precio:num(x.precio)}));
+    const items=artsDe(ci).map(x=>({d:x.d.trim(),costo:num(x.costo),precio:num(x.precio),...(x.img?{img:x.img}:{})}));
     let o=k.desde&&find(k.desde);
     const flete=k.ent==="envio"?num(k.flete):0,envio=flete||k.transp?{t:k.transp||TRANSPORTE[0],tarifa:flete}:null;
     const abonado=+(nbPagado(k,items)+(k.pago==="completo"?flete:0)).toFixed(2);
@@ -1755,7 +1779,7 @@ function renderFicha(){const f=$("#ficha"),c=D.C.find(x=>x.id===fichaId);if(!c){
      <div class="o-actions"><a class="btn sm wa" href="${waTel(c.tel,msgApp)}" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg>Enviar link de la app</a><button class="btn sm" data-copiar="${esc(link)}">Copiar link</button></div></div>
    <div class="block"><span class="f-lab">Todo lo que ha pedido · ${s.ps.reduce((a,o)=>a+itemsDe(o).length,0)} artículos</span>
    <div class="hist2">${s.ps.sort((a,b)=>new Date(b.creado)-new Date(a.creado)).map(o=>`<details class="hd"><summary><span class="mono">${o.id}${cp(o.id)}</span><span style="min-width:0">${etNombre(o)} · ${new Date(o.creado).toLocaleDateString("es-PA",{day:"numeric",month:"short",year:"2-digit"})}${o.tpo?`<span class="o-sub" style="display:block">Pedido ${esc(o.tpo)}</span>`:""}</span><b>${$$m(total(o))}</b></summary>
-     <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${itemsDe(o).map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
+     <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${itemsDe(o).map(x=>`<div class="item"><span class="it-d">${fotoArt(x)}<span>${esc(x.d)}</span></span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
        ${o.envio?`<div class="item"><span>Envío ${esc(o.envio.t)}</span><span class="c"></span><span class="p">${$$m(tarifa(o))}</span></div>`:""}
        <div class="item head"><span>${saldo(o)?`Debe ${$$m(saldo(o))}`:"Pagado"}</span><span class="c">${$$m(o.costo)}</span><span class="p">${$$m(total(o))}</span></div>
        <div class="o-actions" style="margin-top:6px"><button class="btn sm" data-verped="${o.id}">Abrir pedido</button><button class="btn sm" data-verped="${o.id}" data-edit="1">✏️ Editar</button></div></div></details>`).join("")||`<p class="note">Todavía no tiene pedidos.</p>`}</div></div>`;
@@ -1997,7 +2021,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=36;
+const APP="admin",APP_VERSION=37;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
