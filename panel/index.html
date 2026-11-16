@@ -1149,6 +1149,8 @@ function renderInicio(){
   const listos=T.filter(o=>etapa(o)===7||etapa(o)===8).length,tBuy=T.filter(o=>etapa(o)===0),tStuck=T.filter(atascado);
   $("#hello").innerHTML=`${saludo()}, <span>${EQUIPO[yo].nombre}</span>`;
   const nuevos=pendientes();
+  // pedidos de Temu comprados hace 2 días o más que todavía no tienen guía (uno por número de pedido)
+  const sinGuia=Object.values(mios.filter(o=>etapa(o)===1&&o.tpo&&!o.paq.length&&!o.rec&&dias(o.creado)>=2).reduce((g,o)=>{(g[o.tpo]=g[o.tpo]||[]).push(o);return g},{}));
   const tareas=avisos.length+stuck.length+buy.length+nuevos.length+llegaron.length;
   $("#lead").textContent=tareas?`Tienes ${tareas} ${tareas===1?"cosa":"cosas"} por hacer con tus clientes.`:"Tus clientes están al día.";
   $("#h-tareas").innerHTML=`Por hacer · ${EQUIPO[yo].nombre}${buy.length+nuevos.length?`<span class="cnt-b">${buy.length+nuevos.length}</span>`:""}`;
@@ -1169,6 +1171,8 @@ function renderInicio(){
    ...nuevos.map(r=>`<div class="notif app"><div class="stage">${esc(r.nombre[0]||"?")}</div><p><b>${esc(regNombre(r))}</b> entró a la app<br><small>${haceTxt(r.fecha)} · Vincúlalo con su cliente para que vea sus pedidos.</small></p>
      <button class="btn gold" data-vincir="${r.id}"><svg><use href="#i-users"/></svg>Vincular</button></div>`),
    ],seg=[
+   ...sinGuia.map(os=>`<div class="notif"><div class="stage">${dias(os[0].creado)}d</div><p><b>Falta la guía</b> · pedido <span class="mono">${esc(os[0].tpo)}</span><br><small>Lo compraste hace ${dias(os[0].creado)} días (${os.map(o=>esc(cli(o).nombre.split(" ")[0])).join(", ")}). Mira en Temu si ya salió y pon la guía.</small></p>
+     <button class="btn gold" data-ponguia="${esc(os[0].tpo)}"><svg><use href="#i-plus"/></svg>Poner guía</button></div>`),
    ...llegaron.map(o=>`<div class="notif"><div class="stage">7</div><p><b>${esc(cli(o).nombre)}</b> · PRS ya lo entregó<br><small>${o.tpo?`Pedido ${esc(o.tpo)} · `:""}Cuando lo tengas en tus manos, márcalo Recibido.</small></p>
      <button class="btn gold" data-recibi="${o.id}"><svg><use href="#i-check"/></svg>Ya lo recibí</button></div>`),
    ...stuck.map(o=>{const a=atascado(o);return`<div class="notif red"><div class="stage">${a.d}d</div><p><b>${esc(cli(o).nombre)}</b> · ${a.et}<br><small>Guía ${esc(a.g)} sin movimiento hace ${a.d} días. Avísale antes de que pregunte.</small></p>
@@ -2015,6 +2019,8 @@ document.addEventListener("click",e=>{
   else if(d.eix){const[id,i]=d.eix.split("|"),o=find(id);o.items.splice(+i,1);syncItems(o);save();refresh()}
   else if(d.eborrar){const o=find(d.eborrar);if(!confirm(`¿Borrar el pedido ${o.id} de ${cli(o).nombre}? No se puede deshacer.`))return;
     D.P=D.P.filter(x=>x!==o);EDIT.delete(o.id);sb?.from("pedidos").delete().eq("id",o.id).then(({error})=>{if(!error)delete SNAP.p[o.id]});refresh();toast("Pedido borrado")}
+  else if(d.ponguia){const k="T:"+d.ponguia;modo="compra";abiertasC=new Set([k]);location.hash="pedidos";renderAll();
+    setTimeout(()=>{const i=document.getElementById("tg-"+k);if(i){i.scrollIntoView({behavior:"smooth",block:"center"});i.focus()}},250)}
   else if(d.settpo){const o=find(d.settpo),v=$(`#tp-${o.id}`).value.trim().toUpperCase();if(!v)return toast("Escribe el número de pedido");o.tpo=v;save();refresh();toast("Número de pedido guardado")}
   else if(d.addg){const o=find(d.addg),g=$(`#g-${o.id}`).value.trim().toUpperCase();if(!g)return;o.paq.push({g,h:[new Date().toISOString()]});save();rastrearYa();refresh();toast("Guía agregada")}
   else if(d.despachar){const o=find(d.despachar),tf=num($(`#tf-${o.id}`).value);o.envio={t:$(`#t-${o.id}`).value,tarifa:tf};if(!o.local.length)o.local=[new Date().toISOString()];save();refresh();toast(`Despachado por ${o.envio.t}. Avísale al cliente`)}
@@ -2095,7 +2101,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=40;
+const APP="admin",APP_VERSION=41;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
