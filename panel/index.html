@@ -243,8 +243,22 @@ button.kpi:hover{border-color:var(--gold)}
 @media (max-width:520px){.hist .crow{grid-template-columns:auto minmax(0,1fr) auto}.hist .crow .btn{grid-column:1/-1}}
 .tpo .o-name{word-break:break-all}
 .clis{display:grid;gap:6px}
-details.cli{background:var(--bg);border-radius:12px;border:1px solid transparent}
-details.cli[open]{border-color:var(--line)}
+details.cli{--cc:var(--gold);position:relative;background:linear-gradient(100deg,color-mix(in srgb,var(--cc) 13%,var(--bg)) 0%,var(--bg) 70%);border-radius:14px;border:1px solid color-mix(in srgb,var(--cc) 22%,transparent);overflow:hidden;transition:border-color .25s,box-shadow .25s,transform .15s}
+details.cli::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc)}
+details.cli summary:active{transform:scale(.985)}
+details.cli[open]{border-color:color-mix(in srgb,var(--cc) 60%,transparent);box-shadow:0 8px 24px -12px color-mix(in srgb,var(--cc) 55%,transparent)}
+details.cli[open] summary{background:color-mix(in srgb,var(--cc) 10%,transparent)}
+.cli-av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--cc);color:#141821;font:800 12px var(--f-display);letter-spacing:.02em;box-shadow:0 0 0 3px color-mix(in srgb,var(--cc) 25%,transparent)}
+details.cli[open] .cli-av{animation:latido .5s cubic-bezier(.3,1.4,.5,1)}
+@keyframes latido{40%{transform:scale(1.15)}}
+.cli-quien{color:var(--cc);font-weight:700}
+details.cli .pct i{background:var(--cc)}
+details.cli .item.head{color:var(--cc)}
+details.cli .items{border-top:1px dashed color-mix(in srgb,var(--cc) 35%,transparent);padding-top:6px}
+.edit-box .it-h{padding:0 8px}
+.cli-ed{width:32px;height:32px;font-size:14px}
+.ei-art{display:grid;gap:6px;padding:8px;border-radius:12px;background:var(--panel-2)}
+.ei-de{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}.ei-de select{flex:1;min-width:0}
 details.cli summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}
 details.cli summary::-webkit-details-marker{display:none}
 .pct{display:block;height:4px;border-radius:2px;background:var(--line);margin-top:6px;overflow:hidden}
@@ -1223,12 +1237,22 @@ function detalle(o){
 /* Editar un pedido ya guardado: artículos (nombre, costo, cobro), número de pedido de Temu, o borrarlo */
 const EDIT=new Set();
 function editorPedido(o){const its=o.items&&o.items.length?o.items:[{d:o.nota||"",costo:o.costo,precio:o.precio}];
+  const hermanos=o.tpo?D.P.filter(x=>x.tpo===o.tpo):[o];
   return`<div class="block edit-box"><p class="block-t">Editando el pedido</p>
     <label class="f">Fecha del pedido<input type="date" data-ep="${o.id}|fecha" value="${new Date(o.creado).toLocaleDateString("en-CA")}" max="${hoyISO()}"></label>
     <label class="f">Número de pedido de Temu<input class="mono" data-ep="${o.id}|tpo" value="${esc(o.tpo||"")}" placeholder="PO-…" autocomplete="off"></label>
     <div class="it-h"><span>Artículo</span><span>Costo</span><span>Cobras</span><span></span></div>
-    ${its.map((x,i)=>`<div class="it-row"><input data-ei="${o.id}|${i}|d" value="${esc(x.d)}" aria-label="Artículo"><input data-ei="${o.id}|${i}|costo" value="${num(x.costo)||""}" inputmode="decimal" placeholder="0.00" aria-label="Costo"><input data-ei="${o.id}|${i}|precio" value="${num(x.precio)||""}" inputmode="decimal" placeholder="0.00" aria-label="Cobras"><button type="button" class="x" data-eix="${o.id}|${i}" aria-label="Quitar artículo">×</button></div>`).join("")}
+    ${its.map((x,i)=>`<div class="ei-art"><div class="it-row"><input data-ei="${o.id}|${i}|d" value="${esc(x.d)}" aria-label="Artículo"><input data-ei="${o.id}|${i}|costo" value="${num(x.costo)||""}" inputmode="decimal" placeholder="0.00" aria-label="Costo"><input data-ei="${o.id}|${i}|precio" value="${num(x.precio)||""}" inputmode="decimal" placeholder="0.00" aria-label="Cobras"><button type="button" class="x" data-eix="${o.id}|${i}" aria-label="Quitar artículo">×</button></div>
+      ${hermanos.length>1?`<label class="ei-de"><span>¿De quién?</span><select data-emov="${o.id}|${i}" aria-label="Cambiar de cliente">${hermanos.map(h=>`<option value="${h.id}" ${h===o?"selected":""}>${esc(cli(h).nombre)}</option>`).join("")}</select></label>`:""}</div>`).join("")}
     <div class="o-actions"><button class="btn sm" data-eiadd="${o.id}"><svg><use href="#i-plus"/></svg>Artículo</button><button class="btn sm gold" data-eilisto="${o.id}"><svg><use href="#i-check"/></svg>Listo</button><button class="btn sm red" data-eborrar="${o.id}">Borrar pedido</button></div></div>`}
+
+// Pasar un artículo a otro cliente del mismo pedido de Temu
+document.addEventListener("change",e=>{const t=e.target;if(!t.dataset?.emov)return;const[id,i]=t.dataset.emov.split("|"),o=find(id),dest=find(t.value);if(!o||!dest||dest===o)return;
+  if(!dest.items?.length&&(num(dest.costo)||num(dest.precio)))dest.items=[{d:dest.nota||"Pedido",costo:num(dest.costo),precio:num(dest.precio)}];
+  const[x]=o.items.splice(+i,1);(dest.items=dest.items||[]).push(x);syncItems(o);syncItems(dest);save();refresh();toast(`“${x.d||"Artículo"}” pasó a ${cli(dest).nombre}`)});
+/* Cada cliente dentro de un pedido de Temu tiene su color, para distinguirlos */
+const CLI_COL=["#D7A95B","#6FA8DC","#7BC8A4","#E58F8F","#B39DDB","#F0B27A","#5FC4C9","#E8A0C8"];
+const iniciales=n=>String(n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
 
 /* ---------- Pedidos de Temu: el número de pedido es la base ---------- */
 let modo="compra",abiertasC=new Set(),cliAbiertos=new Set();
@@ -1272,10 +1296,10 @@ function renderCompras(){
             :`<div class="sum">Temu aún no da la guía. Agrégala aquí cuando la tengas.</div>`}
           <div class="guia-row"><input id="tg-${esc(c.key)}" class="mono" placeholder="${c.guias.length?"Otra guía (si Temu lo dividió)":"Número de guía"}" aria-label="Agregar guía al pedido"><button class="btn sm" data-tguia="${esc(c.key)}"><svg><use href="#i-plus"/></svg>Agregar</button></div></div>
         <div class="block"><p class="block-t">Clientes · toca un nombre para ver lo que pidió</p>
-          <div class="clis">${c.os.map(o=>{const it=itemsDe(o),pct=cost?Math.round(num(o.costo)/cost*100):0,k=c.key+"|"+o.id;
-            return`<details class="cli" data-cli="${esc(k)}" ${cliAbiertos.has(k)?"open":""}><summary>
-              <span class="who-av ${o.quien}">${EQUIPO[o.quien].nombre[0]}</span>
-              <span style="min-width:0"><b>${esc(cli(o).nombre)}</b><span class="o-sub" style="display:flex"><span>${it.length} art.</span><span class="mono">${o.id}${cp(o.id)}</span>${saldo(o)?`<span style="color:var(--gold)">debe ${$$m(saldo(o))}</span>`:num(o.precio)?`<span style="color:var(--ok)">pagado</span>`:""}</span>
+          <div class="clis">${c.os.map((o,ci)=>{const it=itemsDe(o),pct=cost?Math.round(num(o.costo)/cost*100):0,k=c.key+"|"+o.id;
+            return`<details class="cli" data-cli="${esc(k)}" style="--cc:${CLI_COL[ci%CLI_COL.length]};--k:${ci}" ${cliAbiertos.has(k)?"open":""}><summary>
+              <span class="cli-av">${esc(iniciales(cli(o).nombre))}</span>
+              <span style="min-width:0"><b>${esc(cli(o).nombre)}</b><span class="o-sub" style="display:flex"><span class="cli-quien">${EQUIPO[o.quien].nombre}</span><span>${it.length} art.</span><span class="mono">${o.id}${cp(o.id)}</span>${saldo(o)?`<span style="color:var(--gold)">debe ${$$m(saldo(o))}</span>`:num(o.precio)?`<span style="color:var(--ok)">pagado</span>`:""}</span>
                 <span class="pct"><i style="width:${pct}%"></i></span></span>
               <button class="cli-ed" data-verped="${o.id}" data-edit="1" aria-label="Editar pedido de ${esc(cli(o).nombre)}">✏️</button><span class="cli-tot"><b>${$$m(total(o))}</b><small>${pct}% del pedido</small></span></summary>
               <div class="items"><div class="item cols"><span>Artículo</span><span class="c">Costo Temu</span><span class="p">Le cobras</span></div>${it.map(x=>`<div class="item"><span>${esc(x.d)}</span><span class="c">${$$m(x.costo)}</span><span class="p">${$$m(x.precio)}</span></div>`).join("")}
@@ -1973,7 +1997,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=35;
+const APP="admin",APP_VERSION=36;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

@@ -1,7 +1,18 @@
 {
-  "admin": 35,
+  "admin": 36,
   "cliente": 15,
   "notas": [
+    {
+      "fecha": "2026-11-16",
+      "admin": 36,
+      "cliente": 15,
+      "titulo": "Cambiar de cliente un artículo y clientes con color",
+      "admin_items": [
+        "Al editar un pedido, cada artículo tiene \"¿De quién?\": si lo pusiste en el cliente equivocado, lo pasas al correcto del mismo pedido de Temu.",
+        "En Pedidos de Temu cada cliente tiene su propio color, sus iniciales y quién lo atiende, para distinguirlos fácil."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-13",
       "admin": 35,
