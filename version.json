@@ -1,7 +1,18 @@
 {
-  "admin": 37,
+  "admin": 38,
   "cliente": 15,
   "notas": [
+    {
+      "fecha": "2026-11-16",
+      "admin": 38,
+      "cliente": 15,
+      "titulo": "Fotos en pedidos guardados y clientes que se abren en su lugar",
+      "admin_items": [
+        "Cada artículo tiene su recuadro de foto. En pedidos que ya estaban guardados, toca \"📷 Poner fotos desde la captura de Temu\" (o el recuadro con +) y elige la captura de ese pedido: las fotos se ponen solas en cada artículo, también a los otros clientes del mismo pedido.",
+        "En Clientes, al tocar un cliente su ficha se abre justo debajo, sin subir arriba. \"Ya vinculados\" ahora es un menú más bonito que se abre y se cierra."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-16",
       "admin": 37,
