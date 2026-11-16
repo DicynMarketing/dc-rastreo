@@ -1,7 +1,17 @@
 {
-  "admin": 36,
+  "admin": 37,
   "cliente": 15,
   "notas": [
+    {
+      "fecha": "2026-11-16",
+      "admin": 37,
+      "cliente": 15,
+      "titulo": "Foto de cada artículo",
+      "admin_items": [
+        "Al leer las capturas de Temu, el panel recorta la foto de cada artículo. Sale al lado del nombre en el registro y en los pedidos; tócala y se amplía para ver qué pidió el cliente."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-16",
       "admin": 36,
