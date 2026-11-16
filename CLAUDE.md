@@ -87,6 +87,7 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 
 - Azul marino **apagado, no eléctrico** (panel `#0F1522`, cliente `#151D2E`), **bandejas negras con letras blancas** (`#08090C`), **dorado del logo `#D7A95B`** y **beige** (`#E8DCC4` en el panel, hoja `#F2ECE1` en el cliente). Gris del logo: `#4B4C4E`.
 - **Sin zoom y sin seleccionar texto** en las dos apps (solo en los campos). Todo lo que se copia (códigos DC, número de pedido de Temu, guías, teléfonos, links) lleva un botón de copiar en la esquina (`cp()` → `copiar()`).
+- **Cada sección del panel tiene su carácter** (`body[data-sec]`, `.sec-hero`, `.hero-k`): Inicio = amanecer dorado; Pedidos = bitácora de ruta (mapa punteado, línea de ruta, riel azul `#3E5C8F` en las tarjetas); Registrar = hoja de registro beige con borde troquelado; Clientes = comunidad (azul suave `#6FA8DC`, formas redondas, avatares); Pagos = libro de caja (borde de recibo dentado, números mono, acento verde). Siempre dentro de azul marino, beige y dorado.
 - El panel anima al entrar a cada sección (`animar()`): tarjetas escalonadas, números que cuentan (`data-n`), ruedas que se llenan (`@property --p`) y barras que crecen.
 - Fuentes: Unbounded (títulos), Figtree (texto) e IBM Plex Mono (números de pedido y guías).
 - El dueño pidió que **no parezca hecho por IA**: nada de plantillas genéricas.

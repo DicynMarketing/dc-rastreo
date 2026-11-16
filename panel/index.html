@@ -314,6 +314,61 @@ details.cli .items{border-top:1px dashed color-mix(in srgb,var(--cc) 35%,transpa
   #hoja .impr-h,#hoja b,#hoja .ck b{color:#111}
   #hoja .dsp-l.prov,#hoja .cal-st{color:#8a6420}
 }
+
+/* ===== Cada sección con su propio carácter (siempre azul marino, beige y dorado) ===== */
+body{transition:background-color .5s}
+.sec-hero{position:relative;isolation:isolate}
+.hero-k{display:inline-block;font:700 11px var(--f-body);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;transition:opacity .6s;opacity:0}
+body[data-sec]::before{opacity:1}
+
+/* INICIO · amanecer: luz dorada cálida, tarjetas con filo dorado */
+body[data-sec="inicio"]::before{background:radial-gradient(120% 60% at 0% 0%,rgba(215,169,91,.16),transparent 60%),radial-gradient(80% 50% at 100% 10%,rgba(232,220,196,.06),transparent 60%)}
+section[data-view="inicio"] .sec-hero::after{content:"";position:absolute;right:-6px;top:-10px;width:120px;height:120px;border-radius:50%;z-index:-1;
+  background:radial-gradient(circle,rgba(215,169,91,.35),rgba(215,169,91,0) 70%);filter:blur(2px)}
+section[data-view="inicio"] .kpi{border-top:2px solid rgba(215,169,91,.55)}
+section[data-view="inicio"] .atajos button{background:linear-gradient(160deg,rgba(215,169,91,.12),var(--panel) 60%)}
+
+/* PEDIDOS · bitácora de ruta: mapa punteado, línea de ruta y tarjetas con riel */
+body[data-sec="pedidos"]::before{background:radial-gradient(rgba(232,220,196,.07) 1px,transparent 1.5px) 0 0/22px 22px,linear-gradient(180deg,rgba(43,64,104,.25),transparent 40%)}
+section[data-view="pedidos"] .hero-k{color:#8FB0E0}
+section[data-view="pedidos"] .sec-hero{padding-bottom:14px;background:linear-gradient(90deg,#8FB0E0 0 40%,transparent 0) 0 100%/14px 2px repeat-x}
+section[data-view="pedidos"] .sec-hero::after{content:"✈";position:absolute;right:4px;bottom:-4px;font-size:22px;color:#8FB0E0;transform:rotate(8deg)}
+section[data-view="pedidos"] details.order{border-left:4px solid #3E5C8F;border-radius:6px 16px 16px 6px}
+section[data-view="pedidos"] details.order[open]{border-left-color:var(--gold)}
+section[data-view="pedidos"] .seg button[aria-pressed="true"]{background:#3E5C8F;color:#fff}
+
+/* REGISTRAR · hoja de papel beige: portada como formulario impreso, bloques con borde de libreta */
+body[data-sec="registrar"]::before{background:linear-gradient(180deg,rgba(232,220,196,.08),transparent 35%)}
+section[data-view="registrar"] .sec-hero{background:var(--beige);color:#1B2233;border-radius:18px;padding:18px 18px 22px;
+  -webkit-mask:radial-gradient(circle 7px at 50% 100%,transparent 98%,#000) 0 0/22px 100% repeat-x;mask:radial-gradient(circle 7px at 50% 100%,transparent 98%,#000) 0 0/22px 100% repeat-x}
+section[data-view="registrar"] .sec-hero h1{color:#1B2233}section[data-view="registrar"] .sec-hero h1 span{color:#8A6420}
+section[data-view="registrar"] .sec-hero .lead{color:#4B4C4E}
+section[data-view="registrar"] .hero-k{color:#8A6420;font-family:var(--f-mono)}
+section[data-view="registrar"] .nb-n,section[data-view="registrar"] .art-n{background:var(--beige);color:#1B2233}
+section[data-view="registrar"] .block,section[data-view="registrar"] .nb-card{border-top:3px double rgba(232,220,196,.35)}
+
+/* CLIENTES · comunidad: azul suave, formas redondas y avatares */
+body[data-sec="clientes"]::before{background:radial-gradient(90% 50% at 100% 0%,rgba(111,168,220,.14),transparent 60%),radial-gradient(70% 40% at 0% 100%,rgba(232,220,196,.05),transparent 60%)}
+section[data-view="clientes"] .hero-k{color:#9CC3EA}
+.hero-av{display:flex;margin-bottom:10px}.hero-av i{width:30px;height:30px;border-radius:50%;border:2px solid var(--bg);margin-left:-8px;display:block}
+.hero-av i:first-child{margin-left:0;background:var(--gold)}.hero-av i:nth-child(2){background:#6FA8DC}.hero-av i:nth-child(3){background:var(--beige)}
+section[data-view="clientes"] .rk{border-radius:22px;background:linear-gradient(100deg,rgba(111,168,220,.08),var(--panel) 55%)}
+section[data-view="clientes"] .rk .pos{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(111,168,220,.18);color:#9CC3EA}
+section[data-view="clientes"] .kpi{border-radius:22px}
+section[data-view="clientes"] .btn.gold{border-radius:999px}
+
+/* PAGOS · libro de caja: recibo con borde dentado, números en mono y acento verde */
+body[data-sec="numeros"]::before{background:repeating-linear-gradient(0deg,rgba(232,220,196,.035) 0 1px,transparent 1px 34px),linear-gradient(180deg,rgba(52,199,123,.08),transparent 35%)}
+section[data-view="numeros"] .sec-hero{background:var(--panel);border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0;padding:18px 18px 24px;
+  -webkit-mask:linear-gradient(-45deg,transparent 8px,#000 0) 0 100%/16px 16px repeat-x,linear-gradient(#000,#000) 0 0/100% calc(100% - 15px) no-repeat;
+  mask:linear-gradient(-45deg,transparent 8px,#000 0) 0 100%/16px 16px repeat-x,linear-gradient(#000,#000) 0 0/100% calc(100% - 15px) no-repeat}
+section[data-view="numeros"] .hero-k{color:var(--ok)}
+section[data-view="numeros"] .sec-hero::after{content:"$";position:absolute;right:18px;top:12px;font:800 44px var(--f-display);color:rgba(52,199,123,.18)}
+section[data-view="numeros"] b,section[data-view="numeros"] .v{font-variant-numeric:tabular-nums}
+section[data-view="numeros"] .kpi .v{font-family:var(--f-mono);letter-spacing:-.02em}
+section[data-view="numeros"] .seg button[aria-pressed="true"]{background:var(--ok);color:#06140C}
+@media (prefers-reduced-motion:no-preference){section[data-view]:not([hidden]) .sec-hero{animation:heroIn .5s cubic-bezier(.2,.8,.2,1) both}@keyframes heroIn{from{opacity:0;transform:translateY(-8px)}}}
 .ei-art{display:grid;gap:6px;padding:8px;border-radius:12px;background:var(--panel-2)}
 .ei-de{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}.ei-de select{flex:1;min-width:0}
 details.cli summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}
@@ -710,7 +765,7 @@ details.reg-list[open] .chev{transform:rotate(180deg)}
       </div>
 
       <section data-view="inicio">
-        <div><p class="fecha" id="fecha"></p><h1 id="hello">Buenas, <span>Diego</span></h1><p class="lead" id="lead"></p></div>
+        <div class="sec-hero"><p class="fecha" id="fecha"></p><h1 id="hello">Buenas, <span>Diego</span></h1><p class="lead" id="lead"></p></div>
         <div class="atajos"><button type="button" data-resumen><span>📲</span>Mi resumen</button><button type="button" data-despacho><span>📦</span>Lista de despacho</button><button type="button" data-cierre><span>📊</span>Cierre del mes</button></div>
         <details class="segbox" id="segbox"><summary><span class="sb-t">Seguimiento</span><span class="sb-n" id="sb-n"></span><svg class="chev"><use href="#i-chev"/></svg></summary><div class="inbox" id="inbox-seg"></div></details>
         <div><div class="h2row"><h2 id="h-tareas">Por hacer</h2></div><div class="inbox" id="inbox"></div></div>
@@ -721,7 +776,7 @@ details.reg-list[open] .chev{transform:rotate(180deg)}
       </section>
 
       <section data-view="pedidos" hidden>
-        <div><h1>Pedidos</h1><p class="lead" id="ped-lead">Toca un pedido para ver sus guías, cobros y entrega.</p></div>
+        <div class="sec-hero"><span class="hero-k">✈︎ Bitácora de envíos</span><h1>Pedidos</h1><p class="lead" id="ped-lead">Toca un pedido para ver sus guías, cobros y entrega.</p></div>
         <div class="seg" id="seg-modo"><button data-modo="compra" aria-pressed="true">Pedidos de Temu</button><button data-modo="cliente" aria-pressed="false">Por cliente</button></div>
         <div id="modo-compra" class="block">
           <div class="tools"><label class="search"><svg><use href="#i-search"/></svg><input id="qc" placeholder="Buscar número de pedido, guía o cliente" aria-label="Buscar pedido de Temu"></label>
@@ -737,7 +792,7 @@ details.reg-list[open] .chev{transform:rotate(180deg)}
       </section>
 
       <section data-view="registrar" hidden>
-        <div><h1>Registrar <span>pedido</span></h1><p class="lead">Primero el número de pedido y la guía de Temu, después lo que pidió cada cliente.</p></div>
+        <div class="sec-hero"><span class="hero-k">Nº · Hoja de registro</span><h1>Registrar <span>pedido</span></h1><p class="lead">Primero el número de pedido y la guía de Temu, después lo que pidió cada cliente.</p></div>
         <div class="seg" id="seg-reg"><button type="button" data-reg="temu" aria-pressed="true">Pedido de Temu</button><button type="button" data-reg="encargo" aria-pressed="false">Encargo por comprar</button></div>
         <div class="form" id="nb"></div>
         <form class="form" id="form" novalidate hidden>
@@ -783,7 +838,7 @@ details.reg-list[open] .chev{transform:rotate(180deg)}
       </section>
 
       <section data-view="clientes" hidden>
-        <div><h1>Clientes</h1><p class="lead">Registra aquí a tus clientes con su WhatsApp. Al hacer un pedido solo los eliges de la lista.</p></div>
+        <div class="sec-hero"><span class="hero-av" aria-hidden="true"><i></i><i></i><i></i></span><span class="hero-k">Tu comunidad</span><h1>Clientes</h1><p class="lead">Registra aquí a tus clientes con su WhatsApp. Al hacer un pedido solo los eliges de la lista.</p></div>
         <button type="button" class="btn gold" data-rcabrir style="justify-self:start"><svg><use href="#i-plus"/></svg>Registrar cliente</button>
         <div class="seg" id="seg-cli"><button data-cf="todos" aria-pressed="true">Todo el equipo</button><button data-cf="diego" aria-pressed="false">Diego</button><button data-cf="cinthya" aria-pressed="false">Cinthya</button></div>
         <div class="kpis" id="c-kpis"></div>
@@ -794,7 +849,7 @@ details.reg-list[open] .chev{transform:rotate(180deg)}
       </section>
 
       <section data-view="numeros" hidden>
-        <div><h1>Pagos</h1><p class="lead">Cada pago o abono queda guardado con su fecha. Cuando un cliente termina de pagar, sale de Deudas y queda como pago completo.</p></div>
+        <div class="sec-hero"><span class="hero-k">Libro de caja</span><h1>Pagos</h1><p class="lead">Cada pago o abono queda guardado con su fecha. Cuando un cliente termina de pagar, sale de Deudas y queda como pago completo.</p></div>
         <div class="seg" id="seg-pg"><button data-pg="pagos" aria-pressed="true">Pagos</button><button data-pg="clientes" aria-pressed="false">Por cliente</button><button data-pg="deudas" aria-pressed="false">Deudas</button><button data-pg="ganancia" aria-pressed="false">Ganancia</button></div>
         <div id="pg-box" style="display:grid;gap:14px">
           <div class="kpis" id="pg-kpis"></div>
@@ -2065,7 +2120,7 @@ function refresh(){const act=document.activeElement;if(act&&act!==document.body&
 const VIEWS=["inicio","pedidos","registrar","clientes","numeros"];
 function go(){
   const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"inicio";
-  $$("section[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
+  $$("section[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);document.body.dataset.sec=v;
   $$("[data-nav]").forEach(a=>{if(a.dataset.nav===v)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
   const act=$(`#navlist [data-nav="${v}"]`);if(act)$("#ind").style.transform=`translateY(${act.offsetTop}px)`;
   if(v==="registrar"){$("#done").hidden=true;renderNB()}
@@ -2235,7 +2290,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=42;
+const APP="admin",APP_VERSION=43;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
