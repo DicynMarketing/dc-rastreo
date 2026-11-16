@@ -1,7 +1,17 @@
 {
-  "admin": 38,
+  "admin": 39,
   "cliente": 15,
   "notas": [
+    {
+      "fecha": "2026-11-16",
+      "admin": 39,
+      "cliente": 15,
+      "titulo": "Fotos mejor recortadas y más nítidas",
+      "admin_items": [
+        "Las fotos de los artículos ahora se recortan justo en el borde del cuadro de Temu (centradas y parejas) y salen en mejor calidad, con un poco más de nitidez."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-16",
       "admin": 38,
