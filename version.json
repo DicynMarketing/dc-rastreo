@@ -1,7 +1,19 @@
 {
-  "admin": 45,
+  "admin": 46,
   "cliente": 18,
   "notas": [
+    {
+      "fecha": "2026-11-17",
+      "admin": 46,
+      "cliente": 18,
+      "titulo": "Encargos sin pedidos repetidos",
+      "admin_items": [
+        "Al registrar un pedido de Temu, si el cliente tiene un encargo por comprar te sale \"Vincular a este pedido\": el encargo se convierte en ese pedido y no queda uno repetido.",
+        "En un encargo: \"🔗 Ya está en un pedido registrado\" lo une al pedido que elijas y quita el repetido.",
+        "Si tocaste \"Ya lo compré\" por error, en el pedido sale \"↩️ Deshacer 'Ya lo compré'\" para regresarlo a Por comprar."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-16",
       "admin": 45,

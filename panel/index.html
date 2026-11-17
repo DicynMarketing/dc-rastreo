@@ -376,6 +376,8 @@ section[data-view="numeros"] b,section[data-view="numeros"] .v{font-variant-nume
 section[data-view="numeros"] .kpi .v{font-family:var(--f-mono);letter-spacing:-.02em}
 section[data-view="numeros"] .seg button[aria-pressed="true"]{background:var(--ok);color:#06140C}
 @media (prefers-reduced-motion:no-preference){section[data-view]:not([hidden]) .sec-hero{animation:heroIn .5s cubic-bezier(.2,.8,.2,1) both}@keyframes heroIn{from{opacity:0;transform:translateY(-8px)}}}
+.enc-link{font-size:13.5px;line-height:1.45;padding:10px 12px;border-radius:12px;border:1px dashed var(--gold);background:rgba(215,169,91,.08);margin-bottom:8px;display:block}.enc-link .btn{display:inline-flex;margin-top:8px}.enc-link .mono{font-family:var(--f-mono)}
+.enc-link.ok{border-style:solid;background:rgba(52,199,123,.08);border-color:rgba(52,199,123,.5)}
 .ei-art{display:grid;gap:6px;padding:8px;border-radius:12px;background:var(--panel-2)}
 .ei-de{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}.ei-de select{flex:1;min-width:0}
 details.cli summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}
@@ -1336,8 +1338,9 @@ function detalle(o){
   const e=etapa(o),c=cli(o);
   let h=e>0&&!EDIT.has(o.id)?`<button class="btn edit-top" data-editp="${o.id}">✏️ Editar pedido (fecha, artículos, número)</button>`:"";
   if(e===0){h+=`<div class="block"><p class="block-t">Por comprar</p><div class="sum">${esc(o.nota||"Sin nota")}</div>
-     <div class="o-actions"><button class="btn gold" data-compre="${o.id}"><svg><use href="#i-check"/></svg>Ya lo compré</button><button class="btn sm" data-open="${o.id}">Registrarlo en un pedido de Temu</button></div></div>`}
-  else if(!o.paq.length){h+=`<div class="block"><p class="block-t">Pedido Temu <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}</p><div class="sum">${o.rec?`Recibido sin guía · ${new Date(o.rec).toLocaleDateString("es-PA",{day:"numeric",month:"short"})}`:"Realizado. Agrega el número de pedido y la guía cuando los tengas."}</div>
+     <div class="o-actions"><button class="btn gold" data-compre="${o.id}"><svg><use href="#i-check"/></svg>Ya lo compré</button><button class="btn sm" data-open="${o.id}">Registrarlo en un pedido de Temu</button><button class="btn sm" data-unirenc="${o.id}">🔗 Ya está en un pedido registrado</button></div></div>`}
+  if(o.comprado&&!o.tpo&&!o.paq.length&&e===1)h+=`<div class="o-actions"><button class="btn sm" data-descompre="${o.id}">↩️ Deshacer "Ya lo compré"</button><button class="btn sm" data-unirenc="${o.id}">🔗 Ya está en un pedido registrado</button></div>`;
+  if(e===0){}else if(!o.paq.length){h+=`<div class="block"><p class="block-t">Pedido Temu <span class="mono">${esc(o.tpo)}</span>${cp(o.tpo,"número de pedido")}</p><div class="sum">${o.rec?`Recibido sin guía · ${new Date(o.rec).toLocaleDateString("es-PA",{day:"numeric",month:"short"})}`:"Realizado. Agrega el número de pedido y la guía cuando los tengas."}</div>
      ${o.rec?"":`${o.tpo?"":`<div class="guia-row"><input id="tp-${o.id}" class="mono" placeholder="Número de pedido PO-…" aria-label="Número de pedido de Temu" autocomplete="off"><button class="btn sm" data-settpo="${o.id}">Guardar</button></div>`}
        <div class="guia-row"><input id="g-${o.id}" class="mono" placeholder="Guía PRSPTY… o JPA…" aria-label="Agregar guía" autocomplete="off"><button class="btn sm" data-addg="${o.id}"><svg><use href="#i-plus"/></svg>Agregar</button></div>`}
      ${o.rec&&e===7?`<button class="btn sm" style="justify-self:start" data-norec="${o.id}">Deshacer “Recibido”</button>`:""}</div>`}
@@ -1913,7 +1916,11 @@ function renderNB(entra){
    <button type="button" class="btn sm" data-nbadd style="justify-self:start"><svg><use href="#i-plus"/></svg>Artículo a mano</button>
    <div class="nb-step"><span class="nb-n">3</span><div><b>Clientes de este pedido</b><p class="note">Toca “Agregar cliente” y elige de tu lista quiénes pidieron en esta compra. Después, en cada artículo, eliges “¿De quién?”.</p></div></div>
    ${nb.clientes.length?"":`<div class="empty">Todavía no hay clientes. Toca “Agregar cliente”.</div>`}
-   ${nb.clientes.map((k,ci)=>{const its=artsDe(ci),s=sumItems(its);return`<div class="nb-cli" style="--i:${ci}">
+   ${nb.clientes.map((k,ci)=>{const its=artsDe(ci),s=sumItems(its),cx=D.C.find(x=>x.nombre.toLowerCase()===String(k.nombre||"").trim().toLowerCase()),
+       enc=cx?D.P.filter(o=>o.cli===cx.id&&(etapa(o)===0||(o.comprado&&!o.tpo&&!o.paq.length&&etapa(o)===1))&&!nb.clientes.some((q,qi)=>qi!==ci&&q.desde===o.id)):[];
+     return`<div class="nb-cli" style="--i:${ci}">
+     ${k.desde?`<div class="enc-link ok">🔗 Vinculado al encargo <b class="mono">${esc(k.desde)}</b>: se convierte en este pedido, no se crea uno nuevo. <button type="button" class="linkbtn" data-nbdesv="${ci}">Quitar</button></div>`
+       :enc.map(o=>`<div class="enc-link">📝 ${esc(k.nombre)} tiene un encargo ${etapa(o)===0?"por comprar":"marcado como comprado"} (<span class="mono">${o.id}</span>${o.nota?` · ${esc(o.nota.split("\n")[0].slice(0,40))}`:""}). <button type="button" class="btn sm gold" data-nbvinc="${ci}|${o.id}">Vincular a este pedido</button></div>`).join("")}
      <div class="nb-cli-h"><span class="nb-idx">${ci+1}</span>
        <input data-nb="${ci}|nombre" list="dl-clientes" value="${esc(k.nombre)}" placeholder="Nombre del cliente" aria-label="Cliente ${ci+1}" autocomplete="off">
        <button type="button" class="btn sm red" data-nbdel="${ci}" aria-label="Quitar cliente">Quitar</button></div>
@@ -2250,6 +2257,14 @@ document.addEventListener("click",e=>{
   else if("rcabrir" in d){abrirRegCliente()}
   else if(d.rceditar){const c=D.C.find(x=>x.id===d.rceditar);if(c)abrirRegCliente(c)}
   else if("rcok" in d){guardarRegCliente()}
+  else if(d.nbvinc){const[ci,id]=d.nbvinc.split("|");nb.clientes[+ci].desde=id;renderNB();toast("Encargo vinculado: no se crea un pedido nuevo")}
+  else if(d.nbdesv){delete nb.clientes[+d.nbdesv].desde;renderNB()}
+  else if(d.descompre){const o=find(d.descompre);if(!o||!confirm(`¿Regresar ${o.id} a "Por comprar"?`))return;delete o.comprado;o.avisado=0;save();refresh();toast("Regresó a Por comprar")}
+  else if(d.unirenc){const o=find(d.unirenc);if(!o)return;const L=D.P.filter(x=>x!==o&&x.cli===o.cli&&etapa(x)>=1&&!(x.comprado&&!x.tpo)).sort((a,b)=>new Date(b.creado)-new Date(a.creado)).slice(0,8);
+    hoja("¿En qué pedido quedó?",L.length?`<p class="note">El encargo <b class="mono">${o.id}</b> de ${esc(cli(o).nombre)} se quita, porque sus artículos ya están en el pedido que elijas. Así no queda repetido.</p>`+L.map(x=>`<button class="bitem" data-unira="${o.id}|${x.id}"><span class="bav">📦</span><span><b>${x.id}${x.tpo?` · ${esc(x.tpo)}`:""}</b><small>${new Date(x.creado).toLocaleDateString("es-PA",{day:"numeric",month:"short"})} · ${itemsDe(x).length} artículos · ${etNombre(x)}</small></span></button>`).join("")
+      :`<div class="empty">${esc(cli(o).nombre)} no tiene otro pedido registrado. Regístralo primero con su captura.</div>`)}
+  else if(d.unira){const[a,bid]=d.unira.split("|"),o=find(a),dest=find(bid);if(!o||!dest||!confirm(`¿Quitar ${o.id} porque ya está en ${dest.id}?`))return;
+    if(o.nota&&!dest.nota)dest.nota=o.nota;D.P=D.P.filter(x=>x!==o);sb?.from("pedidos").delete().eq("id",o.id).then(({error})=>{if(!error)delete SNAP.p[o.id]});cerrarHoja();save();refresh();toast(`Listo: ${o.id} quedó dentro de ${dest.id}`)}
   else if(d.nbcart){const o=find(d.nbcart),c=cli(o);const blank=nb.clientes.length===1&&!nb.clientes[0].nombre;
     const k={nombre:c.nombre,tel:fmtTel(c.tel),quien:o.quien,ent:c.ent,prov:c.prov||"Chiriquí",adel:num(o.abonado)||"",pago:num(o.abonado)?"adelanto":"nada",desde:o.id};
     if(blank)nb.clientes[0]=k;else nb.clientes.push(k);nb.items=nb.items.filter(lleno);
@@ -2369,7 +2384,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=45;
+const APP="admin",APP_VERSION=46;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
