@@ -1,7 +1,18 @@
 {
-  "admin": 46,
+  "admin": 47,
   "cliente": 18,
   "notas": [
+    {
+      "fecha": "2026-11-18",
+      "admin": 47,
+      "cliente": 18,
+      "titulo": "Compras propias de Diego y Cinthya",
+      "admin_items": [
+        "Lo que piden Diego de Gracia y Cinthya González ya no suma en Ganancias ni en el cierre del mes.",
+        "Su deuda se sigue viendo en cada pedido y en Deudas (con la etiqueta \"Propia · no suma\"), pero no cuenta en el total de \"Nos deben\" ni \"Por cobrar\"."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-17",
       "admin": 46,

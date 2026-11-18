@@ -187,6 +187,10 @@ Las etapas 2 a 6 vienen del rastreo de cada guía. **7 (Recibido), 8 y 9 se marc
 - Panel: botón **📣** arriba (`abrirAvisos()`): 10 plantillas (`PLANTILLAS`; "Abrimos pedidos" pide el último día para pedir = 3 días hábiles por defecto, `habiles()`, y programa solo "Hoy cerramos pedidos" ese día 9:00 a.m.; cierre a las 11 p.m.; sin "pedido grupal"), "¿Cuándo?" ahora o programado (`programado`; la función **`avisos-programados`** + pg_cron cada 10 min los envía; se cancelan desde el historial). Grupo `listos` = con pedido en camino y sin deuda (para "Día de entregas"), título, mensaje y "¿A quién?" (`publico(para)`: todos, mis clientes, los del otro, con pedido en camino 1–8, los que deben). Envía con la sesión del equipo a la Edge Function **`enviar-aviso`** (`verify_jwt` true; revisa `es_equipo()` con el token del usuario): guarda en la tabla **`avisos`** (`regs` = registros destinatarios o null = todos) y manda push a sus `push_subs`. Abajo, historial con cuántos teléfonos recibieron.
 - Cliente: `app_avisos(id,token)` (últimos 30 días, máx. 10) se pide junto con mis pedidos; tarjetas 📣 arriba del inicio (`avisosHTML()`), se cierran con × (`localStorage` `dc-cli-avx`). El texto del aviso no se traduce.
 
+## Compras propias (decisión tomada)
+
+- Los pedidos de los clientes **Diego de Gracia** y **Cinthya/Cintia González** (`esPropio(c)`, `propio(o)`, nombre sin acentos) son compras propias: `ganancia(o)` vale 0, no entran en Ganancias ni en el cierre del mes, y su saldo no suma en los totales de deuda (`deuda(o)` = 0; Inicio "Nos deben", Pagos "Por cobrar", Ganancias, resumen). Se siguen viendo en Deudas y en el pedido con "Debe $X" y la etiqueta "Propia · no suma".
+
 ## Cambio de persona en el panel
 
 - El selector Diego / Cinthya (y las tarjetas del equipo en Inicio) piden **confirmar con PIN o Face ID / huella** para ver la vista de la otra persona (`pedirCambio()`); volver a la propia cuenta (`CUENTA`) es libre. Sin PIN configurado, se confirma con un mensaje.

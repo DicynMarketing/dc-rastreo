@@ -1223,7 +1223,13 @@ const addPago=(o,m,f)=>ponerPagos(o,[...pagosDe(o),{m:+num(m).toFixed(2),f:f||ne
 const pagoIni=(m,f,q)=>num(m)>0?[{m:+num(m).toFixed(2),f,por:q}]:[];
 const hoyISO=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
 const fechaC=f=>f?new Date(f).toLocaleDateString("es-PA",{day:"numeric",month:"short",year:"2-digit"}):"";
-const ganancia=o=>etapa(o)===0?0:num(o.precio)-num(o.costo);
+/* Compras propias: lo que piden Diego de Gracia y Cinthya González no es venta. No suma en ganancias
+   ni en el total de deudas; su deuda se ve por pedido, pero no se cuenta. */
+const normN=t=>String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
+const esPropio=c=>{const n=normN(c?.nombre);return /^diego de gracia\b/.test(n)||/^cint(h)?(i|y)a gonzalez\b/.test(n)};
+const propio=o=>esPropio(cli(o));
+const ganancia=o=>etapa(o)===0||propio(o)?0:num(o.precio)-num(o.costo);
+const deuda=o=>propio(o)?0:saldo(o);
 const etNombre=(o,e=etapa(o))=>e===8?(o.envio?`Enviado por ${o.envio.t}`:"Preparando despacho"):e===7&&o.paq.length>1?"Todo recibido":ET[e];
 function resumenPaq(o){const n=o.paq.length;if(n<2)return"";const e=Math.min(...o.paq.map(pkgSt));if(e>=7)return"";
   const max=Math.max(...o.paq.map(pkgSt));return`${o.paq.filter(p=>pkgSt(p)===max).length} de ${n} paquetes ${ET[max].toLowerCase()}`}
@@ -1262,7 +1268,7 @@ const mineOrAll=()=>D.P.filter(o=>o.quien===yo);
 /* ---------- Inicio ---------- */
 function renderInicio(){
   const mios=mineOrAll(),llegaron=mios.filter(prsEntrego),avisos=mios.filter(necesitaAviso),stuck=mios.filter(atascado),buy=mios.filter(o=>etapa(o)===0);
-  const T=D.P,deuda=T.reduce((a,o)=>a+saldo(o),0),enCamino=T.filter(o=>etapa(o)>=1&&etapa(o)<9).length;
+  const T=D.P,deudaT=T.reduce((a,o)=>a+deuda(o),0),enCamino=T.filter(o=>etapa(o)>=1&&etapa(o)<9).length;
   const listos=T.filter(o=>etapa(o)===7||etapa(o)===8).length,tBuy=T.filter(o=>etapa(o)===0),tStuck=T.filter(atascado);
   $("#hello").innerHTML=`${saludo()}, <span>${EQUIPO[yo].nombre}</span>`;
   const nuevos=pendientes();
@@ -1273,7 +1279,7 @@ function renderInicio(){
   $("#h-tareas").innerHTML=`Por hacer · ${EQUIPO[yo].nombre}${buy.length+nuevos.length?`<span class="cnt-b">${buy.length+nuevos.length}</span>`:""}`;
   $("#fecha").textContent=new Date().toLocaleDateString("es-PA",{weekday:"long",day:"numeric",month:"long"});
   $("#kpis").innerHTML=`
-   <button class="kpi" data-jump="saldo"><span class="k">Nos deben</span><span class="v gold" data-n="${deuda}" data-m="1">${$$m(deuda)}</span><small>${T.filter(o=>saldo(o)>0).length} pedidos con saldo</small></button>
+   <button class="kpi" data-jump="saldo"><span class="k">Nos deben</span><span class="v gold" data-n="${deudaT}" data-m="1">${$$m(deudaT)}</span><small>${T.filter(o=>deuda(o)>0).length} pedidos con saldo</small></button>
    <button class="kpi" data-jump="camino"><span class="k">En camino</span><span class="v" data-n="${enCamino}">${enCamino}</span><small>${listos} por entregar</small></button>
    <button class="kpi" data-jump="comprar"><span class="k">Por comprar</span><span class="v" data-n="${tBuy.length}">${tBuy.length}</span><small>carrito del equipo</small></button>
    <button class="kpi" data-jump="atascado"><span class="k">Atascados</span><span class="v ${tStuck.length?"red":"ok"}" data-n="${tStuck.length}">${tStuck.length}</span><small>${DIAS_ATASCADO}+ días sin movimiento</small></button>`;
@@ -1428,7 +1434,7 @@ const lugar=o=>{const c=cli(o);return c.ent==="envio"?`${c.prov||"otra provincia
 /* 1) Resumen del día a mi propio WhatsApp */
 function resumenDia(){const yoN=EQUIPO[yo].nombre,M=mineOrAll(),desp=porDespachar(),rec=desp.filter(o=>etapa(o)===7),prep=desp.filter(o=>etapa(o)===8);
   const camino=M.filter(o=>{const e=etapa(o);return e>=1&&e<=6}),llego=M.filter(prsEntrego),stuck=M.filter(atascado),buy=M.filter(o=>etapa(o)===0),sinG=M.filter(o=>etapa(o)===1&&o.tpo&&!o.paq.length&&!o.rec);
-  const deben=M.filter(o=>saldo(o)>0),totDeb=deben.reduce((a,o)=>a+saldo(o),0);
+  const deben=M.filter(o=>saldo(o)>0),totDeb=deben.reduce((a,o)=>a+deuda(o),0);
   const fila=o=>`• ${cli(o).nombre} — ${o.id} · ${lugar(o)}${saldo(o)>0?` · debe ${$$m(saldo(o))}`:" · pagado ✅"}`;
   let t=`📋 *Resumen del día*\n${hoyLargo()} · ${yoN}\n`;
   t+=`\n📦 *Por despachar (${desp.length})*\n`+(desp.length?[...rec.map(o=>fila(o)+" · recibido"),...prep.map(o=>fila(o)+" · preparando")].join("\n"):"Nada por despachar hoy");
@@ -1455,10 +1461,10 @@ function abrirDespacho(){const L=porDespachar().sort((a,b)=>lugar(a).localeCompa
 /* 3) Cierre del mes */
 function mesesDisp(){const set=new Set(D.P.filter(o=>etapa(o)>0).map(o=>o.creado.slice(0,7)));set.add(new Date().toISOString().slice(0,7));return[...set].sort().reverse()}
 const nomMes=k=>new Date(k+"-15").toLocaleDateString("es-PA",{month:"long",year:"numeric"});
-function cierreDatos(k){const P=D.P.filter(o=>etapa(o)>0&&o.creado.slice(0,7)===k);
+function cierreDatos(k){const P=D.P.filter(o=>etapa(o)>0&&!propio(o)&&o.creado.slice(0,7)===k);
   const vend=P.reduce((a,o)=>a+cobra(o),0),cost=P.reduce((a,o)=>a+num(o.costo),0),gan=P.reduce((a,o)=>a+ganancia(o),0),flete=P.reduce((a,o)=>a+tarifa(o),0);
   const cobrado=D.P.flatMap(o=>pagosDe(o)).filter(x=>String(x.f||"").slice(0,7)===k).reduce((a,x)=>a+num(x.m),0);
-  const porCobrar=P.reduce((a,o)=>a+saldo(o),0),arts=P.reduce((a,o)=>a+itemsDe(o).length,0),tpos=new Set(P.map(o=>o.tpo).filter(Boolean)).size;
+  const porCobrar=P.reduce((a,o)=>a+deuda(o),0),arts=P.reduce((a,o)=>a+itemsDe(o).length,0),tpos=new Set(P.map(o=>o.tpo).filter(Boolean)).size;
   const porCli={};P.forEach(o=>{const n=cli(o).nombre;(porCli[n]=porCli[n]||{n,v:0,p:0}).v+=total(o);porCli[n].p++});
   const top=Object.values(porCli).sort((a,b)=>b.v-a.v).slice(0,5);
   const per=Object.keys(EQUIPO).map(q=>{const X=P.filter(o=>o.quien===q);return{q,n:X.length,v:X.reduce((a,o)=>a+cobra(o),0),g:X.reduce((a,o)=>a+ganancia(o),0)}});
@@ -2149,7 +2155,7 @@ function renderPagos(){
   if(pgModo==="ganancia")return renderNumeros();
   const q=$("#qp").value.trim().toLowerCase(),coincide=o=>!q||(cli(o).nombre+" "+(o.tpo||"")+" "+o.id).toLowerCase().includes(q);
   const P=todosPagos(),m0=new Date(),delMes=P.filter(p=>{const d=new Date(p.x.f);return d.getMonth()===m0.getMonth()&&d.getFullYear()===m0.getFullYear()});
-  const deben=[...new Set(D.P.filter(o=>saldo(o)>0).map(o=>o.cli))],porCobrar=D.P.reduce((a,o)=>a+saldo(o),0);
+  const deben=[...new Set(D.P.filter(o=>deuda(o)>0).map(o=>o.cli))],porCobrar=D.P.reduce((a,o)=>a+deuda(o),0);
   $("#pg-kpis").innerHTML=`<div class="kpi"><span class="k">Cobrado este mes</span><span class="v ok" data-n="${delMes.reduce((a,p)=>a+num(p.x.m),0)}" data-m="1">${$$m(delMes.reduce((a,p)=>a+num(p.x.m),0))}</span><small>${delMes.length} pagos</small></div>
     <div class="kpi"><span class="k">Por cobrar</span><span class="v ${porCobrar?"gold":"ok"}">${$$m(porCobrar)}</span><small>${deben.length===1?"1 cliente debe":deben.length+" clientes deben"}</small></div>`;
   let h="";
@@ -2164,7 +2170,7 @@ function renderPagos(){
       return{c,os,debe:os.reduce((a,o)=>a+saldo(o),0),pagado:os.reduce((a,o)=>a+num(o.abonado),0)}}).filter(x=>x.os.length)
       .sort((a,b)=>soloDeuda?b.debe-a.debe:a.c.nombre.localeCompare(b.c.nombre));
     h=C.length?`<div class="pagos">${C.map(({c,os,debe,pagado})=>`<details class="pago-cli"><summary><div style="min-width:0"><b>${esc(c.nombre)}</b><div class="o-sub"><span>${os.length} pedido${os.length>1?"s":""}</span><span>Pagó ${$$m(pagado)}</span></div></div>
-        <span class="pill ${debe?"gold":"ok"}">${debe?`Debe ${$$m(debe)}`:"Al día"}</span><svg class="chev"><use href="#i-chev"/></svg></summary>
+        <span class="pill ${debe?"gold":"ok"}">${debe?`Debe ${$$m(debe)}`:"Al día"}</span>${esPropio(c)?`<span class="pill">Propia · no suma</span>`:""}<svg class="chev"><use href="#i-chev"/></svg></summary>
       <div class="pc-body">${os.sort((a,b)=>new Date(b.creado)-new Date(a.creado)).map(o=>{const ps=pagosDe(o),sal=saldo(o);
         return`<div class="pc-ped"><div class="pc-h"><span class="mono">${pedTxt(o)}${o.tpo?cp(o.tpo,"número de pedido"):""}</span><span class="note">${fechaC(o.creado)} · total ${$$m(total(o))}</span></div>
           ${!sal&&ps.length?`<div class="sum"><span class="paid"><b>Pago completo</b> · ${$$m(o.abonado)}</span><span>${ps.length>1?`en ${ps.length} pagos, último ${fechaC(ps[ps.length-1].f)}`:fechaC(ps[0].f)}</span></div>`
@@ -2182,9 +2188,9 @@ function mesDe(o){const d=new Date(o.local[1]||o.creado);return d.getFullYear()*
 function renderNumeros(){
   const hoy=new Date(),m0=hoy.getFullYear()*12+hoy.getMonth();
   $("#mes").textContent=hoy.toLocaleDateString("es-PA",{month:"long"});
-  const delMes=D.P.filter(o=>cobra(o)&&mesDe(o)===m0);
+  const delMes=D.P.filter(o=>cobra(o)&&!propio(o)&&mesDe(o)===m0);
   const vend=delMes.reduce((a,o)=>a+num(o.precio),0),cost=delMes.reduce((a,o)=>a+num(o.costo),0),gan=vend-cost;
-  const cobrar=D.P.reduce((a,o)=>a+saldo(o),0);
+  const cobrar=D.P.reduce((a,o)=>a+deuda(o),0);
   $("#n-kpis").innerHTML=`<div class="kpi"><span class="k">Ganancia</span><span class="v gold" data-n="${gan}" data-m="1">${$$m(gan)}</span><small>${delMes.length} pedidos</small></div>
    <div class="kpi"><span class="k">Vendido</span><span class="v" data-n="${vend}" data-m="1">${$$m(vend)}</span><small>lo que cobraste</small></div>
    <div class="kpi"><span class="k">Pagado en Temu</span><span class="v">${$$m(cost)}</span><small>margen ${vend?Math.round(gan/vend*100):0}%</small></div>
@@ -2384,7 +2390,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=46;
+const APP="admin",APP_VERSION=47;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
