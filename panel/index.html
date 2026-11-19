@@ -376,6 +376,9 @@ section[data-view="numeros"] b,section[data-view="numeros"] .v{font-variant-nume
 section[data-view="numeros"] .kpi .v{font-family:var(--f-mono);letter-spacing:-.02em}
 section[data-view="numeros"] .seg button[aria-pressed="true"]{background:var(--ok);color:#06140C}
 @media (prefers-reduced-motion:no-preference){section[data-view]:not([hidden]) .sec-hero{animation:heroIn .5s cubic-bezier(.2,.8,.2,1) both}@keyframes heroIn{from{opacity:0;transform:translateY(-8px)}}}
+.ent-g{display:grid;gap:8px;padding:12px;border-radius:14px;background:var(--panel);border:1px solid rgba(52,199,123,.45);margin-top:10px}
+.ent-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline;min-width:0}.ent-h b{overflow-wrap:anywhere}.ent-h small{color:var(--muted);font-size:12px;white-space:nowrap}
+.ent-c{display:flex;flex-wrap:wrap;gap:6px}.ent-g-b{display:flex;flex-wrap:wrap;gap:8px}
 .enc-link{font-size:13.5px;line-height:1.45;padding:10px 12px;border-radius:12px;border:1px dashed var(--gold);background:rgba(215,169,91,.08);margin-bottom:8px;display:block}.enc-link .btn{display:inline-flex;margin-top:8px}.enc-link .mono{font-family:var(--f-mono)}
 .enc-link.ok{border-style:solid;background:rgba(52,199,123,.08);border-color:rgba(52,199,123,.5)}
 .ei-art{display:grid;gap:6px;padding:8px;border-radius:12px;background:var(--panel-2)}
@@ -999,7 +1002,8 @@ function escuchar(){
   sb.channel("dc-panel")
     .on("postgres_changes",{event:"*",schema:"public",table:"clientes"},m=>m.new?.id&&aplicar(D.C,"id",SNAP.c,m.new,m.new.data,m.new.data))
     .on("postgres_changes",{event:"*",schema:"public",table:"pedidos"},m=>{if(!m.new?.id)return;aplicar(D.P,"id",SNAP.p,m.new,m.new.data,[m.new.data,m.new.vista]);
-      const o=D.P.find(x=>x.id===m.new.id);if(o&&est([o,vistaCli(o)])!==SNAP.p[o.id])save()})
+      const o=D.P.find(x=>x.id===m.new.id);if(o&&est([o,vistaCli(o)])!==SNAP.p[o.id])save();
+      if(o&&prsEntrego(o)){clearTimeout(window._entT);window._entT=setTimeout(()=>revisarEntregas(),2500)}})
     .on("postgres_changes",{event:"*",schema:"public",table:"registros"},m=>{const x=m.new;if(!x?.id)return;const r={id:x.id,nombre:x.nombre,apellido:x.apellido,fecha:x.fecha,cliente:x.cliente,invita:x.invita,via:x.via,vinculado:x.vinculado};aplicar(REGS,"id",SNAP.r,r,r,r)})
     .subscribe(st=>{if(st==="SUBSCRIBED")estadoSync(hayPendientes()?"guardando":"ok");else if(st==="CHANNEL_ERROR"||st==="TIMED_OUT")estadoSync("error")});
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&!hayPendientes())cargar().then(refresh).catch(()=>estadoSync("error"))});
@@ -1143,7 +1147,25 @@ document.addEventListener("visibilitychange",()=>{if(document.visibilityState===
   else if(pinCfg()&&$("#login").hidden&&ocultoDesde&&Date.now()-ocultoDesde>60000&&($("#lock")?.hidden!==false))bloquear()});
 
 /* Al entrar, si hay versión nueva se muestra la hoja para actualizar a mano (si no hay otra hoja abierta) */
-async function avisarActualizacion(){try{await revisarAct()}catch(e){}if(ACT.hay&&!document.getElementById("upd")&&$("#lock")?.hidden!==false&&$("#login").hidden)abrirNovedades()}
+async function avisarActualizacion(){try{await revisarAct()}catch(e){}if(ACT.hay&&!document.getElementById("upd")&&$("#lock")?.hidden!==false&&$("#login").hidden)abrirNovedades();else setTimeout(()=>revisarEntregas(),400)}
+/* Cuando PRS marca que entregó la guía, el panel lo avisa y pide aprobar "Sí, ya lo recibí" (no se pasa solo a Recibido). */
+const K_ENTX="dc-entx",leerEntx=()=>{try{return JSON.parse(localStorage.getItem(K_ENTX))||{}}catch(e){return{}}};
+function gruposEntrega(){const vistos=leerEntx(),ahora=Date.now(),G={};
+  D.P.filter(prsEntrego).forEach(o=>{const k=o.tpo||o.paq.map(p=>p.g).sort().join("+");(G[k]=G[k]||{k,os:[]}).os.push(o)});
+  return Object.values(G).filter(g=>!(vistos[g.k]>ahora))}
+function revisarEntregas(forzar){const L=gruposEntrega();if(!L.length){if(forzar)toast("No hay entregas de PRS por confirmar");return}
+  if(!forzar&&(document.getElementById("hoja")||document.getElementById("upd")||$("#lock")?.hidden===false||!$("#login").hidden))return;
+  navigator.vibrate?.(120);
+  hoja("📦 PRS dice que ya te entregó",`<p class="note">La paquetería marcó ${L.length===1?"este pedido":"estos pedidos"} como <b>entregado${L.length===1?"":"s"}</b>. Si ya ${L.length===1?"lo":"los"} tienes en tus manos, apruébalo y pasa a <b>Recibido</b> para tus clientes.</p>`+
+    L.map(g=>{const o=g.os[0],prs=o.paq.map(p=>p.prs?.f).filter(Boolean).sort().pop();
+      return`<div class="ent-g"><div class="ent-h"><b class="mono">${esc(o.tpo||o.id)}</b><small>${prs?`Entregado ${fechaC(prs)}`:""}</small></div>
+        <div class="ent-c">${g.os.map(x=>`<span class="pill">${esc(cli(x).nombre)}</span>`).join("")}</div>
+        <div class="ent-g-b"><button class="btn sm gold" data-entok="${esc(g.k)}"><svg><use href="#i-check"/></svg>Sí, ya lo recibí</button><button class="btn sm" data-entno="${esc(g.k)}">Todavía no</button></div></div>`}).join(""))}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-entok],[data-entno]");if(!b)return;
+  if(b.dataset.entok){const g=gruposEntrega().find(x=>x.k===b.dataset.entok);if(g){const now=new Date().toISOString();
+      g.os.forEach(o=>o.paq.forEach(q=>{while(q.h.length<7)q.h.push(now)}));save();refresh();toast(`Recibido: ${g.os.length} cliente${g.os.length===1?"":"s"} ya lo ven`)}}
+  else{const v=leerEntx();v[b.dataset.entno]=Date.now()+12*3600e3;try{localStorage.setItem(K_ENTX,JSON.stringify(v))}catch(e){}toast("Te lo vuelvo a preguntar más tarde")}
+  b.closest(".ent-g").remove();if(!document.querySelector("#hoja .ent-g"))cerrarHoja()});
 /* ---------- Entrar (solo correos del equipo) ---------- */
 let modoLogin="entrar",quienNuevo="",QUIEN="";
 function cargando(on,txt){const c=$("#cargando");if(!c)return;c.hidden=!on;if(txt)$("#cg-txt").textContent=txt}
@@ -2390,7 +2412,7 @@ document.addEventListener("contextmenu",e=>{if(!e.target.closest("input,textarea
    version.json (en la raíz del sitio) dice la última versión de cada app y sus novedades.
    Si es mayor que APP_VERSION aparece "Nueva actualización". Al publicar un cambio: subir APP_VERSION
    en el HTML que cambió y poner el mismo número y la nota en version.json. */
-const APP="admin",APP_VERSION=47;
+const APP="admin",APP_VERSION=48;
 const ACT={v:null,hay:false};
 const espera=ms=>new Promise(r=>setTimeout(r,ms));
 const ICO_OK=`<svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;

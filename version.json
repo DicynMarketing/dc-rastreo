@@ -1,7 +1,18 @@
 {
-  "admin": 47,
+  "admin": 48,
   "cliente": 18,
   "notas": [
+    {
+      "fecha": "2026-11-19",
+      "admin": 48,
+      "cliente": 18,
+      "titulo": "Aviso cuando PRS te entrega",
+      "admin_items": [
+        "Cuando PRS marca que ya te entregó un pedido, el panel te avisa solo (al abrirlo o en el momento si ya está abierto) con \"📦 PRS dice que ya te entregó\".",
+        "Tocas \"Sí, ya lo recibí\" y todos los clientes de ese pedido pasan a Recibido. Con \"Todavía no\" te lo vuelve a preguntar en 12 horas."
+      ],
+      "cliente_items": []
+    },
     {
       "fecha": "2026-11-18",
       "admin": 47,
